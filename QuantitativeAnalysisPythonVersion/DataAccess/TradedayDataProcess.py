@@ -17,17 +17,22 @@ class TradedayDataProcess(object):
     #----------------------------------------------------------------------
     @classmethod 
     def getTradedays(self,startDate,endDate):
+        startDate=str(startDate)
+        endDate=str(endDate)
         if not TradedayDataProcess.allTradedays:
             TradedayDataProcess.allTradedays=TradedayDataProcess.__getTradedaysFromLocalFile(startDate,endDate)
         else:
             pass
-        startDate = datetime.datetime.strptime(str(startDate), "%Y%m%d")
-        endDate = datetime.datetime.strptime(str(endDate), "%Y%m%d")
+        startDate = datetime.datetime.strptime(startDate, "%Y%m%d")
+        endDate = datetime.datetime.strptime(endDate, "%Y%m%d")
         mydata=TradedayDataProcess.allTradedays.loc[(TradedayDataProcess.allTradedays['date']>=startDate) &(TradedayDataProcess.allTradedays['date']<=endDate),'date']
         return mydata
     #----------------------------------------------------------------------
     @classmethod 
     def __getTradedaysFromLocalFile(self,startDate,endData):
+        
+        
+        
         try:
             f=h5py.File(TradedayDataProcess.localFileStr,'r')
             myKeys=list(f.keys())
@@ -36,7 +41,6 @@ class TradedayDataProcess(object):
                 mydata=TradedayDataProcess.__getAllTradedaysFromRDF()
             else:
                 lastStoreDate=datetime.datetime.strptime(max(myKeys), "%Y-%m-%d")
-                print(lastStoreDate)
                 if ((datetime.datetime.now() - relativedelta(months=+6))>lastStoreDate):#如果六个月没有更新，重新抓取数据
                     mydata=TradedayDataProcess.__getAllTradedaysFromRDF()
         except:
@@ -45,9 +49,10 @@ class TradedayDataProcess(object):
             f=h5py.File(TradedayDataProcess.localFileStr,'r')
             myKeys=list(f.keys())
             f.close()
-            mydata=pd.read_hdf(TradedayDataProcess.localFileStr,key=max(myKeys))
-            print(mydata)
-            pass
+            #mydata=pd.read_hdf(TradedayDataProcess.localFileStr,key=max(myKeys))
+            store = pd.HDFStore(TradedayDataProcess.localFileStr,'r')
+            mydata=store.select(max(myKeys))
+            store.close()
         return mydata
     #----------------------------------------------------------------------
     @classmethod 

@@ -58,6 +58,12 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="QuantitativeAnalysisPythonVersion.py" />
+    <Compile Include="Strategy\stockReverseMovement.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Strategy\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Utility\SqlServerUtility.py">
       <SubType>Code</SubType>
     </Compile>
@@ -70,6 +76,7 @@
     <Folder Include="Model\" />
     <Folder Include="Config\" />
     <Folder Include="DataPrepare\" />
+    <Folder Include="Strategy\" />
     <Folder Include="Utility\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
