@@ -1,6 +1,8 @@
 from DataAccess.IndexComponentDataProcess import *
 from DataAccess.KLineDataProcess import *
 from DataAccess.TradedayDataProcess import *
+from Config.myConstant import *
+from Config.myConfig import *
 
 
 ########################################################################
@@ -10,6 +12,8 @@ class stockReverseMovement(object):
     def __init__(self):
         self.__myMinute=KLineDataProcess('minute',True)
         self.__myDaily=KLineDataProcess('daily',True)
+        self.__localFileStr=LocalFileAddress+"\\intermediateResult\\ceilingFeature.h5"
+        self.__allMinute=pd.DataFrame()
         pass
     #----------------------------------------------------------------------
     def __getStockList(self):
@@ -50,9 +54,7 @@ class stockReverseMovement(object):
             m['ceilingInNext5m']=m['ceiling'].shift(-5).rolling(5).max()
             m['ceilingInNext10m']=m['ceiling'].shift(-10).rolling(10).max()
             mselect=m[(m['increaseInDay']>0.07) & (m['increaseInDay']<0.08)]
-            print(len(mselect))
             mselect=mselect.dropna(axis=0,how='any')
-            print(len(mselect))
             self.__allMinute=self.__allMinute.append(mselect)
             pass
         pass
@@ -72,8 +74,11 @@ class stockReverseMovement(object):
         self.endDate=endDate
         #self.tradeDays=TradedayDataProcess.getTradedays(startDate,endDate)
         self.__dataPrepared()
-        store = pd.HDFStore(localFileStr,'a')
-        #mydata=store.select(self.KLineLevel,where=['date>="%s" and date<="%s"'%(startDate,endDate)])
+        store = pd.HDFStore(self.__localFileStr,'a')
+        store.append('ceiling',self.__allMinute,append=False,format="table",data_columns=['code', 'date', 'time', 'open', 'high', 'low', 'close', 'volume',
+       'amount', 'increase5m', 'increase1m', 'yesterdayClose',
+       'ceilingYesterday', 'ceilingYesterday2', 'ceilingIn5Days',
+       'increaseInDay', 'ceiling', 'ceilingInNext5m', 'ceilingInNext10m'])
         store.close()
 
 
