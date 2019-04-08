@@ -11,8 +11,10 @@ import time
 #----------------------------------------------------------------------
 def main():
     """主程序入口"""
-    tmp=stockReverseMovement()
-    tmp.reverse(20100101,20181228)
+    #tmp=dataPrepareByIndex()
+    #tmp.getStockData()
+    #tmp=stockReverseMovement()
+    #tmp.reverse(20100101,20181228)
     #tmp=myRandomForestForCeiling()
     #tmp.myRandomForest('ceilingInNext5m')
     
