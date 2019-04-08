@@ -4,6 +4,7 @@ import cx_Oracle as oracle
 from Config.myConfig import *
 import pandas as pd
 from dateutil.relativedelta import relativedelta
+import os
 
 ########################################################################
 class TradedayDataProcess(object):
@@ -30,9 +31,22 @@ class TradedayDataProcess(object):
     #----------------------------------------------------------------------
     @classmethod 
     def __getTradedaysFromLocalFile(self,startDate,endData):
-        
-        
-        
+        exists=os.path.isfile(TradedayDataProcess.localFileStr)
+        if exists==True:
+            f=h5py.File(TradedayDataProcess.localFileStr,'r')
+            myKeys=list(f.keys())
+            f.close()
+            lastStoreDate=datetime.datetime.strptime(max(myKeys), "%Y-%m-%d")
+            if (myKeys==[] or (datetime.datetime.now() - relativedelta(months=+6))>lastStoreDate):#如果六个月没有更新，重新抓取数据
+                mydata=TradedayDataProcess.__getAllTradedaysFromRDF()
+            else:
+                store = pd.HDFStore(TradedayDataProcess.localFileStr,'r')
+                mydata=store.select(max(myKeys))
+                store.close()
+        else:
+            mydata=TradedayDataProcess.__getAllTradedaysFromRDF()
+        return mydata
+        """
         try:
             f=h5py.File(TradedayDataProcess.localFileStr,'r')
             myKeys=list(f.keys())
@@ -54,6 +68,7 @@ class TradedayDataProcess(object):
             mydata=store.select(max(myKeys))
             store.close()
         return mydata
+        """
     #----------------------------------------------------------------------
     @classmethod 
     def __getAllTradedaysFromRDF(self):
@@ -65,10 +80,9 @@ class TradedayDataProcess(object):
         ''')
         mydata=pd.DataFrame(myCursor.fetchall(),columns=['date'])
         mydata['date']=pd.to_datetime(mydata['date'],format='%Y-%m-%d')
-        mydata.to_hdf(TradedayDataProcess.localFileStr,key=TradedayDataProcess.nowStr,mode='a',format='table')
-        #f=h5py.File(TradedayDataProcess.localFileStr,'w')
-        #f.create_dataset(TradedayDataProcess.nowStr,data=mydata)
-        #f.close()
+        store = pd.HDFStore(TradedayDataProcess.localFileStr,'a')
+        store.append(TradedayDataProcess.nowStr,mydata,append=False,format="table",data_columns=['date'])
+        store.close()
         return mydata
 
 

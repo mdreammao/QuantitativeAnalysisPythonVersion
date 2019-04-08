@@ -2,7 +2,7 @@ from Config.myConstant import *
 from Config.myConfig import *
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier  
-from sklearn import cross_validation,metrics
+from sklearn import metrics
 from sklearn.externals import joblib
 
 ########################################################################
