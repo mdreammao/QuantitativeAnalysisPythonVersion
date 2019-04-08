@@ -72,7 +72,7 @@ class stockReverseMovement(object):
     def reverse(self,startDate,endDate):
         self.startDate=startDate
         self.endDate=endDate
-        #self.tradeDays=TradedayDataProcess.getTradedays(startDate,endDate)
+        self.tradeDays=TradedayDataProcess.getTradedays(startDate,endDate)
         self.__dataPrepared()
         store = pd.HDFStore(self.__localFileStr,'a')
         store.append('ceiling',self.__allMinute,append=False,format="table",data_columns=['code', 'date', 'time', 'open', 'high', 'low', 'close', 'volume',
