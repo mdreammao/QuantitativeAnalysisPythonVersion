@@ -30,10 +30,25 @@
     <Compile Include="Config\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DataAccess\IndexCode.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DataAccess\IndexComponentDataProcess.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DataAccess\IndexDailyKLineProcess.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataAccess\IndustryClassification.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataAccess\IndustryDailyKLineProcess.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DataAccess\KLineDataProcess.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataAccess\StockSharesProcess.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DataAccess\TradedayDataProcess.py">

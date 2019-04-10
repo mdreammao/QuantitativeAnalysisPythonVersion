@@ -9,7 +9,7 @@ import os
 ########################################################################
 class TradedayDataProcess(object):
     """从RDF/本地文件中读取数据"""
-    nowStr=datetime.datetime.now().strftime('%Y-%m-%d')
+    nowStr=datetime.datetime.now().strftime('%Y%m%d')
     localFileStr=LocalFileAddress+"\\tradedays.h5"
     allTradedays=None
     #----------------------------------------------------------------------
@@ -24,8 +24,8 @@ class TradedayDataProcess(object):
             TradedayDataProcess.allTradedays=TradedayDataProcess.__getTradedaysFromLocalFile(startDate,endDate)
         else:
             pass
-        startDate = datetime.datetime.strptime(startDate, "%Y%m%d")
-        endDate = datetime.datetime.strptime(endDate, "%Y%m%d")
+        #startDate = datetime.datetime.strptime(startDate, "%Y%m%d")
+        #endDate = datetime.datetime.strptime(endDate, "%Y%m%d")
         mydata=TradedayDataProcess.allTradedays.loc[(TradedayDataProcess.allTradedays['date']>=startDate) &(TradedayDataProcess.allTradedays['date']<=endDate),'date']
         return mydata
     #----------------------------------------------------------------------
@@ -36,7 +36,7 @@ class TradedayDataProcess(object):
             f=h5py.File(TradedayDataProcess.localFileStr,'r')
             myKeys=list(f.keys())
             f.close()
-            lastStoreDate=datetime.datetime.strptime(max(myKeys), "%Y-%m-%d")
+            lastStoreDate=datetime.datetime.strptime(max(myKeys), "%Y%m%d")
             if (myKeys==[] or (datetime.datetime.now() - relativedelta(months=+6))>lastStoreDate):#如果六个月没有更新，重新抓取数据
                 mydata=TradedayDataProcess.__getAllTradedaysFromRDF()
             else:
@@ -46,29 +46,6 @@ class TradedayDataProcess(object):
         else:
             mydata=TradedayDataProcess.__getAllTradedaysFromRDF()
         return mydata
-        """
-        try:
-            f=h5py.File(TradedayDataProcess.localFileStr,'r')
-            myKeys=list(f.keys())
-            f.close()
-            if myKeys==[]:
-                mydata=TradedayDataProcess.__getAllTradedaysFromRDF()
-            else:
-                lastStoreDate=datetime.datetime.strptime(max(myKeys), "%Y-%m-%d")
-                if ((datetime.datetime.now() - relativedelta(months=+6))>lastStoreDate):#如果六个月没有更新，重新抓取数据
-                    mydata=TradedayDataProcess.__getAllTradedaysFromRDF()
-        except:
-            mydata=TradedayDataProcess.__getAllTradedaysFromRDF()
-        finally:
-            f=h5py.File(TradedayDataProcess.localFileStr,'r')
-            myKeys=list(f.keys())
-            f.close()
-            #mydata=pd.read_hdf(TradedayDataProcess.localFileStr,key=max(myKeys))
-            store = pd.HDFStore(TradedayDataProcess.localFileStr,'r')
-            mydata=store.select(max(myKeys))
-            store.close()
-        return mydata
-        """
     #----------------------------------------------------------------------
     @classmethod 
     def __getAllTradedaysFromRDF(self):
@@ -79,7 +56,8 @@ class TradedayDataProcess(object):
         select trade_days from wind_filesync.asharecalendar where s_info_exchmarket='SSE' order by trade_days
         ''')
         mydata=pd.DataFrame(myCursor.fetchall(),columns=['date'])
-        mydata['date']=pd.to_datetime(mydata['date'],format='%Y-%m-%d')
+        #mydata['date']=mydata['date'].astype(str)
+       # mydata['date']=pd.to_datetime(mydata['date'],format='%Y%m%d')
         store = pd.HDFStore(TradedayDataProcess.localFileStr,'a')
         store.append(TradedayDataProcess.nowStr,mydata,append=False,format="table",data_columns=['date'])
         store.close()

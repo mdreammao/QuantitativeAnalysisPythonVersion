@@ -18,8 +18,11 @@ class stockReverseMovement(object):
     #----------------------------------------------------------------------
     def __getStockList(self):
         myindex=IndexComponentDataProcess()
-        index50=myindex.getSSE50DataByDate(self.endDate,self.endDate)
-        return list(index50['code'].drop_duplicates())
+        index500=myindex.getCSI500DataByDate(20190404,20190404)
+        index300=myindex.getHS300DataByDate(20190404,20190404)
+        index50=myindex.getSSE50DataByDate(20190404,20190404)
+        stockCodes=list(pd.concat([index500,index300,index50],ignore_index=True)['code'].drop_duplicates())
+        return stockCodes
     #----------------------------------------------------------------------
     def __dataPrepared(self):
         mylist=self.__getStockList()
@@ -52,9 +55,9 @@ class stockReverseMovement(object):
             m['ceiling']=0
             m.loc[(m['low']==round(m['yesterdayClose']*1.1,2)),'ceiling']=1
             m['ceilingInNext5m']=m['ceiling'].shift(-5).rolling(5).max()
-            m['maxLossInNext5m']=round((m['low'].shift(-5).rolling(5).min()-m['open'])/m['open']-1,0.01)
+            m['maxLossInNext5m']=round((m['low'].shift(-5).rolling(5).min()-m['open'])/m['open']-1,2)
             m['ceilingInNext10m']=m['ceiling'].shift(-10).rolling(10).max()
-            m['maxLossInNext10m']=round((m['low'].shift(-10).rolling(10).min()-m['open'])/m['open']-1,0.01)
+            m['maxLossInNext10m']=round((m['low'].shift(-10).rolling(10).min()-m['open'])/m['open']-1,2)
             m[m['time']>'1450']['ceilingInNext5m','maxLossInNext5m','ceilingInNext10m','maxLossInNext10m']=None
             mselect=m[(m['increaseInDay']>0.07) & (m['increaseInDay']<0.08)]
             mselect=mselect.dropna(axis=0,how='any')
