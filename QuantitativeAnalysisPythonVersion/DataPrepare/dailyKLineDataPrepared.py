@@ -31,6 +31,14 @@ class dailyKLineDataPrepared(object):
             print(datetime.datetime.now())
             num=num+1
             mydata=myDaily.getDataByDate(code,startDate,endDate)
+            mydata['ceiling']=0
+            mydata['ceilingYesterday']=0
+            mydata['ceilingYesterday2']=0
+            mydata['ceilingIn5Days']=0
+            mydata.loc[(mydata['close']==round(d['preClose']*1.1,2)),'ceiling']=1
+            mydata.loc[(mydata['ceiling'].shift(1)==1),'ceilingYesterday']=1
+            mydata.loc[((mydata['ceiling'].shift(1)==1) & (d['ceiling'].shift(2)==1)),'ceilingYesterday2']=1
+            mydata['ceilingIn5Days']=mydata['ceilingYesterday'].rolling(5).sum()
             mydata.set_index('date',inplace=True)
             mv=StockSharesProcess.getStockShares(code,startDate,endDate)
             mv.set_index('date',inplace=True)
@@ -49,7 +57,7 @@ class dailyKLineDataPrepared(object):
         rankMv=rankMv.iloc[:,:].div(mvMax,axis=0)
         allData['rankMarketValue']=rankMv.stack()
         store = pd.HDFStore(self.localFileStr,'a')
-        store.append(self.key,data,append=False,format="table")
+        store.append(self.key,allData,append=False,format="table")
         store.close()
 ########################################################################
 

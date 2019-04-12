@@ -82,6 +82,9 @@
     <Compile Include="Strategy\myRandomForestForCeiling.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Strategy\stockReverseByStd.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Strategy\stockReverseMovement.py">
       <SubType>Code</SubType>
     </Compile>

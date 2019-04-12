@@ -10,11 +10,14 @@ from DataPrepare.dataPrepareByIndex import *
 from DataPrepare.dailyKLineDataPrepared import *
 from Strategy.stockReverseMovement import *
 from Strategy.myRandomForestForCeiling import *
+from Strategy.stockReverseByStd import *
 import time
 
 #----------------------------------------------------------------------
 def main():
     """主程序入口"""
+    startDate=20100101
+    endDate=20181231
     #IndustryClassification.getIndustryByCode('600000.SH',20070101,20180410)
     #tmp=IndexComponentDataProcess()
     #tmp.getStockBelongs('600000.SH','000300.SH',20070101,20180410)
@@ -28,7 +31,9 @@ def main():
     #tmp=myRandomForestForCeiling()
     #tmp.myRandomForest('ceilingInNext5m')
     tmp=dailyKLineDataPrepared()
-    tmp.getStockDailyFeatureData(20100101,20181231)
+    tmp.getStockDailyFeatureData(startDate,endDate)
+    temp=stockReverseByStd()
+    temp.reverse(startDate,endDate)
     
 if __name__ == '__main__':
     main()
