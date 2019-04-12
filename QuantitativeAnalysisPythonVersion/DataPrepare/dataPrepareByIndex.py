@@ -3,6 +3,7 @@ from Config.myConfig import *
 from DataAccess.IndexComponentDataProcess import *
 from DataAccess.KLineDataProcess import *
 from DataAccess.TradedayDataProcess import *
+from DataAccess.StockSharesProcess import *
 import time
 
 
@@ -23,6 +24,8 @@ class dataPrepareByIndex(object):
         myMinute=KLineDataProcess('minute',True)
         myDaily=KLineDataProcess('daily',True)
         num=0
+        
+
         for code in stockCodes:
             print(datetime.datetime.now())
             num=num+1

@@ -11,7 +11,7 @@ class TradedayDataProcess(object):
     """从RDF/本地文件中读取数据"""
     nowStr=datetime.datetime.now().strftime('%Y%m%d')
     localFileStr=LocalFileAddress+"\\tradedays.h5"
-    allTradedays=None
+    allTradedays=pd.DataFrame()
     #----------------------------------------------------------------------
     def __init__(self):
         pass
@@ -20,7 +20,7 @@ class TradedayDataProcess(object):
     def getTradedays(self,startDate,endDate):
         startDate=str(startDate)
         endDate=str(endDate)
-        if not TradedayDataProcess.allTradedays:
+        if len(TradedayDataProcess.allTradedays)==0:
             TradedayDataProcess.allTradedays=TradedayDataProcess.__getTradedaysFromLocalFile(startDate,endDate)
         else:
             pass

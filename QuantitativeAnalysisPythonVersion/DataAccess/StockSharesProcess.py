@@ -12,7 +12,7 @@ class StockSharesProcess(object):
     """从RDF/本地文件中读取数据"""
     nowStr=datetime.datetime.now().strftime('%Y%m%d')
     localFileStr=LocalFileAddress+"\\stockShares.h5"
-    allStockShares=None
+    allStockShares=pd.DataFrame()
     #----------------------------------------------------------------------
     def __init__(self):
         pass
@@ -22,7 +22,7 @@ class StockSharesProcess(object):
         code=str(code).upper()
         startDate=str(startDate)
         endDate=str(endDate)
-        if not StockSharesProcess.allStockShares:
+        if len(StockSharesProcess.allStockShares)==0:
             StockSharesProcess.allStockShares=StockSharesProcess.__getStockSharesFromLocalFile()
         else:
             pass

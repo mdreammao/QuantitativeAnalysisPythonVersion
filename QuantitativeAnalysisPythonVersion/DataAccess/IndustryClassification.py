@@ -6,6 +6,7 @@ from Config.myConfig import *
 import datetime
 import h5py
 import os
+from DataAccess.TradedayDataProcess import *
 from dateutil.relativedelta import relativedelta
 
 ########################################################################
@@ -21,7 +22,7 @@ class IndustryClassification(object):
     #----------------------------------------------------------------------
     #返还一行dataframe格式，['code'股票代码,'industry'行业名称,'industryCode'行业代码,'name'行业名称,'industryName1'1级行业名称,'industryName2'2级行业名称,'industryName3'3级行业名称,'entry'股票进入行业日期,'remove'股票退出行业日期]
     @classmethod 
-    def getIndustryByCode(self,code,mydate):
+    def getIndustryByCodeDaily(self,code,mydate):
         code=code.upper()
         mydate=str(mydate)
         if not IndustryClassification.allIndustry:
@@ -35,6 +36,29 @@ class IndustryClassification(object):
         else:
             select=mydata[(mydata['entry']<=mydate) & (mydata['remove']>=mydate)]
         return select
+    #----------------------------------------------------------------------
+    #返还dataframe格式，['date'日期，'code'股票代码,'industry','name'行业名称]
+    @classmethod 
+    def getIndustryByCode(self,code,startDate,endDate):
+        code=code.upper()
+        startDate=str(startDate)
+        endDate=str(endDate)
+        if not IndustryClassification.allIndustry:
+            IndustryClassification.allIndustry=IndustryClassification.__getIndustryFromLocalFile()
+        else:
+            pass
+        mydata=IndustryClassification.allIndustry
+        tradedays=TradedayDataProcess.getTradedays(startDate,endDate)
+        dataWithIndex=pd.DataFrame(tradedays,columns=['date'])
+        #dataWithIndex.set_index(['date'],inplace=True)
+        mydata=mydata[mydata['code']==code]
+        mydata.fillna('20991231',inplace=True)
+        for row in range(len(mydata)):
+            entry=mydata.iloc[row]['entry']
+            remove=mydata.iloc[row]['remove']
+            dataWithIndex.loc[((dataWithIndex['date']>=entry) & (dataWithIndex['date']<remove)),'industry']=mydata.iloc[row]['industry'][0:4]
+            dataWithIndex.loc[((dataWithIndex['date']>=entry) & (dataWithIndex['date']<remove)),'name']=mydata.iloc[row]['name']
+        return dataWithIndex
     #----------------------------------------------------------------------
     @classmethod 
     def __getIndustryFromLocalFile(self):
