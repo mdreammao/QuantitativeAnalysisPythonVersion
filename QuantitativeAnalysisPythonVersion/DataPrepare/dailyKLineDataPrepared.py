@@ -4,6 +4,7 @@ from DataAccess.IndexComponentDataProcess import *
 from DataAccess.KLineDataProcess import *
 from DataAccess.TradedayDataProcess import *
 from DataAccess.StockSharesProcess import * 
+from DataAccess.IndustryClassification import *
 import time
 import numpy as np
 
@@ -19,11 +20,11 @@ class dailyKLineDataPrepared(object):
 #----------------------------------------------------------------------
     def getStockDailyFeatureData(self,startDate,endDate):
         myindex=IndexComponentDataProcess(True)
-        #index500=myindex.getCSI500DataByDate(startDate,endDate)
-        #index300=myindex.getHS300DataByDate(startDate,endDate)
-        #index50=myindex.getSSE50DataByDate(endDate,endDate)
-        #stockCodes=list(pd.concat([index50],ignore_index=True)['code'].drop_duplicates())
-        stockCodes=list({'002138.SZ','600000.SH','600958.SH'})
+        index500=myindex.getCSI500DataByDate(startDate,endDate)
+        index300=myindex.getHS300DataByDate(startDate,endDate)
+        index50=myindex.getSSE50DataByDate(endDate,endDate)
+        stockCodes=list(pd.concat([index50],ignore_index=True)['code'].drop_duplicates())
+        #stockCodes=list({'002138.SZ','600000.SH','600958.SH'})
         myDaily=KLineDataProcess('daily',True)
         num=0
         allData=pd.DataFrame()
@@ -31,13 +32,22 @@ class dailyKLineDataPrepared(object):
             print(datetime.datetime.now())
             num=num+1
             mydata=myDaily.getDataByDate(code,startDate,endDate)
+            myindustry=IndustryClassification.getIndustryByCode(code,startDate,endDate)
+            mydata['industry']=myindustry['industry']
+            mydata['industryName']=myindustry['name']
+            myIndexBelongs50=myindex.getStockBelongs(code,SSE50,startDate,endDate)
+            myIndexBelongs300=myindex.getStockBelongs(code,HS300,startDate,endDate)
+            myIndexBelongs500=myindex.getStockBelongs(code,CSI500,startDate,endDate)
+            mydata['is50']=myIndexBelongs50['exists']
+            mydata['is300']=myIndexBelongs300['exists']
+            mydata['is500']=myIndexBelongs500['exists']
             mydata['ceiling']=0
             mydata['ceilingYesterday']=0
             mydata['ceilingYesterday2']=0
             mydata['ceilingIn5Days']=0
-            mydata.loc[(mydata['close']==round(d['preClose']*1.1,2)),'ceiling']=1
+            mydata.loc[(mydata['close']==round(mydata['preClose']*1.1,2)),'ceiling']=1
             mydata.loc[(mydata['ceiling'].shift(1)==1),'ceilingYesterday']=1
-            mydata.loc[((mydata['ceiling'].shift(1)==1) & (d['ceiling'].shift(2)==1)),'ceilingYesterday2']=1
+            mydata.loc[((mydata['ceiling'].shift(1)==1) & (mydata['ceiling'].shift(2)==1)),'ceilingYesterday2']=1
             mydata['ceilingIn5Days']=mydata['ceilingYesterday'].rolling(5).sum()
             mydata.set_index('date',inplace=True)
             mv=StockSharesProcess.getStockShares(code,startDate,endDate)

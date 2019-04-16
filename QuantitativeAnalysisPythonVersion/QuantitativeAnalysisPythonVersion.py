@@ -17,7 +17,7 @@ import time
 def main():
     """主程序入口"""
     startDate=20100101
-    endDate=20181231
+    endDate=20190415
     #IndustryClassification.getIndustryByCode('600000.SH',20070101,20180410)
     #tmp=IndexComponentDataProcess()
     #tmp.getStockBelongs('600000.SH','000300.SH',20070101,20180410)

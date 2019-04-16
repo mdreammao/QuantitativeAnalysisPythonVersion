@@ -135,6 +135,8 @@ class IndexComponentDataProcess(object):
         return localdata
     #----------------------------------------------------------------------
     def getStockBelongs(self,code,indexCode,startDate,endDate):
+        code=str(code)
+        indexCode=str(indexCode)
         mydata=self.__getDataByIndexCodeFromLocalFile(indexCode)
         tradedays=TradedayDataProcess.getTradedays(startDate,endDate)
         dataWithIndex=pd.DataFrame(tradedays,columns=['date'])

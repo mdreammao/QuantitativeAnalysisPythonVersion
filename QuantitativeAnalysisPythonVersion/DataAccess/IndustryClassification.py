@@ -14,7 +14,7 @@ class IndustryClassification(object):
     """申万行业分类"""
     nowStr=datetime.datetime.now().strftime('%Y%m%d')
     localFileStr=LocalFileAddress+"\\industryClassification.h5"
-    allIndustry=None
+    allIndustry=pd.DataFrame()
     #----------------------------------------------------------------------
     def __init__(self):
         """Constructor"""
@@ -25,7 +25,7 @@ class IndustryClassification(object):
     def getIndustryByCodeDaily(self,code,mydate):
         code=code.upper()
         mydate=str(mydate)
-        if not IndustryClassification.allIndustry:
+        if len(IndustryClassification.allIndustry)==0:
             IndustryClassification.allIndustry=IndustryClassification.__getIndustryFromLocalFile()
         else:
             pass
@@ -43,7 +43,7 @@ class IndustryClassification(object):
         code=code.upper()
         startDate=str(startDate)
         endDate=str(endDate)
-        if not IndustryClassification.allIndustry:
+        if len(IndustryClassification.allIndustry)==0:
             IndustryClassification.allIndustry=IndustryClassification.__getIndustryFromLocalFile()
         else:
             pass
