@@ -38,10 +38,10 @@ class stockReverseByStd(object):
         oldKeys=store.keys()
         for code in mylist:
             num=num+1
-            print("{0}({1} of {2}) start!".format(code,num,len(mylist)))
+            print("{0}({1} of {2}) start!".format(str(code),num,len(mylist)))
             #print(datetime.datetime.now())
             if ('/'+code) in oldKeys:
-                #continue
+                continue
                 pass
             m=myMinute.getDataByDate(code,startDate,endDate)
             if len(m)==0:
@@ -82,19 +82,28 @@ class stockReverseByStd(object):
         endDate=str(endDate)
         self.startDate=startDate
         self.endDate=endDate
-        store = pd.HDFStore(self.__localFileStrResult,'a')
-        store.append('stockCodes',pd.DataFrame(stockCodes,columns=['code']),append=False,format="table")
-        store.close()
         self.tradeDays=TradedayDataProcess.getTradedays(startDate,endDate)
         self.__dataPrepared(stockCodes,startDate,endDate)
         mylist=stockCodes
+        exists=os.path.isfile(self.__localFileStrResult)
+        if exists==True:
+            f=h5py.File(self.__localFileStrResult,'r')
+            myKeys=list(f.keys())
+            f.close()
+        else:
+            myKeys=[]
+        storeResult = pd.HDFStore(self.__localFileStrResult,'a')
         store = pd.HDFStore(self.__localFileStr,'a')
-        result=pd.DataFrame()
+
        # print(datetime.datetime.now())
         num=0
         for code in mylist:
             num=num+1
             print("{0}({1} of {2}) start!".format(code,num,len(mylist)))
+            if code in myKeys:
+                continue
+                pass
+            result=pd.DataFrame()
             mydata=store.select(code)
             mydata=mydata[(mydata['date']>=startDate) & (mydata['date']<=endDate)]
             mydata=mydata[mydata['status']!='N']
@@ -128,6 +137,8 @@ class stockReverseByStd(object):
             #long=long[(long['increase5m']<-long['closeStd20'])]
             print(short['shortReturnNext20m'].mean())
             print(long['longReturnNext20m'].mean())
+            storeResult.append(code,result,append=False,format="table")
+
             #maxlen=mydata.shape[0]
             #num=0
             '''
@@ -147,10 +158,7 @@ class stockReverseByStd(object):
             #mydata['tmp']=mydata.apply(lambda mm:mm['open']**mm['close'],axis=1)
             '''
             print(datetime.datetime.now())
-        
-        store.close()
-        store = pd.HDFStore(self.__localFileStrResult,'a')
-        store.append('result',result,append=False,format="table")
+        storeResult.close()
         store.close()
         print(datetime.datetime.now())
         pass
