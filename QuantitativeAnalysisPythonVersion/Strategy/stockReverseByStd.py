@@ -44,14 +44,13 @@ class stockReverseByStd(object):
             print("{0}({1} of {2}) start!".format(str(code),num,len(mylist)))
             #print(datetime.datetime.now())
             if ('/'+code) in oldKeys:
-                continue
+                #continue
                 pass
             m=myMinute.getDataByDate(code,startDate,endDate)
             if len(m)==0:
                 continue
             m=m[m['date'].isin(mytradedays)]
             m['vwap']=m['amount']/m['volume']
-            #print(d[d['ceilingYesterday']>0][['date','close','preClose','ceilingIn5Days']])
             m.loc[(m['date']==m['date'].shift(5)),'increase5m']=(m['open']/m['open'].shift(5)-1)
             m.loc[(m['date']==m['date'].shift(1)),'increase1m']=(m['open']/m['open'].shift(1)-1)
             d=allDailyData.xs(code,level='code')
@@ -69,6 +68,19 @@ class stockReverseByStd(object):
             #m['ceilingInNext10m']=m['ceiling'].shift(-10).rolling(10).max()
             #m['returnInNext5m']=round((m['open'].shift(-5)-m['open'])/m['open']-1,2)
             #m['returnInNext10m']=round((m['open'].shift(-10)-m['open'])/m['open']-1,2)
+            m=m[m['status']!='N']
+            m['canBuy']=0
+            m['canSell']=0
+            m['canBuyPrice']=None
+            m['canSellPrice']=None
+            m.loc[ (m['open']<round(1.097*m['yesterdayClose'],2)),'canBuy']=1
+            m.loc[(m['open']>round(0.903*m['yesterdayClose'],2)),'canSell']=1
+            m.loc[m['canBuy']==1,'canBuyPrice']=m.loc[m['canBuy']==1,'open']
+            m['canBuyPrice']=m['canBuyPrice'].fillna(method='bfill')
+            m.loc[m['canSell']==1,'canSellPrice']=m.loc[m['canSell']==1,'open']
+            m['canSellPrice']=m['canSellPrice'].fillna(method='bfill')
+            m['shortReturnNext20m']=round((m['canBuyPrice'].shift(-20)*m['adjFactor'].shift(-20)-m['open']*m['adjFactor'])/(m['open']*m['adjFactor']),4)
+            m['longReturnNext20m']=round((m['canSellPrice'].shift(-20)*m['adjFactor'].shift(-20)-m['open']*m['adjFactor'])/(m['open']*m['adjFactor']),4)
             m['timeStamp']=m['date']+m['time']
             mselect=m.set_index(['timeStamp','code'])
             #m.xs(m[(((m['open']<m['open'][0]) & (m['time']<='0800'))|(m['time']=='1500')) & (m['date']==m['date'][0])].index[0])
@@ -109,29 +121,11 @@ class stockReverseByStd(object):
             result=pd.DataFrame()
             mydata=store.select(code)
             mydata=mydata[(mydata['date']>=startDate) & (mydata['date']<=endDate)]
-            mydata=mydata[mydata['status']!='N']
-            #print(datetime.datetime.now())
-            mydata['canBuy']=0
-            mydata['canSell']=0
-            mydata['canBuyPrice']=None
-            mydata['canSellPrice']=None
-            mydata.loc[ (mydata['open']<round(1.097*mydata['yesterdayClose'],2)) & (mydata['low']<round(1.097*mydata['yesterdayClose'],2)),'canBuy']=1
-            mydata.loc[(mydata['open']>round(0.903*mydata['yesterdayClose'],2)) & (mydata['high']>round(0.903*mydata['yesterdayClose'],2)),'canSell']=1
-            mydata.loc[mydata['canBuy']==1,'canBuyPrice']=mydata.loc[mydata['canBuy']==1,'open']
-            mydata['canBuyPrice']=mydata['canBuyPrice'].fillna(method='bfill')
-            mydata.loc[mydata['canSell']==1,'canSellPrice']=mydata.loc[mydata['canSell']==1,'open']
-            mydata['canSellPrice']=mydata['canSellPrice'].fillna(method='bfill')
-            mydata['shortReturnNext20m']=round((mydata['canBuyPrice'].shift(-20)*mydata['adjFactor'].shift(-20)-mydata['open']*mydata['adjFactor'])/(mydata['open']*mydata['adjFactor']),4)
-            mydata['longReturnNext20m']=round((mydata['canSellPrice'].shift(-20)*mydata['adjFactor'].shift(-20)-mydata['open']*mydata['adjFactor'])/(mydata['open']*mydata['adjFactor']),4)
             mydata.reset_index(drop=False,inplace=True)
             mydata['signal']=0
             
-            mydata.loc[((mydata['increaseInDay']>1*mydata['closeStd20']) & (mydata['increaseInDay']<0.095) & (mydata['time']<'1440')& (mydata['time']>'0935') & (mydata['volume']!=0)),'signal']=-1
-            mydata.loc[((mydata['increaseInDay']<-1*mydata['closeStd20']) & (mydata['increaseInDay']>-0.095) &(mydata['time']<'1440')& (mydata['time']>'0935')& (mydata['volume']!=0)),'signal']=1
-            '''
-            mydata.loc[((mydata['increaseInDay']>0.07) & (mydata['increaseInDay']<0.08) & (mydata['time']<'1440')& (mydata['time']>'0935') & (mydata['volume']!=0)),'signal']=-1
-            mydata.loc[((mydata['increaseInDay']<-0.07) & (mydata['increaseInDay']>-0.08) &(mydata['time']<'1440')& (mydata['time']>'0935')& (mydata['volume']!=0)),'signal']=1
-            '''
+            mydata.loc[((mydata['increaseInDay']>2*mydata['closeStd20']) & (mydata['increaseInDay']<0.095) & (mydata['time']<'1440')& (mydata['time']>'0935') & (mydata['volume']!=0)),'signal']=-1
+            mydata.loc[((mydata['increaseInDay']<-2*mydata['closeStd20']) & (mydata['increaseInDay']>-0.095) &(mydata['time']<'1440')& (mydata['time']>'0935')& (mydata['volume']!=0)),'signal']=1
             short=mydata[(mydata['signal']==-1) ]
             long=mydata[(mydata['signal']==1)]
             result=result.append(short)
