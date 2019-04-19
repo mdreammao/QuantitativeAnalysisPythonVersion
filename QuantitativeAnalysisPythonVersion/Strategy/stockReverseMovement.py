@@ -18,8 +18,11 @@ class stockReverseMovement(object):
     #----------------------------------------------------------------------
     def __getStockList(self):
         myindex=IndexComponentDataProcess()
-        index50=myindex.getSSE50DataByDate(self.endDate,self.endDate)
-        return list(index50['code'].drop_duplicates())
+        index500=myindex.getCSI500DataByDate(20190404,20190404)
+        index300=myindex.getHS300DataByDate(20190404,20190404)
+        index50=myindex.getSSE50DataByDate(20190404,20190404)
+        stockCodes=list(pd.concat([index500,index300,index50],ignore_index=True)['code'].drop_duplicates())
+        return stockCodes
     #----------------------------------------------------------------------
     def __dataPrepared(self):
         mylist=self.__getStockList()
