@@ -57,8 +57,8 @@ class IndustryClassification(object):
         for row in range(len(mydata)):
             entry=mydata.iloc[row]['entry']
             remove=mydata.iloc[row]['remove']
-            dataWithIndex.loc[((dataWithIndex['date']>=entry) & (dataWithIndex['date']<remove)),'industry']=mydata.iloc[row]['industry'][0:4]
-            dataWithIndex.loc[((dataWithIndex['date']>=entry) & (dataWithIndex['date']<remove)),'name']=mydata.iloc[row]['name']
+            dataWithIndex.loc[((dataWithIndex['date']>=entry) & (dataWithIndex['date']<=remove)),'industry']=mydata.iloc[row]['industry'][0:4]
+            dataWithIndex.loc[((dataWithIndex['date']>=entry) & (dataWithIndex['date']<=remove)),'name']=mydata.iloc[row]['name']
         dataWithIndex.set_index('date',drop=True,inplace=True)
         return dataWithIndex
     #----------------------------------------------------------------------
