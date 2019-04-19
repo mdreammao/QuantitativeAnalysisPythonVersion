@@ -14,7 +14,7 @@ def main():
     #tmp=stockReverseMovement()
     #tmp.reverse(20100101,20181228)
     tmp=myRandomForestForCeiling()
-    tmp.myRandomForest('ceilingInNext5m')
+    tmp.myRandomForest('return10m')
     
 if __name__ == '__main__':
     main()
