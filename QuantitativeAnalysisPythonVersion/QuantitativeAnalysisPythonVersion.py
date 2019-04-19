@@ -11,14 +11,20 @@ from DataPrepare.dailyKLineDataPrepared import *
 from Strategy.stockReverseMovement import *
 from Strategy.myRandomForestForCeiling import *
 from Strategy.stockReverseByStd import *
+from Utility.mytest import *
 import warnings
 import time
+
 
 #----------------------------------------------------------------------
 def main():
     """主程序入口"""
     warnings.filterwarnings('ignore')
-    startDate=20100101
+
+    mytest0=mytest()
+    mytest0.testnumba()
+
+    '''
     endDate=20190415
     fileStr=LocalFileAddress+"\\{0}\\{1}.h5".format('dailyFactors','stockCodes')
     store = pd.HDFStore(fileStr,'a')
@@ -41,6 +47,6 @@ def main():
     #tmp.getStockDailyFeatureData(stockCodes,startDate,endDate)
     temp=stockReverseByStd()
     temp.reverse(stockCodes,startDate,endDate)
-    
+    '''
 if __name__ == '__main__':
     main()

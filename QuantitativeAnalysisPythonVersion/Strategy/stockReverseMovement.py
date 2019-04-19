@@ -53,7 +53,13 @@ class stockReverseMovement(object):
             m[['yesterdayClose','ceilingYesterday','ceilingYesterday2','ceilingIn5Days']]=dailyInfo
             m['increaseInDay']=(m['open']/m['yesterdayClose']-1)
             m['ceiling']=0
+            m['return5m']=0
+            m['return10m']=0
             m.loc[(m['low']==round(m['yesterdayClose']*1.1,2)),'ceiling']=1
+            m.loc[(m['open'].shift(-5)/m['open']-1)>0.01,'return5m']=1
+            m.loc[(m['open'].shift(-5)/m['open']-1)<-0.01,'return5m']=-1
+            m.loc[(m['open'].shift(-10)/m['open']-1)>0.01,'return10m']=1
+            m.loc[(m['open'].shift(-10)/m['open']-1)<-0.01,'return10m']=-1
             m['ceilingInNext5m']=m['ceiling'].shift(-5).rolling(5).max()
             m['maxLossInNext5m']=round((m['low'].shift(-5).rolling(5).min()-m['open'])/m['open']-1,2)
             m['ceilingInNext10m']=m['ceiling'].shift(-10).rolling(10).max()

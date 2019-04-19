@@ -28,6 +28,9 @@ class stockReverseByStd(object):
     def __dataPrepared(self,stockCodes,startDate,endDate):
         mytradedays=TradedayDataProcess.getTradedays(startDate,endDate)
         mylist=stockCodes
+        store = pd.HDFStore(self.__localFileStr,'a')
+        store.append('stockCodes',pd.DataFrame(stockCodes,columns=['code']),append=False,format="table")
+        store.close()
         self.__mylist=mylist
         myMinute=KLineDataProcess('minute',False)
         num=0

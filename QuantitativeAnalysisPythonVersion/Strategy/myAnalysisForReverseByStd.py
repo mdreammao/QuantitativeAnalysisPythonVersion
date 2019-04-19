@@ -17,7 +17,19 @@ class myAnalysisForReverseByStd(object):
         self.__factorsAddress=LocalFileAddress+"\\{0}\\{1}.h5".format('dailyFactors',self.__key)
         pass
     #----------------------------------------------------------------------
-    def analysis(self):
+    def select(self,startDate,endDate):
+        startDate=str(startDate)
+        endDate=str(endDate)
+        self.startDate=startDate
+        self.endDate=endDate
+        self.tradeDays=TradedayDataProcess.getTradedays(startDate,endDate)
+        store = pd.HDFStore(self.__localFileStr,'a')
+        stockCodes=store.select('stockCodes')
+        data=store.select('result')
+        store.close()
+        pass
+    #----------------------------------------------------------------------
+    def analysis(self,startDate,endDate):
         startDate=str(startDate)
         endDate=str(endDate)
         self.startDate=startDate
