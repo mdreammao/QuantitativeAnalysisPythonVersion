@@ -17,11 +17,20 @@ class TradedayDataProcess(object):
         pass
     #----------------------------------------------------------------------
     @classmethod 
+    def getAllTradedays(self):
+        if len(TradedayDataProcess.allTradedays)==0:
+            TradedayDataProcess.allTradedays=TradedayDataProcess.__getTradedaysFromLocalFile()
+        else:
+            pass
+        mydata=TradedayDataProcess.allTradedays['date']
+        return mydata
+    #----------------------------------------------------------------------
+    @classmethod 
     def getTradedays(self,startDate,endDate):
         startDate=str(startDate)
         endDate=str(endDate)
         if len(TradedayDataProcess.allTradedays)==0:
-            TradedayDataProcess.allTradedays=TradedayDataProcess.__getTradedaysFromLocalFile(startDate,endDate)
+            TradedayDataProcess.allTradedays=TradedayDataProcess.__getTradedaysFromLocalFile()
         else:
             pass
         #startDate = datetime.datetime.strptime(startDate, "%Y%m%d")
@@ -30,7 +39,7 @@ class TradedayDataProcess(object):
         return mydata
     #----------------------------------------------------------------------
     @classmethod 
-    def __getTradedaysFromLocalFile(self,startDate,endData):
+    def __getTradedaysFromLocalFile(self):
         exists=os.path.isfile(TradedayDataProcess.localFileStr)
         if exists==True:
             f=h5py.File(TradedayDataProcess.localFileStr,'r')

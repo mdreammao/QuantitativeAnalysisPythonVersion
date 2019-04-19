@@ -35,6 +35,7 @@ class IndustryClassification(object):
             select=mydata
         else:
             select=mydata[(mydata['entry']<=mydate) & (mydata['remove']>=mydate)]
+        select.set_index('date',drop=True,inplace=True)
         return select
     #----------------------------------------------------------------------
     #返还dataframe格式，['date'日期，'code'股票代码,'industry','name'行业名称]
@@ -58,6 +59,7 @@ class IndustryClassification(object):
             remove=mydata.iloc[row]['remove']
             dataWithIndex.loc[((dataWithIndex['date']>=entry) & (dataWithIndex['date']<remove)),'industry']=mydata.iloc[row]['industry'][0:4]
             dataWithIndex.loc[((dataWithIndex['date']>=entry) & (dataWithIndex['date']<remove)),'name']=mydata.iloc[row]['name']
+        dataWithIndex.set_index('date',drop=True,inplace=True)
         return dataWithIndex
     #----------------------------------------------------------------------
     @classmethod 

@@ -148,6 +148,7 @@ class IndexComponentDataProcess(object):
             entry=mydata.iloc[row]['entry']
             remove=mydata.iloc[row]['remove']
             dataWithIndex.loc[((dataWithIndex['date']>=entry) & (dataWithIndex['date']<remove)),'exists']=1
+        dataWithIndex.set_index('date',drop=True,inplace=True)
         return dataWithIndex
     #----------------------------------------------------------------------
     #输入code=000300.SH，startdate=yyyyMMdd，endDate=yyyyMMdd

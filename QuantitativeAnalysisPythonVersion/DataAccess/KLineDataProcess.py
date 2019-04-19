@@ -6,6 +6,7 @@ from Config.myConfig import *
 import datetime
 import h5py
 import os
+from DataAccess.TradedayDataProcess import *
 
 
 ########################################################################
@@ -48,15 +49,21 @@ class KLineDataProcess(object):
             return self.__getMinuteDataByDateFromSqlSever(code,startDate,endDate)
         elif self.KLineLevel=='daily':
             return self.__getDailyDataByDateFromOracleServer(code,startDate,endDate)
+        elif self.KLineLevel=='dailyDerivative':
+            return self.__getDailyDerivativeDataByDateFromOracleServer(code,startDate,endDate)
         
     #----------------------------------------------------------------------
     #输入code=600000.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
     def __saveDataToLocalFile(self,localFileStr,data):
+        if data.shape[0]==0:
+            return
         store = pd.HDFStore(localFileStr,'a')
         if self.KLineLevel=='minute':
             store.append(self.KLineLevel,data,append=True,format="table",data_columns=['code','date','time','open','high','low','close','volume','amount'])
         elif self.KLineLevel=='daily':
             store.append(self.KLineLevel,data,append=True,format="table",data_columns=['code','date','open','high','low','close','preClose','volume','amount','change','pctChange','adjFactor','vwap','status'])
+        elif self.KLineLevel=='dailyDerivative':
+            store.append(self.KLineLevel,data,append=True,format="table",data_columns=['code','date','totalMv','freeMv','PE','PCF','PS','turnover',' totalShares','freeShares','limitStatus'])
         store.close()
 
     #----------------------------------------------------------------------
@@ -82,19 +89,53 @@ class KLineDataProcess(object):
                 if endDate==EMPTY_STRING or mydata['date'].max()<endDate:
                     latestDate=datetime.datetime.strptime(mydata['date'].max(),"%Y%m%d")
                     updateDate=(latestDate+datetime.timedelta(days=1)).strftime("%Y%m%d")
-                    updateData=self.__getDailyDataByDateFromOracleServer(code,updateDate)
+                    updateData=self.__getDataByDateFromSource(code,updateDate)
                     self.__saveDataToLocalFile(localFileStr,updateData)
-        store = pd.HDFStore(localFileStr,'a')
-        mydata=store.select(self.KLineLevel,where=['date>="%s" and date<="%s"'%(startDate,endDate)])
-        store.close()
+        
+        f=h5py.File(localFileStr,'r')
+        myKeys=list(f.keys())
+        f.close()
+        if myKeys==[]:
+            mydata=pd.DataFrame()
+        else:
+            store = pd.HDFStore(localFileStr,'a')
+            mydata=store.select(self.KLineLevel,where=['date>="%s" and date<="%s"'%(startDate,endDate)])
+            store.close()
+        #mydata.set_index('date',drop=True,inplace=True)
         return mydata
 
     
+    #----------------------------------------------------------------------
+    #输入code=600000.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
+    def __getDailyDerivativeDataByDateFromOracleServer(self,code,startDate=EMPTY_STRING,endDate=EMPTY_STRING):
+        #获取衍生数据
+        #1表示涨停；0表示非涨停或跌停；-1表示跌停。
+        database='wind_filesync.AShareEODDerivativeIndicator'
+        connection = oracle.connect(self.oracleConnectStr)
+        cursor = connection.cursor()
+        oracleStr="select  S_INFO_WINDCODE as code,TRADE_DT as \"date\", S_VAL_MV as totalMarketValue,S_DQ_MV as freeMarketValue,S_VAL_PE_TTM as PE,S_VAL_PCF_NCFTTM as PCF,S_VAL_PS_TTM as PS,S_DQ_FREETURNOVER as turnover,TOT_SHR_TODAY as totalShares,FREE_SHARES_TODAY as freeShares,UP_DOWN_LIMIT_STATUS as limitStatus from wind_filesync.AShareEODDerivativeIndicator "
+        if startDate==EMPTY_STRING:
+            oracleStr=oracleStr+"where S_INFO_WINDCODE='{0}' order by TRADE_DT".format(code)
+        elif endDate==EMPTY_STRING:
+            oracleStr=oracleStr+"where S_INFO_WINDCODE='{0}' and TRADE_DT>={1} order by TRADE_DT".format(code,startDate)
+        else:
+            oracleStr=oracleStr+"where S_INFO_WINDCODE='{0}' and TRADE_DT>={1} and TRADE_DT<={2} order by TRADE_DT".format(code,startDate,endDate)
+        cursor.execute(oracleStr)
+        myderivativedata = cursor.fetchall()
+        myderivativedata = pd.DataFrame(myderivativedata,columns=['code','date','totalMarketValue','freeMarketValue','PE','PCF','PS','turnover','totalShares','freeShares','limitStatus'])
+        if (myderivativedata.shape[0]==0):
+            return myderivativedata
+        mytradedays=TradedayDataProcess.getAllTradedays()
+        myderivativedata=myderivativedata[myderivativedata['date'].isin(mytradedays)]
+        myderivativedata[['totalMarketValue','freeMarketValue','PE','PCF','PS','turnover','totalShares','freeShares']] = myderivativedata[['totalMarketValue','freeMarketValue','PE','PCF','PS','turnover','totalShares','freeShares']].astype('float')
+        return myderivativedata
 
     
     #----------------------------------------------------------------------
     #输入code=600000.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
     def __getDailyDataByDateFromOracleServer(self,code,startDate=EMPTY_STRING,endDate=EMPTY_STRING):
+        #获取行情数据
+        #附注status -1:交易-2:待核查0:停牌XD:除息XR:除权DR:除权除息N:上市首日
         database='wind_filesync.AShareEODPrices'
         connection = oracle.connect(self.oracleConnectStr)
         cursor = connection.cursor()
@@ -108,6 +149,11 @@ class KLineDataProcess(object):
         mydata = cursor.fetchall()
         mydata = pd.DataFrame(mydata,columns=['code','date','open','high','low','close','preClose','volume','amount','change','pctChange','adjFactor','vwap','status'])
         mydata[['open','high','low','close','preClose','volume','amount','change','pctChange','adjFactor','vwap']] = mydata[['open','high','low','close','preClose','volume','amount','change','pctChange','adjFactor','vwap']].astype('float')
+        
+       
+        
+        
+        
         return mydata  
 
     #----------------------------------------------------------------------

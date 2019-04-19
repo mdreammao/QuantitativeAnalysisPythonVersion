@@ -79,6 +79,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="QuantitativeAnalysisPythonVersion.py" />
+    <Compile Include="Strategy\myAnalysisForReverseByStd.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Strategy\myRandomForestForCeiling.py">
       <SubType>Code</SubType>
     </Compile>

@@ -31,7 +31,12 @@ class StockSharesProcess(object):
         #获取日期数据
         dateList=TradedayDataProcess.getTradedays(startDate,endDate)
         #pd.to_datetime(mydata['date'],format='%Y%m%d')
-        mydata=mydata[((mydata['changeDate']<=endDate)& (mydata['changeDate'].shift(-1)>startDate) ) & (mydata['code']==code) ]
+        mydata=mydata[mydata['code']==code]
+        select=mydata[((mydata['changeDate']<=endDate)& (mydata['changeDate'].shift(-1)>startDate) )]
+        if (len(select)==0):
+            mydata=mydata.iloc[-1:]
+        else:
+            mydata=select
         sharesData=pd.DataFrame(dateList)
         #sharesData['freeShares']=0
         for row in mydata.itertuples():
