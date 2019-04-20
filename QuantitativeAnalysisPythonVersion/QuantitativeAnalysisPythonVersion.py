@@ -11,6 +11,7 @@ from DataPrepare.dailyKLineDataPrepared import *
 from Strategy.stockReverseMovement import *
 from Strategy.myRandomForestForCeiling import *
 from Strategy.stockReverseByStd import *
+from Strategy.myAnalysisForReverseByStd import *
 from Utility.mytest import *
 import warnings
 import time
@@ -19,17 +20,26 @@ import time
 #----------------------------------------------------------------------
 def main():
     """主程序入口"""
+ 
+
     warnings.filterwarnings('ignore')
     startDate=20100101
     endDate=20190415
+    '''
     fileStr=LocalFileAddress+"\\{0}\\{1}.h5".format('dailyFactors','stockCodes')
     store = pd.HDFStore(fileStr,'a')
     stockCodes=list(store.select('stockCodes')['code'])
     store.close()
+    mytest0=mytest()
+    mytest0.testjoblib(stockCodes,10,startDate,endDate)
+    '''
+    myanalysis=myAnalysisForReverseByStd()
+    myanalysis.analysis(startDate,endDate)
+
     #stockCodes=list(['601398.SH'])
-    temp=stockReverseByStd()
+    #temp=stockReverseByStd()
     #temp.reverse(stockCodes,startDate,endDate)
-    temp.reverseByJit(stockCodes,startDate,endDate)
+    #temp.reverseByJit(stockCodes,startDate,endDate)
     pass
 if __name__ == '__main__':
     main()

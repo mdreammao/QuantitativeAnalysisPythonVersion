@@ -94,6 +94,9 @@
     <Compile Include="Strategy\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Utility\HDF5Utility.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Utility\mytest.py">
       <SubType>Code</SubType>
     </Compile>

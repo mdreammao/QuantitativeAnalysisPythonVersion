@@ -160,7 +160,7 @@ class stockReverseByStd(object):
         print(datetime.datetime.now())
         pass
     #----------------------------------------------------------------------
-    def reverseByJit(self,stockCodes,startDate,endDate):
+    def reverseByJit(self,stockCodes,startDate,endDate,storeStr=EMPTY_STRING):
         #@numba.jit(nopython=True,parallel=True)
         def mytransaction(m,days,parameter):
             length=len(m)
@@ -246,10 +246,18 @@ class stockReverseByStd(object):
         self.tradeDays=TradedayDataProcess.getTradedays(startDate,endDate)
         days=len(self.tradeDays)
         mylist=stockCodes
+        if storeStr==EMPTY_STRING:
+            storeStr=self.__localFileStrResult
+        storeTMP=pd.HDFStore(storeStr,'a')
         store = pd.HDFStore(self.__localFileStr,'a')
         oldKeys=store.keys()
-        storeResult=pd.HDFStore(self.__localFileStrResult,'a')
-        resultOldKeys=storeResult.keys()
+        exists=os.path.isfile(self.__localFileStrResult)
+        if exists==True:
+            storeResult=pd.HDFStore(self.__localFileStrResult,'a')
+            resultOldKeys=storeResult.keys()
+            storeResult.close()
+        else:
+            resultOldKeys={}
         num=0
         resultAll=pd.DataFrame()
         for code in mylist:
@@ -258,7 +266,7 @@ class stockReverseByStd(object):
                 continue
                 pass
             if ('/'+code) in resultOldKeys:
-                oldResult=storeResult.select(code)
+                oldResult=storeResult.get(code)
                 resultAll=resultAll.append(oldResult)
                 continue
                 pass
@@ -278,12 +286,14 @@ class stockReverseByStd(object):
             result=pd.DataFrame(data=result,columns=['date', 'time','increaseInDay','closeStd20','open','adjFactor','canBuy', 'canSell', 'canBuyPrice', 'canSellPrice', 'amount','increase5m','increase1m','yesterdayClose',     'industry','is50','is300','is500','freeShares', 'freeMarketValue','ts_rank_closeStd20','rankMarketValue','position','closeDate','closeTime','closePrice','feeRate','return'])
             result[['date', 'time','canBuy', 'canSell',     'industry','is50','is300','is500','position','closeDate','closeTime']]=result[['date', 'time','canBuy', 'canSell',     'industry','is50','is300','is500','position','closeDate','closeTime']].astype(int)
             result['code']=code
-            resultAll=resultAll.append(result)
-            storeResult.append(code,result,append=False,format="table")
-        storeResult.close()
+            #resultAll=resultAll.append(result)
+            #storeResult.append(code,result,append=False,format="table")
+            storeTMP.put(code,result,append=False,format="table")
         store.close()
-        print(resultAll.shape)
-        print(resultAll['return'].mean())
+        storeTMP.close()
+        return self.__localFileStrResult
+        #print(resultAll.shape)
+        #print(resultAll['return'].mean())
         pass
 
 ########################################################################
