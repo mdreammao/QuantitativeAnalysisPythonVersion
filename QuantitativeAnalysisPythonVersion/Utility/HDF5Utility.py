@@ -18,7 +18,7 @@ class HDF5Utility(object):
         sourcekeys=source.keys()
         for code in sourcekeys:
             mycode=code.lstrip("/")
-            print(mycode)
+            #print(mycode)
             mydata=source.get(mycode)
             target.append(mycode,mydata,append=False,Format='table')
         source.close()

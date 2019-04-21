@@ -25,15 +25,14 @@ class mytest(object):
             tmpAddress[i]=LocalFileAddress+"\\temp\\tmp{0}.h5".format(str(i))
             targetAddress[i]=LocalFileAddress+"\\intermediateResult\\stdReverseResult.h5"
             HDF5Utility.fileClear(tmpAddress[i])
-        targetAddress=Parallel(n_jobs=-2)(delayed(self.myfunction)(list(stocks[i]),startDate,endDate,tmpAddress[i]) for i in range(groupnum))
-
+        targetAddress=Parallel(n_jobs=1)(delayed(self.myfunction)(list(stocks[i]),startDate,endDate,tmpAddress[i]) for i in range(groupnum))
         for i in range(groupnum):
             HDF5Utility.dataTransfer(tmpAddress[i],targetAddress[i])
         pass
     def myfunction(self,stockCodes,startDate,endDate,storeStr):
         warnings.filterwarnings('ignore')
         temp=stockReverseByStd()
-        address=temp.reverseByJit(stockCodes,startDate,endDate,storeStr)
+        address=temp.reverse(stockCodes,startDate,endDate,storeStr)
         return address
         pass
     def testnumba(self):
