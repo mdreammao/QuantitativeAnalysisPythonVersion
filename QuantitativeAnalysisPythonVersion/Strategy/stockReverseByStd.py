@@ -44,7 +44,7 @@ class stockReverseByStd(object):
             print("{0}({1} of {2}) start!".format(str(code),num,len(mylist)))
             #print(datetime.datetime.now())
             if ('/'+code) in oldKeys:
-                #continue
+                continue
                 pass
             m=myMinute.getDataByDate(code,startDate,endDate)
             if len(m)==0:

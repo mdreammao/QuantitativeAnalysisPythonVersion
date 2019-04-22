@@ -30,6 +30,11 @@ def main():
     store = pd.HDFStore(fileStr,'a')
     stockCodes=list(store.select('stockCodes')['code'])
     store.close()
+    #myindex=IndexComponentDataProcess()
+    #index50=myindex.getSSE50DataByDate(endDate,endDate)
+    #stockCodes=list(index50['code'].drop_duplicates())
+
+
     #stockCodes=list({'601299.SH'})
     #IndustryClassification.getIndustryByCode('600000.SH',20070101,20180410)
     #tmp=IndexComponentDataProcess()
