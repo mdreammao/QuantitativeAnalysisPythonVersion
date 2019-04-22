@@ -37,7 +37,7 @@ def main():
     warnings.filterwarnings('ignore')
     startDate=20100101
     endDate=20190415
-    temp=stockReverseByStd()
+    #temp=stockReverseByStd()
     #temp.dataPrepared(stockCodes,startDate,endDate)
     #stockCodes=temp.getStockList(startDate,endDate)
     #temp.parallelizationReverse(startDate,endDate)
