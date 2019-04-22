@@ -140,7 +140,7 @@ class stockReverseByStd(object):
                         num=num+1
                         z0=np.zeros(3,dtype=np.int64)
                 elif position==-1:
-                    if (mytime>=1455) | (i>=startIndex+60) | ((i>=startIndex+20) & (cansellPrice>openPrice)):
+                    if (mytime>=1455) | (i>=startIndex+60) | ((i>=startIndex+20) & (canbuyPrice>openPrice)):
                         position=0
                         endIndex=i
                         z0[1]=endIndex

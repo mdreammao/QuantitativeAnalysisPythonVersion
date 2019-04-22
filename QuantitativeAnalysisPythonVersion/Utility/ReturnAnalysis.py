@@ -24,12 +24,21 @@ class ReturnAnalysis(object):
         pass
     #----------------------------------------------------------------------
     #@classmethod 
-    #def getNetvalue
+    def getNetValue(self,days,netvalue,nameStr=EMPTY_STRING):
+        nameStr=nameStr+'return'
+        plt.plot(days,netvalue)
+        plt.xticks(rotation=45)
+        plot.xlabel('date')
+        plot.ylabel('netvalue')
+        plot.title(nameStr)
+        filePath=saveAddress+'\\'+nameStr
+        plt.show()
+        plt.savefig(filePath)
+        pass
     #----------------------------------------------------------------------
     @classmethod 
     def getHist(self,myseries,saveAddress,nameStr=EMPTY_STRING):
-        if nameStr==EMPTY_STRING:
-            nameStr='Histogram'
+        nameStr=namestr+'Histogram'
         plt.hist(myseries, bins= 100, range= None, normed= False, weights= None, cumulative= False, bottom= None, histtype= 'bar', align= 'mid', orientation= 'vertical', rwidth= 0.6, log= False, color= None, label= None, stacked= False)
         plt.legend(loc=0)
         plt.grid(True)
