@@ -2,6 +2,7 @@ from Config.myConfig import *
 from Config.myConstant import *
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 
 ########################################################################
 class ReturnAnalysis(object):
@@ -23,16 +24,22 @@ class ReturnAnalysis(object):
         return myseries.describe()
         pass
     #----------------------------------------------------------------------
-    #@classmethod 
-    def getNetValue(self,days,netvalue,nameStr=EMPTY_STRING):
+    @classmethod 
+    def getNetValue(self,days,netvalue,saveAddress,nameStr=EMPTY_STRING):
         nameStr=nameStr+'return'
+        fig=plt.figure()
+        ax=fig.add_subplot(111)
         plt.plot(days,netvalue)
         plt.xticks(rotation=45)
-        plot.xlabel('date')
-        plot.ylabel('netvalue')
-        plot.title(nameStr)
-        filePath=saveAddress+'\\'+nameStr
+        plt.xlabel('date')
+        plt.ylabel('netvalue')
+        plt.grid(True)
+        ax.xaxis.set_major_locator(ticker.MultipleLocator(60))
+        plt.title(nameStr)
         plt.show()
+        plt.legend()
+        filePath=saveAddress+'\\'+nameStr
+        
         plt.savefig(filePath)
         pass
     #----------------------------------------------------------------------

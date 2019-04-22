@@ -27,13 +27,13 @@ class myAnalysisForReverseByStd(object):
         my500=mydata[mydata['is500']==1]
         others=mydata[(mydata['is50']==0) & (mydata['is300']==0) &(mydata['is500']==0)]
         #行业
-        myindustry=self.analysisIndustry(mydata)
-        print(myindustry)
+        #myindustry=self.analysisIndustry(mydata)
+        #print(myindustry)
         #时间
         #波动率
         #波动率rank
         
-        self.__analysisByTradedays(mydata,startDate,endDate)
+        self.__analysisByTradedays(mydata,startDate,endDate,address,'all')
         #ReturnAnalysis.getHist(long['return'],address,'long')
         longAnswer=ReturnAnalysis.getBasicInfo(long['return'])
         shortAnswer=ReturnAnalysis.getBasicInfo(short['return'])
@@ -49,7 +49,7 @@ class myAnalysisForReverseByStd(object):
         print(othersAnswer)
         pass
    #----------------------------------------------------------------------
-    def __analysisByTradedays(self,mydata,startDate,endDate):
+    def __analysisByTradedays(self,mydata,startDate,endDate,address,nameStr=EMPTY_STRING):
         startDate=str(startDate)
         endDate=str(endDate)
         tradeDays=TradedayDataProcess.getTradedays(startDate,endDate)
@@ -65,10 +65,10 @@ class myAnalysisForReverseByStd(object):
             else:
                 myfirst=todayData.sort_values('time').head(10)
                 n=myfirst.shape[0]
-                cash=cash+cashUnit*n*(myfirst['return'].mean())
+                cash=cash+cashUnit*n*(myfirst['return'].mean()-0.006)
                 pass
-            netvalueList.append(cash)
-        print(cash)
+            netvalueList.append(cash/startCash)
+        ReturnAnalysis.getNetValue(tradeDays,netvalueList,address,nameStr)
         pass
    #----------------------------------------------------------------------
     def analysisIndustry(self,mydata):
