@@ -27,26 +27,47 @@ class myAnalysisForReverseByStd(object):
         my500=mydata[mydata['is500']==1]
         others=mydata[(mydata['is50']==0) & (mydata['is300']==0) &(mydata['is500']==0)]
         #行业
-        #myindustry=self.analysisIndustry(mydata)
+        #myindustry=self.analysisIndustry(mydata,address)
         #print(myindustry)
         #时间
         #波动率
         #波动率rank
         
-        self.__analysisByTradedays(mydata,startDate,endDate,address,'all')
-        #ReturnAnalysis.getHist(long['return'],address,'long')
+        
+        
+        allAnswer=ReturnAnalysis.getBasicInfo(mydata['return'])
         longAnswer=ReturnAnalysis.getBasicInfo(long['return'])
         shortAnswer=ReturnAnalysis.getBasicInfo(short['return'])
         my50Answer=ReturnAnalysis.getBasicInfo(my50['return'])
         my300Answer=ReturnAnalysis.getBasicInfo(my300['return'])
         my500Answer=ReturnAnalysis.getBasicInfo(my500['return'])
         othersAnswer=ReturnAnalysis.getBasicInfo(others['return'])
-        print(longAnswer)
-        print(shortAnswer)
-        print(my50Answer)
-        print(my300Answer)
-        print(my500Answer)
-        print(othersAnswer)
+        '''
+        self.__analysisByTradedays(mydata,startDate,endDate,address,'all')
+        self.__analysisByTradedays(long,startDate,endDate,address,'long')
+        self.__analysisByTradedays(short,startDate,endDate,address,'short')
+        self.__analysisByTradedays(my50,startDate,endDate,address,'50')
+        self.__analysisByTradedays(my300,startDate,endDate,address,'300')
+        self.__analysisByTradedays(my500,startDate,endDate,address,'500')
+        self.__analysisByTradedays(others,startDate,endDate,address,'others')
+        '''
+        '''
+        ReturnAnalysis.getHist(mydata['return'],address,'all')
+        ReturnAnalysis.getHist(long['return'],address,'long')
+        ReturnAnalysis.getHist(short['return'],address,'short')
+        ReturnAnalysis.getHist(my50['return'],address,'50')
+        ReturnAnalysis.getHist(my300['return'],address,'300')
+        ReturnAnalysis.getHist(my500['return'],address,'500')
+        ReturnAnalysis.getHist(others['return'],address,'others')
+        '''
+        df=pd.DataFrame(allAnswer,index=['all'])
+        df=df.append(pd.DataFrame(longAnswer,index=['long']))
+        df=df.append(pd.DataFrame(shortAnswer,index=['short']))
+        df=df.append(pd.DataFrame(my50Answer,index=['50']))
+        df=df.append(pd.DataFrame(my300Answer,index=['300']))
+        df=df.append(pd.DataFrame(my500Answer,index=['500']))
+        df=df.append(pd.DataFrame(othersAnswer,index=['others']))
+        print(df)
         pass
    #----------------------------------------------------------------------
     def __analysisByTradedays(self,mydata,startDate,endDate,address,nameStr=EMPTY_STRING):
@@ -65,13 +86,13 @@ class myAnalysisForReverseByStd(object):
             else:
                 myfirst=todayData.sort_values('time').head(10)
                 n=myfirst.shape[0]
-                cash=cash+cashUnit*n*(myfirst['return'].mean()-0.006)
+                cash=cash+cashUnit*n*(myfirst['return'].mean()-0.004)
                 pass
             netvalueList.append(cash/startCash)
         ReturnAnalysis.getNetValue(tradeDays,netvalueList,address,nameStr)
         pass
    #----------------------------------------------------------------------
-    def analysisIndustry(self,mydata):
+    def analysisIndustry(self,mydata,address):
         industry=IndustryClassification.getIndustryClassification()
         industry['industry']=industry['industry'].astype('int32')
         industry['name']=industry['name'].astype('str')
@@ -81,9 +102,11 @@ class myAnalysisForReverseByStd(object):
             name0=row[2]
             mydata0=mydata[mydata['industry']==industry0]
             answer=ReturnAnalysis.getBasicDescribe(mydata0['return'])
+            answer=round(answer,4)
             result0=[industry0,name0,answer['count'],answer['mean'],answer['std'],answer['min'],answer['25%'],answer['50%'],answer['75%'],answer['max']]
             result.append(result0)
         result=pd.DataFrame(data=result,columns=['industry','name','count','mean','std','min','25%','50%','75%','max'])
+        ReturnAnalysis.getBar(result['name'],result['mean'],'industry','mean',address,'industry')
         return result 
         pass
     #----------------------------------------------------------------------
