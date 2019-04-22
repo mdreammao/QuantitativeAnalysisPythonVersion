@@ -11,7 +11,9 @@ from DataPrepare.dailyKLineDataPrepared import *
 from Strategy.stockReverseMovement import *
 from Strategy.myRandomForestForCeiling import *
 from Strategy.stockReverseByStd import *
+from Strategy.myAnalysisForReverseByStd import *
 from Utility.mytest import *
+from Utility.JobLibUtility import *
 import warnings
 import time
 
@@ -19,39 +21,35 @@ import time
 #----------------------------------------------------------------------
 def main():
     """主程序入口"""
+    '''
+    #industry=IndustryClassification.getIndustryByCode('600251.SH',startDate,endDate)
+    #m.xs(m[(((m['open']<m['open'][0]) & (m['time']<='0800'))|(m['time']=='1500')) & (m['date']==m['date'][0])].index[0])
+    #mselect=m[(m['open'].shift(1)<m['yesterdayClose']*(1+parameter*m['closeStd20'])) & (m['open']>m['yesterdayClose']*(1+parameter*m['closeStd20']))]
+    #mselect=mselect.dropna(axis=0,how='any')
+    #myindex=IndexComponentDataProcess()
+    #index500=myindex.getCSI500DataByDate(startDate,endDate)
+    #index300=myindex.getHS300DataByDate(startDate,endDate)
+    #index50=myindex.getSSE50DataByDate(endDate,endDate)
+    #stockCodes=list(pd.concat([index500,index300,index50],ignore_index=True)['code'].drop_duplicates())
+    '''
+
+
     warnings.filterwarnings('ignore')
-    '''
-    mytest0=mytest()
-    mytest0.testnumba()
-    '''
     startDate=20100101
     endDate=20190415
-    fileStr=LocalFileAddress+"\\{0}\\{1}.h5".format('dailyFactors','stockCodes')
-    store = pd.HDFStore(fileStr,'a')
-    stockCodes=list(store.select('stockCodes')['code'])
-    store.close()
-    #myindex=IndexComponentDataProcess()
-    #index50=myindex.getSSE50DataByDate(endDate,endDate)
-    #stockCodes=list(index50['code'].drop_duplicates())
-
-
-    #stockCodes=list({'601299.SH'})
-    #IndustryClassification.getIndustryByCode('600000.SH',20070101,20180410)
-    #tmp=IndexComponentDataProcess()
-    #tmp.getStockBelongs('600000.SH','000300.SH',20070101,20180410)
-    #tmp=dailyKLineDataPrepared()
-    #tmp.getStockDailyFeatureData(20070101,20180410)
-    #StockSharesProcess.getStockShares('600000.SH',20170101,20190410)
-    #IndexCode.getIndexCodeInfo()
-    #IndustryClassification.getIndustryByCode('600000.SH',20190409)
-    #tmp=stockReverseMovement()
-    #tmp.reverse(20100101,20181228)
-    #tmp=myRandomForestForCeiling()
-    #tmp.myRandomForest('ceilingInNext5m')
-    #tmp=dailyKLineDataPrepared()
-    #tmp.getStockDailyFeatureData(stockCodes,startDate,endDate)
     temp=stockReverseByStd()
-    temp.reverse(stockCodes,startDate,endDate)
+    #temp.dataPrepared(stockCodes,startDate,endDate)
+    stockCodes=temp.getStockList(startDate,endDate)
+    temp.parallelizationReverse(startDate,endDate)
+    #mytest0=mytest()
+    #mytest0.testjoblib(stockCodes,8,startDate,endDate)
+    
+    
+
+    myanalysis=myAnalysisForReverseByStd()
+    myanalysis.analysis(startDate,endDate)
+
+    
     pass
 if __name__ == '__main__':
     main()

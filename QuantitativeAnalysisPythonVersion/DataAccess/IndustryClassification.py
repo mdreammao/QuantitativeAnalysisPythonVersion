@@ -38,6 +38,21 @@ class IndustryClassification(object):
         select.set_index('date',drop=True,inplace=True)
         return select
     #----------------------------------------------------------------------
+    #返还行业代码及行业名称
+    @classmethod 
+    def getIndustryClassification(self):
+        if len(IndustryClassification.allIndustry)==0:
+            IndustryClassification.allIndustry=IndustryClassification.__getIndustryFromLocalFile()
+        else:
+            pass
+        mydata=IndustryClassification.allIndustry
+        mydata=mydata[['industry','name']]
+        mydata['industry']=mydata['industry'].apply(lambda x:x[0:4])
+        mydata.drop_duplicates(subset='industry',keep='first',inplace=True)
+        mydata=mydata.reset_index()
+        return mydata
+
+    #----------------------------------------------------------------------
     #返还dataframe格式，['date'日期，'code'股票代码,'industry','name'行业名称]
     @classmethod 
     def getIndustryByCode(self,code,startDate,endDate):
@@ -57,8 +72,8 @@ class IndustryClassification(object):
         for row in range(len(mydata)):
             entry=mydata.iloc[row]['entry']
             remove=mydata.iloc[row]['remove']
-            dataWithIndex.loc[((dataWithIndex['date']>=entry) & (dataWithIndex['date']<remove)),'industry']=mydata.iloc[row]['industry'][0:4]
-            dataWithIndex.loc[((dataWithIndex['date']>=entry) & (dataWithIndex['date']<remove)),'name']=mydata.iloc[row]['name']
+            dataWithIndex.loc[((dataWithIndex['date']>=entry) & (dataWithIndex['date']<=remove)),'industry']=mydata.iloc[row]['industry'][0:4]
+            dataWithIndex.loc[((dataWithIndex['date']>=entry) & (dataWithIndex['date']<=remove)),'name']=mydata.iloc[row]['name']
         dataWithIndex.set_index('date',drop=True,inplace=True)
         return dataWithIndex
     #----------------------------------------------------------------------

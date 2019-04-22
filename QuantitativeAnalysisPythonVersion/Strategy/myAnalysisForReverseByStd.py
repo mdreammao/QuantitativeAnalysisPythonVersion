@@ -1,44 +1,123 @@
 from DataAccess.IndexComponentDataProcess import *
 from DataAccess.KLineDataProcess import *
+from DataAccess.IndustryClassification import *
 from DataAccess.TradedayDataProcess import *
+from Utility.ReturnAnalysis import *
 from Config.myConstant import *
 from Config.myConfig import *
-
+import copy
 
 ########################################################################
 class myAnalysisForReverseByStd(object):
     """股票异动,专注股票大涨之后的回调"""
     #----------------------------------------------------------------------
     def __init__(self):
-        self.__localFileStr=LocalFileAddress+"\\intermediateResult\\stdFeature.h5"
-        self.__localFileStrResult=LocalFileAddress+"\\intermediateResult\\stdFeatureResult.h5"
-        self.__allMinute=pd.DataFrame()
-        self.__key='factors'
-        self.__factorsAddress=LocalFileAddress+"\\{0}\\{1}.h5".format('dailyFactors',self.__key)
+        self.__localFileStrResult=LocalFileAddress+"\\intermediateResult\\stdReverseResult.h5"
+        self.__localFileStrResultAll=LocalFileAddress+"\\result\\stdReverseResult.h5"
         pass
-    #----------------------------------------------------------------------
-    def select(self,startDate,endDate):
+    def __detailAnalysis(self,mydata,startDate,endDate):
+        address=LocalFileAddress+"\\intermediateResult"
+        #多空
+        long=mydata[mydata['position']==1]
+        short=mydata[mydata['position']==-1]
+        
+        #指数成分
+        my50=mydata[mydata['is50']==1]
+        my300=mydata[mydata['is300']==1]
+        my500=mydata[mydata['is500']==1]
+        others=mydata[(mydata['is50']==0) & (mydata['is300']==0) &(mydata['is500']==0)]
+        #行业
+        myindustry=self.analysisIndustry(mydata)
+        print(myindustry)
+        #时间
+        #波动率
+        #波动率rank
+        
+        self.__analysisByTradedays(mydata,startDate,endDate)
+        #ReturnAnalysis.getHist(long['return'],address,'long')
+        longAnswer=ReturnAnalysis.getBasicInfo(long['return'])
+        shortAnswer=ReturnAnalysis.getBasicInfo(short['return'])
+        my50Answer=ReturnAnalysis.getBasicInfo(my50['return'])
+        my300Answer=ReturnAnalysis.getBasicInfo(my300['return'])
+        my500Answer=ReturnAnalysis.getBasicInfo(my500['return'])
+        othersAnswer=ReturnAnalysis.getBasicInfo(others['return'])
+        print(longAnswer)
+        print(shortAnswer)
+        print(my50Answer)
+        print(my300Answer)
+        print(my500Answer)
+        print(othersAnswer)
+        pass
+   #----------------------------------------------------------------------
+    def __analysisByTradedays(self,mydata,startDate,endDate):
         startDate=str(startDate)
         endDate=str(endDate)
-        self.startDate=startDate
-        self.endDate=endDate
-        self.tradeDays=TradedayDataProcess.getTradedays(startDate,endDate)
-        store = pd.HDFStore(self.__localFileStr,'a')
-        stockCodes=store.select('stockCodes')
-        data=store.select('result')
-        store.close()
+        tradeDays=TradedayDataProcess.getTradedays(startDate,endDate)
+        netvalueList=[]
+        startCash=1000000
+        cash=startCash
+        cashUnit=startCash/10
+        for days in tradeDays:
+            today=int(days)
+            todayData=mydata[mydata['date']==today]
+            if len(todayData)==0:
+                pass
+            else:
+                myfirst=todayData.sort_values('time').head(10)
+                n=myfirst.shape[0]
+                cash=cash+cashUnit*n*(myfirst['return'].mean())
+                pass
+            netvalueList.append(cash)
+        print(cash)
+        pass
+   #----------------------------------------------------------------------
+    def analysisIndustry(self,mydata):
+        industry=IndustryClassification.getIndustryClassification()
+        industry['industry']=industry['industry'].astype('int32')
+        industry['name']=industry['name'].astype('str')
+        result=[]
+        for index,row in industry.iterrows():
+            industry0=row[1]
+            name0=row[2]
+            mydata0=mydata[mydata['industry']==industry0]
+            answer=ReturnAnalysis.getBasicDescribe(mydata0['return'])
+            result0=[industry0,name0,answer['count'],answer['mean'],answer['std'],answer['min'],answer['25%'],answer['50%'],answer['75%'],answer['max']]
+            result.append(result0)
+        result=pd.DataFrame(data=result,columns=['industry','name','count','mean','std','min','25%','50%','75%','max'])
+        return result 
         pass
     #----------------------------------------------------------------------
     def analysis(self,startDate,endDate):
         startDate=str(startDate)
         endDate=str(endDate)
-        self.startDate=startDate
-        self.endDate=endDate
-        self.tradeDays=TradedayDataProcess.getTradedays(startDate,endDate)
-        store = pd.HDFStore(self.__localFileStrResult,'a')
-        stockCodes=store.select('stockCodes')
-        data=store.select('result')
-        store.close()
+        tradeDays=TradedayDataProcess.getTradedays(startDate,endDate)
+        mydata=pd.DataFrame()
+        if os.path.exists(self.__localFileStrResultAll):
+            store=pd.HDFStore(self.__localFileStrResultAll,'a')
+            mydata=store.get("all")
+            store.close()
+        else:
+            store = pd.HDFStore(self.__localFileStrResult,'a')
+            keys=store.keys()
+            for code in keys:
+                mycode=code.lstrip("/")
+                mydata=mydata.append(store.get(mycode))
+            store.close()
+            store=pd.HDFStore(self.__localFileStrResultAll,'a')
+            mydata=store.put("all",mydata,append=False,format='table')
+            store.close()
+
+        mydata=mydata[['code','date', 'time','closeDate', 'closeTime', 'feeRate', 'return','increaseInDay', 'closeStd20','amount',
+       'increase5m', 'increase1m', 'industry', 'is50',
+       'is300', 'is500', 'ts_rank_closeStd20',
+       'rankMarketValue', 'position',  'open','closePrice','canBuy','canSell','canBuyPrice','canSellPrice'
+       ]]
+        mydata=mydata[(mydata['closePrice']>0) & (mydata['increaseInDay']>-0.2) & (mydata['increaseInDay']<0.2)]
+        mydata=mydata[((mydata['increase5m']>mydata['closeStd20']) & (mydata['position']==-1)) |((mydata['increase5m']<-mydata['closeStd20']) & (mydata['position']==1))]
+        self.__detailAnalysis(mydata,startDate,endDate)
+
+        print(mydata.shape)
+
      
 
 

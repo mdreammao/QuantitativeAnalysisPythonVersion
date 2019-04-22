@@ -94,7 +94,16 @@
     <Compile Include="Strategy\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Utility\HDF5Utility.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Utility\JobLibUtility.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Utility\mytest.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Utility\ReturnAnalysis.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Utility\SqlServerUtility.py">
