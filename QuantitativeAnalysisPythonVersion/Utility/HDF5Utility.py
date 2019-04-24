@@ -13,8 +13,8 @@ class HDF5Utility(object):
     def dataTransfer(self,sourceStr,targetStr):
         source=pd.HDFStore(sourceStr,'a')
         target=pd.HDFStore(targetStr,'a')
-        print(source)
-        print(target)
+        #print(source)
+        #print(target)
         sourcekeys=source.keys()
         for code in sourcekeys:
             mycode=code.lstrip("/")
