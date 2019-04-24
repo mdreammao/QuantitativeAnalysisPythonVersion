@@ -127,7 +127,8 @@ class myAnalysisForReverseByStd(object):
                 mydata=mydata.append(store.get(mycode))
             store.close()
             store=pd.HDFStore(self.__localFileStrResultAll,'a')
-            mydata=store.put("all",mydata,append=False,format='table')
+            store.put("all",mydata,append=False,format='table')
+
             store.close()
 
         mydata=mydata[['code','date', 'time','closeDate', 'closeTime', 'feeRate', 'return','increaseInDay', 'closeStd20','amount',

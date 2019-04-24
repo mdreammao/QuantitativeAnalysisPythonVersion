@@ -10,12 +10,12 @@ import numba
 
 
 ########################################################################
-class stockReverseByStd(object):
+class stockMomentumByStd(object):
     """股票异动,专注股票大涨之后的回调"""
     #----------------------------------------------------------------------
     def __init__(self):
         self.__localFileStr=LocalFileAddress+"\\intermediateResult\\stdFeature.h5"
-        self.__localFileStrResult=LocalFileAddress+"\\intermediateResult\\stdReverseResult.h5"
+        self.__localFileStrResult=LocalFileAddress+"\\intermediateResult\\stdMomentumResult.h5"
         self.__allMinute=pd.DataFrame()
         self.__key='factorsWithRank'
         self.__factorsAddress=LocalFileAddress+"\\{0}\\{1}.h5".format('dailyFactors',self.__key)
@@ -94,10 +94,10 @@ class stockReverseByStd(object):
     #----------------------------------------------------------------------
     def parallelizationReverse(self,startDate,endDate):
         stockCodes=self.getStockList(startDate,endDate)
-        JobLibUtility.useJobLib(self.reverse,stockCodes,80,startDate,endDate,self.__localFileStrResult)
+        JobLibUtility.useJobLib(self.momentum,stockCodes,80,startDate,endDate,self.__localFileStrResult)
         pass
     #----------------------------------------------------------------------
-    def reverse(self,stockCodes,startDate,endDate,storeStr=EMPTY_STRING):
+    def momentum(self,stockCodes,startDate,endDate,storeStr=EMPTY_STRING):
         warnings.filterwarnings('ignore')
         #@numba.jit(nopython=True,parallel=True)
         def mytransaction(m,days,parameter):
@@ -112,30 +112,29 @@ class stockReverseByStd(object):
             for i in range(0,length-1):
                 increaseInDay=m[i][2]
                 closeStd=m[i][3]
-                priceNow=m[i][4]
                 mytime=m[i][1]
                 canbuy=m[i][6]
                 canbuyPrice=m[i][8]
+                canbuyPriceNext=m[i+1][8]
                 cansell=m[i][7]
                 cansellPrice=m[i][9]
+                canSellPriceNext=m[i+1][9]
                 if position==0:
                     if (mytime>935) & (mytime<1440):
                         if ((increaseInDay>parameter*closeStd) & (cansell==1)):
                             position=-1
                             startIndex=i
-                            #openPrice=cansellPrice
-                            openPrice=m[i+1][9] # 成交价格向后平移一分钟
+                            openPrice=cansellPriceNext
                             z0[0]=startIndex
                             z0[2]=position
                         elif ((increaseInDay<-parameter*closeStd) & (canbuy==1)):
                             position=1
                             startIndex=i
-                            #openPrice=canbuyPrice
-                            openPrice=m[i+1][8]# 成交价格向后平移一分钟
+                            openPrice=canbuyPriceNext
                             z0[0]=startIndex
                             z0[2]=position
                 elif position==1:
-                    if (mytime>=1455) | (i>=startIndex+60) | ((i>=startIndex+20) & (priceNow<openPrice)):
+                    if (mytime>=1455) | (i>=startIndex+60) | ((i>=startIndex+20) & (cansellPrice<openPrice)):
                         position=0
                         endIndex=i
                         z0[1]=endIndex
@@ -143,7 +142,7 @@ class stockReverseByStd(object):
                         num=num+1
                         z0=np.zeros(3,dtype=np.int64)
                 elif position==-1:
-                    if (mytime>=1455) | (i>=startIndex+60) | ((i>=startIndex+20) & (priceNow>openPrice)):
+                    if (mytime>=1455) | (i>=startIndex+60) | ((i>=startIndex+20) & (canbuyPrice>openPrice)):
                         position=0
                         endIndex=i
                         z0[1]=endIndex
@@ -155,12 +154,10 @@ class stockReverseByStd(object):
             result=np.zeros((length,30))
             for i in range(0,num):
                 position=z[i][2]
-                startIndex=z[i][0]+1#成交往后平移一分钟
-                endIndex=z[i][1]+1#成交往后平移一分钟
-                #startIndex=z[i][0]
-                #endIndex=z[i][1]
-                startData=m[startIndex] 
-                endData=m[endIndex]
+                startIndex=z[i][0]
+                endIndex=z[i][1]
+                startData=m[startIndex]
+                endData=m[endIndex+1]
                 result0[0:22]=startData[0:22] #开仓时候的全部信息
                 result0[28]=startData[22]#canbuyPriceAdj
                 result0[29]=startData[23]#canSellPriceAdj
