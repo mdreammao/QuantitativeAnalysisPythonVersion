@@ -12,6 +12,8 @@ from Strategy.stockReverseMovement import *
 from Strategy.myRandomForestForCeiling import *
 from Strategy.stockReverseByStd import *
 from Strategy.myAnalysisForReverseByStd import *
+from Strategy.stockMomentumByStd import *
+from Strategy.myAnalysisForMomentumByStd import *
 from Utility.mytest import *
 from Utility.JobLibUtility import *
 import warnings
@@ -37,18 +39,16 @@ def main():
     warnings.filterwarnings('ignore')
     startDate=20100101
     endDate=20190415
-    temp=stockReverseByStd()
-    temp.parallelizationDataPrepared(startDate,endDate)
-    temp.parallelizationReverse(startDate,endDate)
-    #mytest0=mytest()
-    #mytest0.testjoblib(stockCodes,8,startDate,endDate)
-    
-    
-
-    myanalysis=myAnalysisForReverseByStd()
+    #temp=stockReverseByStd()
+    #temp.dataPrepared(stockCodes,startDate,endDate)
+    #stockCodes=temp.getStockList(startDate,endDate)
+    #temp.parallelizationReverse(startDate,endDate)
+    #myanalysis=myAnalysisForReverseByStd()
+    #myanalysis.analysis(startDate,endDate)
+    temp=stockMomentumByStd()
+    temp.parallelizationMomentum(startDate,endDate) 
+    myanalysis=myAnalysisForMomentumByStd()
     myanalysis.analysis(startDate,endDate)
-
-    
     pass
 if __name__ == '__main__':
     main()

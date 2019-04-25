@@ -8,15 +8,15 @@ from Config.myConfig import *
 import copy
 
 ########################################################################
-class myAnalysisForReverseByStd(object):
+class myAnalysisForMomentumByStd(object):
     """股票异动,专注股票大涨之后的回调"""
     #----------------------------------------------------------------------
     def __init__(self):
-        self.__localFileStrResult=LocalFileAddress+"\\intermediateResult\\stdReverseResult.h5"
-        self.__localFileStrResultAll=LocalFileAddress+"\\result\\stdReverseResult.h5"
+        self.__localFileStrResult=LocalFileAddress+"\\intermediateResult\\stdMomentumResult.h5"
+        self.__localFileStrResultAll=LocalFileAddress+"\\result\\stdMomentumResult.h5"
         pass
     def __detailAnalysis(self,mydata,startDate,endDate):
-        address=LocalFileAddress+"\\intermediateResult\\reverse"
+        address=LocalFileAddress+"\\intermediateResult\\momentum"
         #多空
         long=mydata[mydata['position']==1]
         short=mydata[mydata['position']==-1]
@@ -27,8 +27,8 @@ class myAnalysisForReverseByStd(object):
         my500=mydata[mydata['is500']==1]
         others=mydata[(mydata['is50']==0) & (mydata['is300']==0) &(mydata['is500']==0)]
         #行业
-        #myindustry=self.analysisIndustry(mydata,address)
-        #print(myindustry)
+        myindustry=self.analysisIndustry(mydata,address)
+        print(myindustry)
         #时间
         #波动率
         #波动率rank
@@ -51,7 +51,7 @@ class myAnalysisForReverseByStd(object):
         self.__analysisByTradedays(my500,startDate,endDate,address,'500')
         self.__analysisByTradedays(others,startDate,endDate,address,'others')
         '''
-        '''
+        
         ReturnAnalysis.getHist(mydata['return'],address,'all')
         ReturnAnalysis.getHist(long['return'],address,'long')
         ReturnAnalysis.getHist(short['return'],address,'short')
@@ -59,7 +59,7 @@ class myAnalysisForReverseByStd(object):
         ReturnAnalysis.getHist(my300['return'],address,'300')
         ReturnAnalysis.getHist(my500['return'],address,'500')
         ReturnAnalysis.getHist(others['return'],address,'others')
-        '''
+        
         df=pd.DataFrame(allAnswer,index=['all'])
         df=df.append(pd.DataFrame(longAnswer,index=['long']))
         df=df.append(pd.DataFrame(shortAnswer,index=['short']))
@@ -122,13 +122,15 @@ class myAnalysisForReverseByStd(object):
         else:
             store = pd.HDFStore(self.__localFileStrResult,'a')
             keys=store.keys()
+            num=0
             for code in keys:
                 mycode=code.lstrip("/")
                 mydata=mydata.append(store.get(mycode))
+                num=num+1
+                #print(num)
             store.close()
             store=pd.HDFStore(self.__localFileStrResultAll,'a')
             store.put("all",mydata,append=False,format='table')
-
             store.close()
 
         mydata=mydata[['code','date', 'time','closeDate', 'closeTime', 'feeRate', 'return','increaseInDay', 'closeStd20','amount',
@@ -137,7 +139,7 @@ class myAnalysisForReverseByStd(object):
        'rankMarketValue', 'position',  'open','closePrice','canBuy','canSell','canBuyPrice','canSellPrice'
        ]]
         mydata=mydata[(mydata['closePrice']>0) & (mydata['increaseInDay']>-0.2) & (mydata['increaseInDay']<0.2)]
-        mydata=mydata[((mydata['increase5m']>mydata['closeStd20']) & (mydata['position']==-1)) |((mydata['increase5m']<-mydata['closeStd20']) & (mydata['position']==1))]
+        #mydata=mydata[((mydata['increase5m']<-1.5*mydata['closeStd20']) & (mydata['position']==-1)) |((mydata['increase5m']>1.5*mydata['closeStd20']) & (mydata['position']==1))]
         self.__detailAnalysis(mydata,startDate,endDate)
 
         print(mydata.shape)

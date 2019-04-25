@@ -27,6 +27,23 @@ class HDF5Utility(object):
         pass
     #----------------------------------------------------------------------
     @classmethod 
+    def dataTransferToOneFile(self,sourceStr,targetStr):
+        source=pd.HDFStore(sourceStr,'a')
+        target=pd.HDFStore(targetStr,'a')
+        #print(source)
+        #print(target)
+        sourcekeys=source.keys()
+        for code in sourcekeys:
+            mycode=code.lstrip("/")
+            #print(mycode)
+            mydata=source.get(mycode)
+            target.append('all',mydata,append=True,Format='table')
+        source.close()
+        target.close()
+        os.remove(sourceStr)
+        pass
+    #----------------------------------------------------------------------
+    @classmethod 
     def fileClear(self,sourceStr):
         if os.path.exists(sourceStr):
             os.remove(sourceStr)

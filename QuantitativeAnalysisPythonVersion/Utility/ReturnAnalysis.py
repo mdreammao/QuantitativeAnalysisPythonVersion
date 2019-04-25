@@ -54,8 +54,8 @@ class ReturnAnalysis(object):
         plt.xticks(rotation=45)
         #plt.yticks(np.arange(0, 81, 10))
         # 添加图例
-        plt.legend(loc="upper right")
-        plt.show()
+        #plt.legend(loc="upper right")
+        #plt.show()
         filePath=saveAddress+'\\'+nameStr
         plt.savefig(filePath)
     #----------------------------------------------------------------------

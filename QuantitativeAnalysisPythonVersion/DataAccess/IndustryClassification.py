@@ -68,12 +68,15 @@ class IndustryClassification(object):
         dataWithIndex=pd.DataFrame(tradedays,columns=['date'])
         #dataWithIndex.set_index(['date'],inplace=True)
         mydata=mydata[mydata['code']==code]
+        disabledIndustry=['6106','6107','6109','6110','6119','6122']
         mydata.fillna('20991231',inplace=True)
         for row in range(len(mydata)):
             entry=mydata.iloc[row]['entry']
             remove=mydata.iloc[row]['remove']
             dataWithIndex.loc[((dataWithIndex['date']>=entry) & (dataWithIndex['date']<=remove)),'industry']=mydata.iloc[row]['industry'][0:4]
             dataWithIndex.loc[((dataWithIndex['date']>=entry) & (dataWithIndex['date']<=remove)),'name']=mydata.iloc[row]['name']
+        dataWithIndex[dataWithIndex['industry'].isin(disabledIndustry)]=None
+        dataWithIndex.fillna(method = 'bfill',inplace=True)
         dataWithIndex.set_index('date',drop=True,inplace=True)
         return dataWithIndex
     #----------------------------------------------------------------------
