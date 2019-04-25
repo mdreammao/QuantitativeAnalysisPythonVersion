@@ -38,8 +38,7 @@ def main():
     startDate=20100101
     endDate=20190415
     temp=stockReverseByStd()
-    #temp.dataPrepared(stockCodes,startDate,endDate)
-    stockCodes=temp.getStockList(startDate,endDate)
+    temp.parallelizationDataPrepared(startDate,endDate)
     temp.parallelizationReverse(startDate,endDate)
     #mytest0=mytest()
     #mytest0.testjoblib(stockCodes,8,startDate,endDate)
