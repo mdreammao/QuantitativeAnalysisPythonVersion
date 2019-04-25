@@ -16,6 +16,7 @@ class stockMomentumByStd(object):
     def __init__(self):
         self.__localFileStr=LocalFileAddress+"\\intermediateResult\\stdFeature.h5"
         self.__localFileStrResult=LocalFileAddress+"\\intermediateResult\\stdMomentumResult.h5"
+        self.__localFileStrResultOneFile=LocalFileAddress+"\\result\\stdMomentumResult.h5"
         self.__allMinute=pd.DataFrame()
         self.__key='factorsWithRank'
         self.__factorsAddress=LocalFileAddress+"\\{0}\\{1}.h5".format('dailyFactors',self.__key)
@@ -86,15 +87,21 @@ class stockMomentumByStd(object):
             m['canSellPrice']=m['canSellPrice'].fillna(method='bfill')
             m['canSellPriceAdj']=m['canSellPriceAdj'].fillna(method='bfill')
             m['timeStamp']=m['date']+m['time']
+            #日内分钟信息
+
+
+
+
+
             mselect=m.set_index(['timeStamp','code'])
             store.append(code,mselect,append=False,format="table")
             pass
         store.close()
         pass
     #----------------------------------------------------------------------
-    def parallelizationReverse(self,startDate,endDate):
+    def parallelizationMomentum(self,startDate,endDate):
         stockCodes=self.getStockList(startDate,endDate)
-        JobLibUtility.useJobLib(self.momentum,stockCodes,80,startDate,endDate,self.__localFileStrResult)
+        JobLibUtility.useJobLibStoreToOneFile(self.momentum,stockCodes,80,startDate,endDate, self.__localFileStrResultOneFile)
         pass
     #----------------------------------------------------------------------
     def momentum(self,stockCodes,startDate,endDate,storeStr=EMPTY_STRING):
@@ -109,9 +116,12 @@ class stockMomentumByStd(object):
             startIndex=0
             endIndex=0
             num=0
+            maxProfit=0
+            lastOpenDate=0
             for i in range(0,length-1):
                 increaseInDay=m[i][2]
                 closeStd=m[i][3]
+                priceNow=m[i][4]
                 mytime=m[i][1]
                 canbuy=m[i][6]
                 canbuyPrice=m[i][8]
@@ -119,22 +129,29 @@ class stockMomentumByStd(object):
                 cansell=m[i][7]
                 cansellPrice=m[i][9]
                 canSellPriceNext=m[i+1][9]
+                today=m[i][0]
                 if position==0:
                     if (mytime>935) & (mytime<1440):
-                        if ((increaseInDay>parameter*closeStd) & (cansell==1)):
-                            position=-1
-                            startIndex=i
-                            openPrice=cansellPriceNext
-                            z0[0]=startIndex
-                            z0[2]=position
-                        elif ((increaseInDay<-parameter*closeStd) & (canbuy==1)):
+                        if ((today>lastOpenDate) &(increaseInDay>parameter*closeStd) &(increaseInDay<(parameter+0.5)*closeStd) & (canbuy==1)):
                             position=1
                             startIndex=i
                             openPrice=canbuyPriceNext
                             z0[0]=startIndex
                             z0[2]=position
+                            maxProfit=0
+                            lastOpenDate=today
+                        elif ((today>lastOpenDate) &(increaseInDay<-parameter*closeStd) & (increaseInDay>-(parameter+0.5)*closeStd) &(cansell==1)):
+                            position=-1
+                            startIndex=i
+                            openPrice=canSellPriceNext
+                            z0[0]=startIndex
+                            z0[2]=position
+                            maxProfit=0
+                            lastOpenDate=today
                 elif position==1:
-                    if (mytime>=1455) | (i>=startIndex+60) | ((i>=startIndex+20) & (cansellPrice<openPrice)):
+                    profit=(priceNow-openPrice)/openPrice
+                    maxProfit=max(profit,maxProfit)
+                    if ((mytime>=1455) | (profit<maxProfit-0.5*closeStd)):
                         position=0
                         endIndex=i
                         z0[1]=endIndex
@@ -142,7 +159,9 @@ class stockMomentumByStd(object):
                         num=num+1
                         z0=np.zeros(3,dtype=np.int64)
                 elif position==-1:
-                    if (mytime>=1455) | (i>=startIndex+60) | ((i>=startIndex+20) & (canbuyPrice>openPrice)):
+                    profit=(-priceNow+openPrice)/openPrice
+                    maxProfit=max(profit,maxProfit)
+                    if ((mytime>=1455) | (profit<maxProfit-0.5*closeStd)):
                         position=0
                         endIndex=i
                         z0[1]=endIndex
@@ -154,10 +173,10 @@ class stockMomentumByStd(object):
             result=np.zeros((length,30))
             for i in range(0,num):
                 position=z[i][2]
-                startIndex=z[i][0]
-                endIndex=z[i][1]
+                startIndex=z[i][0]+1
+                endIndex=z[i][1]+1
                 startData=m[startIndex]
-                endData=m[endIndex+1]
+                endData=m[endIndex]
                 result0[0:22]=startData[0:22] #开仓时候的全部信息
                 result0[28]=startData[22]#canbuyPriceAdj
                 result0[29]=startData[23]#canSellPriceAdj
@@ -197,7 +216,6 @@ class stockMomentumByStd(object):
         if exists==True:
             storeResult=pd.HDFStore(self.__localFileStrResult,'a')
             resultOldKeys=storeResult.keys()
-            
         else:
             resultOldKeys={}
         num=0
@@ -225,7 +243,7 @@ class stockMomentumByStd(object):
             m.dropna(inplace=True,subset=['increase5m','increase1m','closeStd20','ts_rank_closeStd20'])
             m[['date','time','industry']]=m[['date','time','industry']].astype(np.int64)
             m=m.as_matrix()
-            result=mytransaction(m,days,2.5)
+            result=mytransaction(m,10*days,1)
             result=pd.DataFrame(data=result,columns=['date', 'time','increaseInDay','closeStd20','open','adjFactor','canBuy', 'canSell', 'canBuyPrice', 'canSellPrice', 'amount','increase5m','increase1m','yesterdayClose',     'industry','is50','is300','is500','freeShares', 'freeMarketValue','ts_rank_closeStd20','rankMarketValue','position','closeDate','closeTime','closePrice','feeRate','return','canBuyPriceAdj','canSellPriceAdj'])
             result[['date', 'time','canBuy', 'canSell',     'industry','is50','is300','is500','position','closeDate','closeTime']]=result[['date', 'time','canBuy', 'canSell','industry','is50','is300','is500','position','closeDate','closeTime']].astype(int)
             result['code']=code

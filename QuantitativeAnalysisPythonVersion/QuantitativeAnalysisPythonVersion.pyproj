@@ -11,6 +11,7 @@
     <OutputPath>.</OutputPath>
     <Name>QuantitativeAnalysisPythonVersion</Name>
     <RootNamespace>QuantitativeAnalysisPythonVersion</RootNamespace>
+    <InterpreterId>Global|PythonCore|3.6</InterpreterId>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -79,6 +80,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="QuantitativeAnalysisPythonVersion.py" />
+    <Compile Include="Strategy\myAnalysisForMomentumByStd.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Strategy\myAnalysisForReverseByStd.py">
       <SubType>Code</SubType>
     </Compile>
@@ -123,6 +127,9 @@
     <Folder Include="DataPrepare\" />
     <Folder Include="Strategy\" />
     <Folder Include="Utility\" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="Global|PythonCore|3.6" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
