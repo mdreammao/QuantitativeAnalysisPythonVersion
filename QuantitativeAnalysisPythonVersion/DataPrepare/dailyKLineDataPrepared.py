@@ -69,6 +69,7 @@ class dailyKLineDataPrepared(object):
             mydata['freeShares']=mydataDerivative['freeShares']
             mydata['freeMarketValue']=mydataDerivative['freeMarketValue']
             mydata['return']=(mydata['close']-mydata['preClose'])/mydata['preClose']
+            #昨日计算出的标准差给今日用，防止用到未来数据
             mydata['closeStd20']=mydata['return'].shift(-1).rolling(20,min_periods=17).std()
             mydata['ts_rank_closeStd20']=mydata['closeStd20'].rolling(50,min_periods=20).apply((lambda x:pd.Series(x).rank().iloc[-1]/len(x)),raw=True)
             mydata.reset_index(inplace=True)
