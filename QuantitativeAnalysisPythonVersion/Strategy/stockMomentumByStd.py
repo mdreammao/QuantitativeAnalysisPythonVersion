@@ -132,7 +132,7 @@ class stockMomentumByStd(object):
                 today=m[i][0]
                 if position==0:
                     if (mytime>935) & (mytime<1440):
-                        if ((today>lastOpenDate) &(increaseInDay>parameter*closeStd) &(increaseInDay<(parameter+0.5)*closeStd) & (canbuy==1)):
+                        if ((today>lastOpenDate) &(increaseInDay>parameter*closeStd) &(increaseInDay<(parameter+0.2)*closeStd) & (canbuy==1)):
                             position=1
                             startIndex=i
                             openPrice=canbuyPriceNext
@@ -140,7 +140,7 @@ class stockMomentumByStd(object):
                             z0[2]=position
                             maxProfit=0
                             lastOpenDate=today
-                        elif ((today>lastOpenDate) &(increaseInDay<-parameter*closeStd) & (increaseInDay>-(parameter+0.5)*closeStd) &(cansell==1)):
+                        elif ((today>lastOpenDate) &(increaseInDay<-parameter*closeStd) & (increaseInDay>-(parameter+0.2)*closeStd) &(cansell==1)):
                             position=-1
                             startIndex=i
                             openPrice=canSellPriceNext
@@ -151,7 +151,7 @@ class stockMomentumByStd(object):
                 elif position==1:
                     profit=(priceNow-openPrice)/openPrice
                     maxProfit=max(profit,maxProfit)
-                    if ((mytime>=1455) | (profit<maxProfit-0.5*closeStd)):
+                    if (((mytime>=1455) & (profit<0.05)) | (profit<maxProfit-0.5*closeStd)):
                         position=0
                         endIndex=i
                         z0[1]=endIndex
@@ -161,7 +161,7 @@ class stockMomentumByStd(object):
                 elif position==-1:
                     profit=(-priceNow+openPrice)/openPrice
                     maxProfit=max(profit,maxProfit)
-                    if ((mytime>=1455) | (profit<maxProfit-0.5*closeStd)):
+                    if (((mytime>=1455) & (profit<0.05)) | (profit<maxProfit-0.5*closeStd)):
                         position=0
                         endIndex=i
                         z0[1]=endIndex
@@ -173,10 +173,10 @@ class stockMomentumByStd(object):
             result=np.zeros((length,30))
             for i in range(0,num):
                 position=z[i][2]
-                startIndex=z[i][0]+1
-                endIndex=z[i][1]+1
-                startData=m[startIndex]
-                endData=m[endIndex]
+                startIndex=z[i][0]
+                endIndex=z[i][1]
+                startData=m[startIndex+1]
+                endData=m[endIndex+1]
                 result0[0:22]=startData[0:22] #开仓时候的全部信息
                 result0[28]=startData[22]#canbuyPriceAdj
                 result0[29]=startData[23]#canSellPriceAdj

@@ -42,7 +42,7 @@ class myAnalysisForMomentumByStd(object):
         my300Answer=ReturnAnalysis.getBasicInfo(my300['return'])
         my500Answer=ReturnAnalysis.getBasicInfo(my500['return'])
         othersAnswer=ReturnAnalysis.getBasicInfo(others['return'])
-        '''
+        
         self.__analysisByTradedays(mydata,startDate,endDate,address,'all')
         self.__analysisByTradedays(long,startDate,endDate,address,'long')
         self.__analysisByTradedays(short,startDate,endDate,address,'short')
@@ -50,7 +50,7 @@ class myAnalysisForMomentumByStd(object):
         self.__analysisByTradedays(my300,startDate,endDate,address,'300')
         self.__analysisByTradedays(my500,startDate,endDate,address,'500')
         self.__analysisByTradedays(others,startDate,endDate,address,'others')
-        '''
+        
         
         ReturnAnalysis.getHist(mydata['return'],address,'all')
         ReturnAnalysis.getHist(long['return'],address,'long')
@@ -86,7 +86,7 @@ class myAnalysisForMomentumByStd(object):
             else:
                 myfirst=todayData.sort_values('time').head(10)
                 n=myfirst.shape[0]
-                cash=cash+cashUnit*n*(myfirst['return'].mean()-0.004)
+                cash=cash+cashUnit*n*(myfirst['return'].mean())
                 pass
             netvalueList.append(cash/startCash)
         ReturnAnalysis.getNetValue(tradeDays,netvalueList,address,nameStr)
@@ -139,7 +139,9 @@ class myAnalysisForMomentumByStd(object):
        'rankMarketValue', 'position',  'open','closePrice','canBuy','canSell','canBuyPrice','canSellPrice'
        ]]
         mydata=mydata[(mydata['closePrice']>0) & (mydata['increaseInDay']>-0.2) & (mydata['increaseInDay']<0.2)]
-        #mydata=mydata[((mydata['increase5m']<-1.5*mydata['closeStd20']) & (mydata['position']==-1)) |((mydata['increase5m']>1.5*mydata['closeStd20']) & (mydata['position']==1))]
+        mydata=mydata[(mydata['ts_rank_closeStd20']>0.9) & (mydata['position']==1)]
+        #mydata=mydata[(mydata['ts_rank_closeStd20']<0.3) & (mydata['position']==-1)]
+        #mydata=mydata[((mydata['increase5m']>-1*mydata['closeStd20']) & (mydata['position']==-1)) |((mydata['increase5m']<1*mydata['closeStd20']) & (mydata['position']==1))]
         self.__detailAnalysis(mydata,startDate,endDate)
 
         print(mydata.shape)
