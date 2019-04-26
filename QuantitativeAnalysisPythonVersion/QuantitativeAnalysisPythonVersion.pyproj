@@ -79,6 +79,12 @@
     <Compile Include="Model\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Monitor\monitorForReverseByStd.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Monitor\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="QuantitativeAnalysisPythonVersion.py" />
     <Compile Include="Strategy\myAnalysisForMomentumByStd.py">
       <SubType>Code</SubType>
@@ -125,6 +131,7 @@
     <Folder Include="Model\" />
     <Folder Include="Config\" />
     <Folder Include="DataPrepare\" />
+    <Folder Include="Monitor\" />
     <Folder Include="Strategy\" />
     <Folder Include="Utility\" />
   </ItemGroup>
