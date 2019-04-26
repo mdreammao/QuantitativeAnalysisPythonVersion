@@ -34,11 +34,7 @@ def main():
     #index50=myindex.getSSE50DataByDate(endDate,endDate)
     #stockCodes=list(pd.concat([index500,index300,index50],ignore_index=True)['code'].drop_duplicates())
     '''
-    print(datetime.datetime.now())
-    a=StockSharesProcess.getStockIPOInfoByCode('600000.SH')
-    print(datetime.datetime.now())
-    b=StockSharesProcess.getStockListByDate(20100101,20101231)
-    print(datetime.datetime.now())
+
 
     '''
     warnings.filterwarnings('ignore')

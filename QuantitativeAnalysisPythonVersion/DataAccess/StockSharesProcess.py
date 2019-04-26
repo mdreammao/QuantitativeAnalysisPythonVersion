@@ -94,6 +94,18 @@ class StockSharesProcess(object):
         return mydata
     #----------------------------------------------------------------------
     @classmethod 
+    def getStockIPOInfoByDate(self,startDate,endDate):
+        startDate=str(startDate)
+        endDate=str(endDate)
+        if len(StockSharesProcess.allStockIPOInfo)==0:
+            StockSharesProcess.allStockIPOInfo=StockSharesProcess.__getStockIPOInfoFromLocalFile()
+        else:
+            pass
+        mydata=StockSharesProcess.allStockIPOInfo
+        mydata=mydata[(mydata['listDate']<=endDate) & (mydata['delistDate']>=startDate)]
+        return mydata
+    #----------------------------------------------------------------------
+    @classmethod 
     def getStockListByDate(self,startDate,endDate):
         startDate=str(startDate)
         endDate=str(endDate)
@@ -150,7 +162,7 @@ class StockSharesProcess(object):
         else:
             store = pd.HDFStore(StockSharesProcess.localFileStockListStr,'a')
             mydata=store.get('all')
-            lastExitsDate=mydata['date'].max()
+            lastExistsDate=mydata['date'].max()
             if lastExistsDate<endDate:
                 appendData=StockSharesProcess.__getStockListByDate(lastExistsDate,endDate)
                 mydata.append(appendData,inplace=True)

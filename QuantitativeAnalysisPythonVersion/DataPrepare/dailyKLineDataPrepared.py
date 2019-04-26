@@ -39,32 +39,35 @@ class dailyKLineDataPrepared(object):
             num=num+1
             print("{0}({1} of {2}) start!".format(code,num,len(stockCodes)))
             if code in existsCodes:
+                stockNow=allData[allData['code']==code]
+                latestDate=stockNow['date'].max()
+                if endDate<=latestDate:
+                    continue
+                pass
+            startNow=max(startDate,TradedayDataProcess.getNextTradeday(latestDate))
+            if startNow>endDate:
                 continue
                 pass
-            mydata=myDaily.getDataByDate(code,startDate,endDate)
+            mydata=myDaily.getDataByDate(code,startNow,endDate)
             mydata.set_index('date',drop=True,inplace=True)
-            myindustry=IndustryClassification.getIndustryByCode(code,startDate,endDate)
+            myindustry=IndustryClassification.getIndustryByCode(code,startNow,endDate)
             mydata['industry']=myindustry['industry']
             mydata['industryName']=myindustry['name']
-            myIndexBelongs50=myindex.getStockBelongs(code,SSE50,startDate,endDate)
-            myIndexBelongs300=myindex.getStockBelongs(code,HS300,startDate,endDate)
-            myIndexBelongs500=myindex.getStockBelongs(code,CSI500,startDate,endDate)
+            myIndexBelongs50=myindex.getStockBelongs(code,SSE50,startNow,endDate)
+            myIndexBelongs300=myindex.getStockBelongs(code,HS300,startNow,endDate)
+            myIndexBelongs500=myindex.getStockBelongs(code,CSI500,startNow,endDate)
             mydata['is50']=myIndexBelongs50['exists']
             mydata['is300']=myIndexBelongs300['exists']
             mydata['is500']=myIndexBelongs500['exists']
-            mydata['ceiling']=0
-            mydata['ceilingYesterday']=0
-            mydata['ceilingYesterday2']=0
-            mydata['ceilingIn5Days']=0
-            mydata.loc[(mydata['close']==round(mydata['preClose']*1.1,2)),'ceiling']=1
-            mydata.loc[(mydata['ceiling'].shift(1)==1),'ceilingYesterday']=1
-            mydata.loc[((mydata['ceiling'].shift(1)==1) & (mydata['ceiling'].shift(2)==1)),'ceilingYesterday2']=1
-            mydata['ceilingIn5Days']=mydata['ceilingYesterday'].rolling(5).sum()
-            #mv=StockSharesProcess.getStockShares(code,startDate,endDate)
-            #mv.set_index('date',inplace=True)
-            #mydata['freeShares']=mv['freeShares']
-            #mydata['freeMarketValue']=mydata['freeShares']*mydata['preClose']
-            mydataDerivative=myDailyDerivative.getDataByDate(code,startDate,endDate)
+            #mydata['ceiling']=0
+            #mydata['ceilingYesterday']=0
+            #mydata['ceilingYesterday2']=0
+            #mydata['ceilingIn5Days']=0
+            #mydata.loc[(mydata['close']==round(mydata['preClose']*1.1,2)),'ceiling']=1
+            #mydata.loc[(mydata['ceiling'].shift(1)==1),'ceilingYesterday']=1
+            #mydata.loc[((mydata['ceiling'].shift(1)==1) & (mydata['ceiling'].shift(2)==1)),'ceilingYesterday2']=1
+            #mydata['ceilingIn5Days']=mydata['ceilingYesterday'].rolling(5).sum()
+            mydataDerivative=myDailyDerivative.getDataByDate(code,startNow,endDate)
             mydataDerivative.set_index('date',inplace=True)
             mydata['freeShares']=mydataDerivative['freeShares']
             mydata['freeMarketValue']=mydataDerivative['freeMarketValue']

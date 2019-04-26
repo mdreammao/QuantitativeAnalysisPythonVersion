@@ -39,6 +39,15 @@ class TradedayDataProcess(object):
         return mydata
     #----------------------------------------------------------------------
     @classmethod 
+    def getNextTradeday(self,today):
+        if len(TradedayDataProcess.allTradedays)==0:
+            TradedayDataProcess.allTradedays=TradedayDataProcess.__getTradedaysFromLocalFile()
+        else:
+            pass
+        mydata=TradedayDataProcess.allTradedays.loc[(TradedayDataProcess.allTradedays['date']>today),'date']
+        return mydata['date'].max()
+    #----------------------------------------------------------------------
+    @classmethod 
     def __getTradedaysFromLocalFile(self):
         exists=os.path.isfile(TradedayDataProcess.localFileStr)
         if exists==True:
