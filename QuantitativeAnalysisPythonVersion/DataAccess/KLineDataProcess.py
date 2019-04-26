@@ -51,6 +51,10 @@ class KLineDataProcess(object):
             return self.__getDailyDataByDateFromOracleServer(code,startDate,endDate)
         elif self.KLineLevel=='dailyDerivative':
             return self.__getDailyDerivativeDataByDateFromOracleServer(code,startDate,endDate)
+        elif self.KLineLevel=='dailyIndex':
+            return self.__getDailyIndexDataByDateFromOracleServer(code,startDate,endDate)
+        elif self.KLineLevel=='minuteIndex':
+            return self.__getMinuteDataByDateFromSqlSever(code,startDate,endDate)
         
     #----------------------------------------------------------------------
     #输入code=600000.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
@@ -64,13 +68,17 @@ class KLineDataProcess(object):
             store.append(self.KLineLevel,data,append=True,format="table",data_columns=['code','date','open','high','low','close','preClose','volume','amount','change','pctChange','adjFactor','vwap','status'])
         elif self.KLineLevel=='dailyDerivative':
             store.append(self.KLineLevel,data,append=True,format="table",data_columns=['code','date','totalMv','freeMv','PE','PCF','PS','turnover',' totalShares','freeShares','limitStatus'])
+        elif self.KLineLevel=='dailyIndex':
+            store.append(self.KLineLevel,data,append=True,format="table")
+        elif self.KLineLevel=='minuteIndex':
+            store.append(self.KLineLevel,data,append=True,format="table")
         store.close()
 
     #----------------------------------------------------------------------
     #输入code=600000.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
     def __getDataByDateFromLocalFile(self,code,startDate,endDate):
         code=str(code).upper();
-        localFileStr=LocalFileAddress+"\\{0}\\{1}.h5".format(self.KLineLevel,code.replace('.','_'))
+        localFileStr=LocalFileAddress+"\\KLines\\{0}\\{1}.h5".format(self.KLineLevel,code.replace('.','_'))
         exists=os.path.isfile(localFileStr)
         if exists==True:
             f=h5py.File(localFileStr,'r')
@@ -99,7 +107,9 @@ class KLineDataProcess(object):
             mydata=pd.DataFrame()
         else:
             store = pd.HDFStore(localFileStr,'a')
-            mydata=store.select(self.KLineLevel,where=['date>="%s" and date<="%s"'%(startDate,endDate)])
+            mydata=store.get(self.KLineLevel)
+            # mydata=store.select(self.KLineLevel,where=['date>="%s" and date<="%s"'%(startDate,endDate)])
+            mydata=mydata[(mydata['date']>=startDate) & (mydata['date']<=endDate)]
             store.close()
         #mydata.set_index('date',drop=True,inplace=True)
         return mydata
@@ -154,6 +164,28 @@ class KLineDataProcess(object):
         
         
         
+        return mydata  
+
+
+    #----------------------------------------------------------------------
+    #输入code=600000.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
+    def __getDailyIndexDataByDateFromOracleServer(self,code,startDate=EMPTY_STRING,endDate=EMPTY_STRING):
+        #获取行情数据
+        #附注status -1:交易-2:待核查0:停牌XD:除息XR:除权DR:除权除息N:上市首日
+        database='wind_filesync.AIndexEODPrices'
+        connection = oracle.connect(self.oracleConnectStr)
+        cursor = connection.cursor()
+        oracleStr="select  S_INFO_WINDCODE as code,TRADE_DT as \"date\",S_DQ_OPEN as open,S_DQ_HIGH as high,S_DQ_LOW as low,S_DQ_CLOSE as close,S_DQ_PRECLOSE as preClose,S_DQ_VOLUME as volume,S_DQ_AMOUNT as amount,S_DQ_CHANGE as change,S_DQ_PCTCHANGE as pctChange from wind_filesync.AIndexEODPrices "
+        if startDate==EMPTY_STRING:
+            oracleStr=oracleStr+"where S_INFO_WINDCODE='{0}' order by TRADE_DT".format(code)
+        elif endDate==EMPTY_STRING:
+            oracleStr=oracleStr+"where S_INFO_WINDCODE='{0}' and TRADE_DT>={1} order by TRADE_DT".format(code,startDate)
+        else:
+            oracleStr=oracleStr+"where S_INFO_WINDCODE='{0}' and TRADE_DT>={1} and TRADE_DT<={2} order by TRADE_DT".format(code,startDate,endDate)
+        cursor.execute(oracleStr)
+        mydata = cursor.fetchall()
+        mydata = pd.DataFrame(mydata,columns=['code','date','open','high','low','close','preClose','volume','amount','change','pctChange'])
+        mydata[['open','high','low','close','preClose','volume','amount','change','pctChange']] = mydata[['open','high','low','close','preClose','volume','amount','change','pctChange']].astype('float')
         return mydata  
 
     #----------------------------------------------------------------------
