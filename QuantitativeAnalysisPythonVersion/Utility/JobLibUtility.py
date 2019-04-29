@@ -27,7 +27,7 @@ class JobLibUtility(object):
         for i in range(groupnum):
             tmpAddress[i]=TempLocalFileAddress+"\\tmp{0}.h5".format(str(i))
             HDF5Utility.fileClear(tmpAddress[i])
-        Parallel(n_jobs=-3)(delayed(myfunction)(list(stocks[i]),startDate,endDate,tmpAddress[i]) for i in range(groupnum))
+        Parallel(n_jobs=-1)(delayed(myfunction)(list(stocks[i]),startDate,endDate,tmpAddress[i]) for i in range(groupnum))
         for i in range(groupnum):
             HDF5Utility.dataTransfer(tmpAddress[i],targetFilePath)
         pass
@@ -47,4 +47,18 @@ class JobLibUtility(object):
         for i in range(groupnum):
             HDF5Utility.dataTransferToOneFile(tmpAddress[i],targetFilePath)
         pass
+    #----------------------------------------------------------------------
+    @classmethod 
+    def useJobLibToGetData(self,myfunction,stockCodes,groupnum,startDate,endDate):
+        warnings.filterwarnings('ignore')
+        stocks={i:[] for i in range(groupnum)}
+        allData=pd.DataFrame()
+        for i in range(0,len(stockCodes)):
+            mygroup=i%groupnum
+            stocks[mygroup].append(stockCodes[i])
+        tmpAddress={}
+        mydata=Parallel(n_jobs=-1)(delayed(myfunction)(list(stocks[i]),startDate,endDate) for i in range(groupnum))
+        for i in range(groupnum):
+            allData=allData.append(mydata[i])
+        return allData
 ########################################################################

@@ -36,21 +36,33 @@ def main():
     '''
 
 
-    '''
+    
     warnings.filterwarnings('ignore')
-    startDate=20100101
+    startDate=20180101
     endDate=20190415
+
+    myindex=IndexComponentDataProcess()
+    index50=myindex.getSSE50DataByDate(startDate,endDate)
+    stockCodes=list(index50['code'].drop_duplicates())
+    print(len(stockCodes))
+    test=KLineDataProcess('minute')
+    print(datetime.datetime.now())
+    data=test.parallelizationGetDataByDate(stockCodes,startDate,endDate)
+    print(data.shape[0])
+    #test.getLotsDataByDate(stockCodes,startDate,endDate)
+    print(datetime.datetime.now())
     #temp=stockReverseByStd()
     #temp.dataPrepared(stockCodes,startDate,endDate)
     #stockCodes=temp.getStockList(startDate,endDate)
     #temp.parallelizationReverse(startDate,endDate)
     #myanalysis=myAnalysisForReverseByStd()
     #myanalysis.analysis(startDate,endDate)
-    temp=stockMomentumByStd()
-    temp.parallelizationMomentum(startDate,endDate) 
-    myanalysis=myAnalysisForMomentumByStd()
-    myanalysis.analysis(startDate,endDate)
-    '''
+    #temp=stockMomentumByStd()
+    #temp.parallelizationDataPrepared(startDate,endDate)
+    #temp.parallelizationMomentum(startDate,endDate) 
+    #myanalysis=myAnalysisForMomentumByStd()
+    #myanalysis.analysis(startDate,endDate)
+    
     pass
 if __name__ == '__main__':
     main()
