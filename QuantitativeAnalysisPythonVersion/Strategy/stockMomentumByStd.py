@@ -89,11 +89,11 @@ class stockMomentumByStd(object):
             m['timeStamp']=m['date']+m['time']
             #日内分钟信息
             #成交量在前20分钟的分位数
-            m['ts_rank_volume']=m['volume'].rolling(20,min_periods=15).apply((lambda x:pd.Series(x).rank().iloc[-1]/len(x)),raw=True)
+            m['ts_rank_volume']=m['volume'].shift(-1).rolling(20,min_periods=15).apply((lambda x:pd.Series(x).rank().iloc[-1]/len(x)),raw=True)
             #每分钟收益
             m['minuteReturn']=(m['close']-m['close'].shift(-1))/m['close'].shift(-1)
             #收益标准差
-            mydata['minuteStd20']=mydata['minuteReturn'].shift(-1).rolling(20,min_periods=17).std()
+            m['minuteStd20']=m['minuteReturn'].shift(-1).rolling(20,min_periods=17).std()
             #收益标准差分位数
             m['ts_rank_minuteStd20']=m['minuteStd20'].rolling(20,min_periods=15).apply((lambda x:pd.Series(x).rank().iloc[-1]/len(x)),raw=True)
 
@@ -172,9 +172,9 @@ class stockMomentumByStd(object):
                         z[num]=z0
                         num=num+1
                         z0=np.zeros(3,dtype=np.int64)
-            result0=np.zeros(30)
+            result0=np.zeros(33)
             length=num
-            result=np.zeros((length,30))
+            result=np.zeros((length,33))
             for i in range(0,num):
                 position=z[i][2]
                 startIndex=z[i][0]
@@ -184,6 +184,9 @@ class stockMomentumByStd(object):
                 result0[0:22]=startData[0:22] #开仓时候的全部信息
                 result0[28]=startData[22]#canbuyPriceAdj
                 result0[29]=startData[23]#canSellPriceAdj
+                result0[30]=startData[24]#ts_rank_volume
+                result0[31]=startData[25]#minuteStd20
+                result0[32]=startData[26]#ts_rank_minuteStd20
                 result0[22]=position
                 result0[23]=endData[0] #平仓日期
                 result0[24]=endData[1] #平仓时间
@@ -202,7 +205,7 @@ class stockMomentumByStd(object):
                     result0[27]=myreturn
                     pass
                 result[i]=result0
-                result0=np.zeros(30)
+                result0=np.zeros(33)
             return result
         startDate=str(startDate)
         endDate=str(endDate)
@@ -240,7 +243,7 @@ class stockMomentumByStd(object):
             mydata=store.select(code)
             mydata=mydata[(mydata['date']>=startDate) & (mydata['date']<=endDate)]
             mydata.reset_index(drop=False,inplace=True)
-            mycolumns=['date', 'time','increaseInDay','closeStd20','open','adjFactor','canBuy', 'canSell', 'canBuyPrice', 'canSellPrice', 'amount','increase5m','increase1m','yesterdayClose',     'industry','is50','is300','is500','freeShares', 'freeMarketValue','ts_rank_closeStd20','rankMarketValue','canBuyPriceAdj','canSellPriceAdj']
+            mycolumns=['date', 'time','increaseInDay','closeStd20','open','adjFactor','canBuy', 'canSell', 'canBuyPrice', 'canSellPrice', 'amount','increase5m','increase1m','yesterdayClose',     'industry','is50','is300','is500','freeShares', 'freeMarketValue','ts_rank_closeStd20','rankMarketValue','canBuyPriceAdj','canSellPriceAdj','ts_rank_volume','minuteStd20','ts_rank_minuteStd20']
             m=mydata[mycolumns]
             m['industry']=m['industry'].fillna(method='ffill')
             m['industry']=m['industry'].fillna(method='bfill')
@@ -248,7 +251,7 @@ class stockMomentumByStd(object):
             m[['date','time','industry']]=m[['date','time','industry']].astype(np.int64)
             m=m.as_matrix()
             result=mytransaction(m,10*days,1)
-            result=pd.DataFrame(data=result,columns=['date', 'time','increaseInDay','closeStd20','open','adjFactor','canBuy', 'canSell', 'canBuyPrice', 'canSellPrice', 'amount','increase5m','increase1m','yesterdayClose',     'industry','is50','is300','is500','freeShares', 'freeMarketValue','ts_rank_closeStd20','rankMarketValue','position','closeDate','closeTime','closePrice','feeRate','return','canBuyPriceAdj','canSellPriceAdj'])
+            result=pd.DataFrame(data=result,columns=['date', 'time','increaseInDay','closeStd20','open','adjFactor','canBuy', 'canSell', 'canBuyPrice', 'canSellPrice', 'amount','increase5m','increase1m','yesterdayClose',     'industry','is50','is300','is500','freeShares', 'freeMarketValue','ts_rank_closeStd20','rankMarketValue','position','closeDate','closeTime','closePrice','feeRate','return','canBuyPriceAdj','canSellPriceAdj','ts_rank_volume','minuteStd20','ts_rank_minuteStd20'])
             result[['date', 'time','canBuy', 'canSell',     'industry','is50','is300','is500','position','closeDate','closeTime']]=result[['date', 'time','canBuy', 'canSell','industry','is50','is300','is500','position','closeDate','closeTime']].astype(int)
             result['code']=code
             #resultAll=resultAll.append(result)

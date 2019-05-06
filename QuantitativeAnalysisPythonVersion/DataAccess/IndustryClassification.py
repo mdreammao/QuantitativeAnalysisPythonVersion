@@ -88,7 +88,7 @@ class IndustryClassification(object):
             myKeys=list(f.keys())
             f.close()
             lastStoreDate=datetime.datetime.strptime(max(myKeys), "%Y%m%d")
-            if (myKeys==[] or (datetime.datetime.now() - relativedelta(days=+10))>lastStoreDate):#如果10天没有更新，重新抓取数据
+            if (myKeys==[] or (datetime.datetime.now() - relativedelta(days=+30))>lastStoreDate):#如果10天没有更新，重新抓取数据
                 mydata=IndustryClassification.__getAllDataFromOracleServer()
             else:
                 store = pd.HDFStore(IndustryClassification.localFileStr,'r')

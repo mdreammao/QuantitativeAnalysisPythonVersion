@@ -7,6 +7,7 @@ import datetime
 import h5py
 import os
 from DataAccess.TradedayDataProcess import *
+from Utility.JobLibUtility import *
 
 
 ########################################################################
@@ -213,7 +214,20 @@ class KLineDataProcess(object):
     def getDataByDate(self,code,startDate,endDate):
         localdata=self.__getDataByDateFromLocalFile(code,str(startDate),str(endDate))
         return localdata
-    
+    #输入code=600000.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
+    def getLotsDataByDate(self,StockCodes,startDate,endDate):
+        mydata=pd.DataFrame()
+        for i in range(len(StockCodes)):
+            code=StockCodes[i]
+            localdata=self.__getDataByDateFromLocalFile(code,str(startDate),str(endDate))
+            mydata=mydata.append(localdata)
+        return mydata
+    #----------------------------------------------------------------------
+    def parallelizationGetDataByDate(self,stockCodes,startDate,endDate):
+        mydata=JobLibUtility.useJobLibToGetData(self.getLotsDataByDate,stockCodes,80,startDate,endDate)
+        return mydata
+        pass
+
     
     
     

@@ -58,25 +58,25 @@
     <Compile Include="DataAccess\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DataPrepare\dailyFactorsProcess.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DataPrepare\dailyKLineDataPrepared.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DataPrepare\dataPrepareByIndex.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DataPrepare\MinuteFactorsProcess.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DataPrepare\MinuteKLineDataPrepared.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DataPrepare\tickFactorsProcess.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DataPrepare\__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Model\myKLine.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Model\myTimeSeries.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Model\__init__.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Monitor\monitorForReverseByStd.py">
@@ -128,7 +128,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="DataAccess\" />
-    <Folder Include="Model\" />
     <Folder Include="Config\" />
     <Folder Include="DataPrepare\" />
     <Folder Include="Monitor\" />

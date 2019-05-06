@@ -7,6 +7,7 @@ from DataAccess.StockSharesProcess import *
 from DataAccess.IndustryClassification import *
 import time
 import numpy as np
+import os
 
 
 ########################################################################
@@ -16,8 +17,10 @@ class dailyKLineDataPrepared(object):
     def __init__(self):
         self.key='factors'
         self.keyWithRank='factorsWithRank'
-        self.localFileStr=LocalFileAddress+"\\{0}\\{1}.h5".format('dailyFactors',self.key)
-        self.localFileStrWithRank=LocalFileAddress+"\\{0}\\{1}.h5".format('dailyFactors',self.keyWithRank)
+        #self.localFileStr=LocalFileAddress+"\\{0}\\{1}.h5".format('dailyFactors',self.key)
+        #self.localFileStrWithRank=LocalFileAddress+"\\{0}\\{1}.h5".format('dailyFactors',self.keyWithRank)
+        self.localFileStr=os.path.join(LocalFileAddress,'dailyFactors',self.key+'.h5')
+        self.localFileStrWithRank=os.path.join(LocalFileAddress,'dailyFactors',self.keyWithRank+'.h5')
         pass
 #----------------------------------------------------------------------
     def getStockDailyFeatureData(self,stockCodes,startDate,endDate):
@@ -59,14 +62,6 @@ class dailyKLineDataPrepared(object):
             mydata['is50']=myIndexBelongs50['exists']
             mydata['is300']=myIndexBelongs300['exists']
             mydata['is500']=myIndexBelongs500['exists']
-            #mydata['ceiling']=0
-            #mydata['ceilingYesterday']=0
-            #mydata['ceilingYesterday2']=0
-            #mydata['ceilingIn5Days']=0
-            #mydata.loc[(mydata['close']==round(mydata['preClose']*1.1,2)),'ceiling']=1
-            #mydata.loc[(mydata['ceiling'].shift(1)==1),'ceilingYesterday']=1
-            #mydata.loc[((mydata['ceiling'].shift(1)==1) & (mydata['ceiling'].shift(2)==1)),'ceilingYesterday2']=1
-            #mydata['ceilingIn5Days']=mydata['ceilingYesterday'].rolling(5).sum()
             mydataDerivative=myDailyDerivative.getDataByDate(code,startNow,endDate)
             mydataDerivative.set_index('date',inplace=True)
             mydata['freeShares']=mydataDerivative['freeShares']

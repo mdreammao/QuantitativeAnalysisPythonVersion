@@ -34,23 +34,42 @@ def main():
     #index50=myindex.getSSE50DataByDate(endDate,endDate)
     #stockCodes=list(pd.concat([index500,index300,index50],ignore_index=True)['code'].drop_duplicates())
     '''
-
+    '''
+    #性能分析代码
+    #python -m cProfile -o del.out XXX.py
+    #python -c "import pstats; p=pstats.Stats('del.out'); p.sort_stats('time').print_stats(20)"
 
     '''
+    
     warnings.filterwarnings('ignore')
     startDate=20100101
     endDate=20190415
+    '''
+    myindex=IndexComponentDataProcess()
+    index500=myindex.getCSI500DataByDate(startDate,endDate)
+    index300=myindex.getHS300DataByDate(startDate,endDate)
+    index50=myindex.getSSE50DataByDate(endDate,endDate)
+    stockCodes=list(pd.concat([index500,index300,index50],ignore_index=True)['code'].drop_duplicates())
+    print(len(stockCodes))
+    test=KLineDataProcess('minute')
+    print(datetime.datetime.now())
+    data=test.parallelizationGetDataByDate(stockCodes,startDate,endDate)
+    print(data.shape[0])
+    #test.getLotsDataByDate(stockCodes,startDate,endDate)
+    print(datetime.datetime.now())
+    '''
     #temp=stockReverseByStd()
     #temp.dataPrepared(stockCodes,startDate,endDate)
     #stockCodes=temp.getStockList(startDate,endDate)
     #temp.parallelizationReverse(startDate,endDate)
     #myanalysis=myAnalysisForReverseByStd()
     #myanalysis.analysis(startDate,endDate)
-    temp=stockMomentumByStd()
-    temp.parallelizationMomentum(startDate,endDate) 
+    #temp=stockMomentumByStd()
+    #temp.parallelizationDataPrepared(startDate,endDate)
+    #temp.parallelizationMomentum(startDate,endDate) 
     myanalysis=myAnalysisForMomentumByStd()
     myanalysis.analysis(startDate,endDate)
-    '''
+    
     pass
 if __name__ == '__main__':
     main()
