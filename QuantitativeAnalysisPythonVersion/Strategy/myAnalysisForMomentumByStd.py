@@ -77,16 +77,17 @@ class myAnalysisForMomentumByStd(object):
         netvalueList=[]
         startCash=1000000
         cash=startCash
-        cashUnit=startCash/15
+        numbers=10
+        cashUnit=startCash/numbers
         for days in tradeDays:
             today=int(days)
             todayData=mydata[mydata['date']==today]
             if len(todayData)==0:
                 pass
             else:
-                myfirst=todayData.sort_values('time').head(15)
+                myfirst=todayData.sort_values('time').head(numbers)
                 n=myfirst.shape[0]
-                cash=cash+cashUnit*n*(myfirst['return'].mean())
+                cash=cash+cashUnit*n*(myfirst['return'].mean()-0.004)
                 pass
             netvalueList.append(cash/startCash)
         ReturnAnalysis.getNetValue(tradeDays,netvalueList,address,nameStr)

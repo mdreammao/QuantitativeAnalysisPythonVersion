@@ -3,6 +3,7 @@ from Config.myConstant import *
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+import seaborn as sns
 
 ########################################################################
 class ReturnAnalysis(object):
@@ -57,7 +58,33 @@ class ReturnAnalysis(object):
         #plt.legend(loc="upper right")
         #plt.show()
         filePath=saveAddress+'\\'+nameStr
+        plt.tight_layout()
         plt.savefig(filePath)
+        
+    #----------------------------------------------------------------------
+    @classmethod 
+    def getBar2(self,mydata):
+        sns.set(style="darkgrid")
+        (fx,fy)=(1200,1200)
+        my_dpi=300
+        fig=plt.figure(figsize=(fx/my_dpi, fy/my_dpi), dpi=my_dpi)
+        plt.rcParams['font.sans-serif']=['SimHei']
+        plt.rcParams['axes.unicode_minus'] = False
+        ax = fig.add_subplot(1,1,1)
+
+        ax = sns.barplot(x="name", 
+                         y='mean', 
+                         data=mydata)
+
+        ax.set_ylabel("mean")
+        plt.xticks(rotation=45)
+        #plt.savefig('../figures/barplot0221', bbox_inches='tight',pad_inches = 0)
+        plt.show()
+        plt.close(fig)
+        plt.clf()
+
+
+
     #----------------------------------------------------------------------
     @classmethod 
     def getNetValue(self,days,netvalue,saveAddress,nameStr=EMPTY_STRING):
@@ -74,7 +101,9 @@ class ReturnAnalysis(object):
         #plt.show()
         #plt.legend()
         filePath=saveAddress+'\\'+nameStr
+        plt.tight_layout()
         plt.savefig(filePath)
+        
         pass
     #----------------------------------------------------------------------
     @classmethod 
@@ -88,6 +117,7 @@ class ReturnAnalysis(object):
         plt.ylabel('Frequency')
         plt.title(nameStr)
         filePath=saveAddress+'\\'+nameStr
+        plt.tight_layout()
         plt.savefig(filePath)
         pass
 ########################################################################

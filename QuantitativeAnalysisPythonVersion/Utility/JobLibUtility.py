@@ -5,7 +5,7 @@ import numba
 import warnings
 from Config.myConstant import *
 from Config.myConfig import *
-from joblib import Parallel, delayed
+from joblib import Parallel, delayed,parallel_backend
 from Strategy.stockReverseByStd import *
 from Utility.HDF5Utility import *
 
@@ -57,7 +57,8 @@ class JobLibUtility(object):
             mygroup=i%groupnum
             stocks[mygroup].append(stockCodes[i])
         tmpAddress={}
-        mydata=Parallel(n_jobs=-1)(delayed(myfunction)(list(stocks[i]),startDate,endDate) for i in range(groupnum))
+        with parallel_backend("multiprocessing", n_jobs=-1):
+            mydata=Parallel()(delayed(myfunction)(list(stocks[i]),startDate,endDate) for i in range(groupnum))
         for i in range(groupnum):
             allData=allData.append(mydata[i])
         return allData

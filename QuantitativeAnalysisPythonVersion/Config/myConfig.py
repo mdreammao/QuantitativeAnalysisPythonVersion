@@ -13,8 +13,10 @@ OracleServer={
 
 
 #本地文件存储地址
-LocalFileAddress='D:\\BTP\\LocalDataBase'
-TempLocalFileAddress='D:\\BTP\\LocalDataBase\\temp'
+LocalFileAddress=r'D:/BTP/LocalDataBase'
+TempLocalFileAddress=r'D:/BTP/LocalDataBase/temp'
+
+
 
 
 
