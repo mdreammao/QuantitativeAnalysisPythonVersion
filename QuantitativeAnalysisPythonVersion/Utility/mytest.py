@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import datetime
-import numba
+#import numba
 import warnings
 from Config.myConstant import *
 from Config.myConfig import *
@@ -39,7 +39,7 @@ class mytest(object):
         m=pd.DataFrame(np.arange(100000000).reshape(10000000,10))
         m=m.as_matrix()
         #@numba.jit(numba.float64[:](numba.float64[:,:],numba.int64),nopython=True)
-        @numba.jit(nopython=True,parallel=True)
+        #@numba.jit(nopython=True,parallel=True)
         def f(m,window):
             maxlen=len(m)
             z=[]

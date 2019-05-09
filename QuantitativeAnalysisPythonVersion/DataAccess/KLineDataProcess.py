@@ -8,6 +8,7 @@ import h5py
 import os
 from DataAccess.TradedayDataProcess import *
 from Utility.JobLibUtility import *
+from Utility.HDF5Utility import *
 
 
 ########################################################################
@@ -62,7 +63,7 @@ class KLineDataProcess(object):
     def __saveDataToLocalFile(self,localFileStr,data):
         if data.shape[0]==0:
             return
-        store = pd.HDFStore(localFileStr,'a')
+        store = pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=True,complevel=9)
         if self.KLineLevel=='minute':
             store.append(self.KLineLevel,data,append=True,format="table",data_columns=['code','date','time','open','high','low','close','volume','amount'])
         elif self.KLineLevel=='daily':
@@ -70,16 +71,20 @@ class KLineDataProcess(object):
         elif self.KLineLevel=='dailyDerivative':
             store.append(self.KLineLevel,data,append=True,format="table",data_columns=['code','date','totalMv','freeMv','PE','PCF','PS','turnover',' totalShares','freeShares','limitStatus'])
         elif self.KLineLevel=='dailyIndex':
-            store.append(self.KLineLevel,data,append=True,format="table")
+            store.append(self.KLineLevel,data,append=True,format="table",data_columns=data.columns)
         elif self.KLineLevel=='minuteIndex':
-            store.append(self.KLineLevel,data,append=True,format="table")
+            store.append(self.KLineLevel,data,append=True,format="table",data_columns=data.columns)
         store.close()
 
     #----------------------------------------------------------------------
     #输入code=600000.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
     def __getDataByDateFromLocalFile(self,code,startDate,endDate):
         code=str(code).upper();
-        localFileStr=LocalFileAddress+"\\KLines\\{0}\\{1}.h5".format(self.KLineLevel,code.replace('.','_'))
+        #localFileStr=LocalFileAddress+"\\KLines\\{0}\\{1}.h5".format(self.KLineLevel,code.replace('.','_'))
+        fileName=code.replace('.','_')+".h5"
+        localFilePath=os.path.join(LocalFileAddress,'KLines',self.KLineLevel)
+        HDF5Utility.pathCreate(localFilePath)
+        localFileStr=os.path.join(LocalFileAddress,'KLines',self.KLineLevel,fileName)
         exists=os.path.isfile(localFileStr)
         if exists==True:
             f=h5py.File(localFileStr,'r')
@@ -89,10 +94,11 @@ class KLineDataProcess(object):
                 exists=False
         if exists==False:
             mydata=self.__getDataByDateFromSource(code)
+            os.remove(localFileStr)
             self.__saveDataToLocalFile(localFileStr,mydata)
         else:
             if self.update==True:
-                store = pd.HDFStore(localFileStr,'a')
+                store = pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=True,complevel=9)
                 mydata=store.select(self.KLineLevel)
                 store.close()
                 if endDate==EMPTY_STRING or mydata['date'].max()<endDate:
@@ -107,7 +113,7 @@ class KLineDataProcess(object):
         if myKeys==[]:
             mydata=pd.DataFrame()
         else:
-            store = pd.HDFStore(localFileStr,'a')
+            store = pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=True,complevel=9)
             mydata=store.get(self.KLineLevel)
             # mydata=store.select(self.KLineLevel,where=['date>="%s" and date<="%s"'%(startDate,endDate)])
             mydata=mydata[(mydata['date']>=startDate) & (mydata['date']<=endDate)]
@@ -160,11 +166,6 @@ class KLineDataProcess(object):
         mydata = cursor.fetchall()
         mydata = pd.DataFrame(mydata,columns=['code','date','open','high','low','close','preClose','volume','amount','change','pctChange','adjFactor','vwap','status'])
         mydata[['open','high','low','close','preClose','volume','amount','change','pctChange','adjFactor','vwap']] = mydata[['open','high','low','close','preClose','volume','amount','change','pctChange','adjFactor','vwap']].astype('float')
-        
-       
-        
-        
-        
         return mydata  
 
 
@@ -219,6 +220,7 @@ class KLineDataProcess(object):
         mydata=pd.DataFrame()
         for i in range(len(StockCodes)):
             code=StockCodes[i]
+            print(code)
             localdata=self.__getDataByDateFromLocalFile(code,str(startDate),str(endDate))
             mydata=mydata.append(localdata)
         return mydata
@@ -227,7 +229,11 @@ class KLineDataProcess(object):
         mydata=JobLibUtility.useJobLibToGetData(self.getLotsDataByDate,stockCodes,80,startDate,endDate)
         return mydata
         pass
-
+    #----------------------------------------------------------------------
+    def parallelizationUpdateDataByDate(self,stockCodes,startDate,endDate):
+        mydata=JobLibUtility.useJobLibToUpdateData(self.getLotsDataByDate,stockCodes,80,startDate,endDate)
+        return mydata
+        pass
     
     
     

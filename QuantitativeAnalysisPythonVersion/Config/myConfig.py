@@ -16,6 +16,10 @@ OracleServer={
 LocalFileAddress=r'D:/BTP/LocalDataBase'
 TempLocalFileAddress=r'D:/BTP/LocalDataBase/temp'
 
+#ROOT_PATH = '/home/orientsec38/QuantitativeAnalysisPythonVersion/QuantitativeAnalysisPythonVersion/BTP'
+
+#LocalFileAddress=os.path.join(ROOT_PATH, 'LocalDataBase')
+#TempLocalFileAddress=os.path.join(LocalFileAddress, 'temp')
 
 
 

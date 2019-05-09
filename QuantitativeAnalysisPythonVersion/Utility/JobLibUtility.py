@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import datetime
-import numba
+#import numba
 import warnings
 from Config.myConstant import *
 from Config.myConfig import *
@@ -59,6 +59,33 @@ class JobLibUtility(object):
         tmpAddress={}
         with parallel_backend("multiprocessing", n_jobs=-1):
             mydata=Parallel()(delayed(myfunction)(list(stocks[i]),startDate,endDate) for i in range(groupnum))
+        for i in range(groupnum):
+            allData=allData.append(mydata[i])
+        return allData
+    #----------------------------------------------------------------------
+    @classmethod 
+    def useJobLibToUpdateData(self,myfunction,stockCodes,groupnum,startDate,endDate):
+        warnings.filterwarnings('ignore')
+        stocks={i:[] for i in range(groupnum)}
+        allData=pd.DataFrame()
+        for i in range(0,len(stockCodes)):
+            mygroup=i%groupnum
+            stocks[mygroup].append(stockCodes[i])
+        tmpAddress={}
+        with parallel_backend("multiprocessing", n_jobs=-1):
+            mydata=Parallel()(delayed(myfunction)(list(stocks[i]),startDate,endDate) for i in range(groupnum))
+    #----------------------------------------------------------------------
+    @classmethod 
+    def useJobLibToUpdateFacotrs(self,myfunction,stockCodes,groupnum,factors):
+        warnings.filterwarnings('ignore')
+        stocks={i:[] for i in range(groupnum)}
+        allData=pd.DataFrame()
+        for i in range(0,len(stockCodes)):
+            mygroup=i%groupnum
+            stocks[mygroup].append(stockCodes[i])
+        tmpAddress={}
+        with parallel_backend("multiprocessing", n_jobs=-1):
+            mydata=Parallel()(delayed(myfunction)(list(stocks[i]),factors) for i in range(groupnum))
         for i in range(groupnum):
             allData=allData.append(mydata[i])
         return allData

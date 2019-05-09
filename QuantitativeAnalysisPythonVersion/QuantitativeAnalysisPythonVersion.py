@@ -14,6 +14,7 @@ from Strategy.stockReverseByStd import *
 from Strategy.myAnalysisForReverseByStd import *
 from Strategy.stockMomentumByStd import *
 from Strategy.myAnalysisForMomentumByStd import *
+from DataPrepare.dailyFactorsProcess import *
 from Utility.mytest import *
 from Utility.JobLibUtility import *
 import warnings
@@ -57,7 +58,21 @@ def main():
     print(data.shape[0])
     #test.getLotsDataByDate(stockCodes,startDate,endDate)
     print(datetime.datetime.now())
+    myindex=IndexComponentDataProcess()
+    index500=myindex.getCSI500DataByDate(endDate,endDate)
+    index300=myindex.getHS300DataByDate(endDate,endDate)
+    index50=myindex.getSSE50DataByDate(endDate,endDate)
+    stockCodes=list(pd.concat([index500,index300,index50],ignore_index=True)['code'].drop_duplicates())
+    mydata=KLineDataProcess('daily',True)
+    mydata.parallelizationGetDataByDate(stockCodes,startDate,endDate)
     '''
+    mytry=dailyFactorsProcess()
+    codes=['600000.SH']
+    factors=['closeStd','index','marketValue','industry']
+    mytry.updateStockDailyFactors(codes,factors)
+  
+
+    
     #temp=stockReverseByStd()
     #temp.dataPrepared(stockCodes,startDate,endDate)
     #stockCodes=temp.getStockList(startDate,endDate)
@@ -67,8 +82,8 @@ def main():
     #temp=stockMomentumByStd()
     #temp.parallelizationDataPrepared(startDate,endDate)
     #temp.parallelizationMomentum(startDate,endDate) 
-    myanalysis=myAnalysisForMomentumByStd()
-    myanalysis.analysis(startDate,endDate)
+    #myanalysis=myAnalysisForMomentumByStd()
+    #myanalysis.analysis(startDate,endDate)
     
     pass
 if __name__ == '__main__':

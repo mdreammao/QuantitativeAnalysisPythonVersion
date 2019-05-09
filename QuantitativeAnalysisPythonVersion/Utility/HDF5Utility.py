@@ -48,5 +48,10 @@ class HDF5Utility(object):
         if os.path.exists(sourceStr):
             os.remove(sourceStr)
         pass
-
+    #----------------------------------------------------------------------
+    @classmethod 
+    def pathCreate(self,path):
+        if os.path.exists(path)==False:
+            os.makedirs(path)
+            pass
 ########################################################################
