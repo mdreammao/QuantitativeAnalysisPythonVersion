@@ -17,6 +17,7 @@ from Strategy.myAnalysisForMomentumByStd import *
 from DataPrepare.dailyFactorsProcess import *
 from Utility.mytest import *
 from Utility.JobLibUtility import *
+from Utility.UpdateBasicData import *
 import warnings
 import time
 
@@ -42,9 +43,14 @@ def main():
 
     '''
     
+
+
     warnings.filterwarnings('ignore')
     startDate=20100101
-    endDate=20190415
+    endDate=20190510
+    #UpdateBasicData.updateAll()
+    stock=KLineDataProcess('dailyDerivative',True)
+    stock.getDataByDate('601628.SH',startDate,endDate)
     '''
     myindex=IndexComponentDataProcess()
     index500=myindex.getCSI500DataByDate(startDate,endDate)
@@ -65,12 +71,12 @@ def main():
     stockCodes=list(pd.concat([index500,index300,index50],ignore_index=True)['code'].drop_duplicates())
     mydata=KLineDataProcess('daily',True)
     mydata.parallelizationGetDataByDate(stockCodes,startDate,endDate)
-    '''
+   
     mytry=dailyFactorsProcess()
     codes=['600000.SH']
     factors=['closeStd','index','marketValue','industry']
     mytry.updateStockDailyFactors(codes,factors)
-  
+    '''
 
     
     #temp=stockReverseByStd()

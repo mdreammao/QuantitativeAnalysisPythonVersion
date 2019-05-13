@@ -11,52 +11,70 @@ import pandas as pd
 class UpdateBasicData(object):
     """更新数据的辅助函数"""
     #----------------------------------------------------------------------
+    @classmethod 
     def __init__(self):
         pass
     #----------------------------------------------------------------------
     @classmethod 
-    def updateAll():
+    def updateAll(self):
         startDate=str(20100101)
+        yesterday=(datetime.datetime.now()+datetime.timedelta(days=-1)).strftime("%Y%m%d")
         today=datetime.datetime.now().strftime("%Y%m%d")
-        print('update tradedays!')
-        tradedays=TradedayDataProcess.getTradedays(startDate,today)
+        logger.info('update tradedays!')
+        tradedays=TradedayDataProcess.getTradedays(startDate,yesterday)
         endDate=tradedays.max()
-        print('update codeList!')
+        logger.info('update codeList!')
         stockCodes=UpdateBasicData.updateCodeList(startDate,endDate)
-        print('update stock daily KLines')
-        UpdateBasicData.updateMultipleStocksDailyKLines(stockCodes,startDate,endDate)
-        print('update stock daily derivative data')
+        logger.info('update stock daily KLines')
+        #UpdateBasicData.updateMultipleStocksDailyKLines(stockCodes,startDate,endDate)
+        logger.info('update stock daily derivative data')
         UpdateBasicData.updateMultipleStocksDailyDerivatives(stockCodes,startDate,endDate)
-        print('update stock minute KLines')
+        logger.info('update stock minute KLines')
         UpdateBasicData.updateMultipleStocksMinuteKLines(stockCodes,startDate,endDate)
-        print('update index daily KLines')
+        logger.info('update index daily KLines')
         UpdateBasicData.updateDailyIndexKLines('000016.SH',startDate,endDate)
         UpdateBasicData.updateDailyIndexKLines('000300.SH',startDate,endDate)
         UpdateBasicData.updateDailyIndexKLines('000905.SH',startDate,endDate)
-        print('update index minute KLines')
+        logger.info('update index minute KLines')
         UpdateBasicData.updateMinuteIndexKLines('000016.SH',startDate,endDate)
         UpdateBasicData.updateMinuteIndexKLines('000300.SH',startDate,endDate)
         UpdateBasicData.updateMinuteIndexKLines('000905.SH',startDate,endDate)
-        print('update industry info')
+        logger.info('update industry info')
         UpdateBasicData.updateIndustry()
-        print('update daily factors')
+        logger.info('update daily factors')
         factors=['closeStd','index','marketValue','industry']
         UpdateBasicData.updateDailyFactors(stockCodes,factors)
         pass
     #----------------------------------------------------------------------
     @classmethod 
     def updateCodeList(self,startDate,endDate):
-        myindex=IndexComponentDataProcess(True)
-        index500=myindex.getCSI500DataByDate(startDate,endDate)
-        index300=myindex.getHS300DataByDate(startDate,endDate)
-        index50=myindex.getSSE50DataByDate(startDate,endDate)
-        stockCodes=list(pd.concat([index500,index300,index50],ignore_index=True)['code'].drop_duplicates())
-        HDF5Utility.pathCreate(LocalFileAddress)
         localFileStr=os.path.join(LocalFileAddress,'stockCode.h5')
-        store=pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=False,complevel=9)
-        store['data']=stockCodes
-        store.close()
-        return stockCodes
+        exists=HDF5Utility.fileCheck(localFileStr)
+        if exists==True:
+            store=pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=False,complevel=9)
+            lastDate=store['date'].iloc[-1]['date']
+            if lastDate<endDate:
+                exists=False
+            store.close()
+            pass
+        if exists==True:
+            store=pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=False,complevel=9)
+            stockCodes=store['data']
+            store.close()
+            pass
+        else:
+            myindex=IndexComponentDataProcess(True)
+            index500=myindex.getCSI500DataByDate(startDate,endDate)
+            index300=myindex.getHS300DataByDate(startDate,endDate)
+            index50=myindex.getSSE50DataByDate(startDate,endDate)
+            stockCodes=(pd.concat([index500,index300,index50],ignore_index=True)['code'].drop_duplicates())
+            days=pd.DataFrame(TradedayDataProcess.getTradedays(startDate,endDate))
+            store=pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=False,complevel=9)
+            store['data']=stockCodes
+            store['date']=days
+            store.close()
+            pass
+        return list(stockCodes)
         pass
     #----------------------------------------------------------------------
     @classmethod 

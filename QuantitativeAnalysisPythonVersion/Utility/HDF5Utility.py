@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 import os,sys
+import Config.myConfig
+import h5py
 
 ########################################################################
 class HDF5Utility(object):
@@ -52,6 +54,24 @@ class HDF5Utility(object):
     @classmethod 
     def pathCreate(self,path):
         if os.path.exists(path)==False:
+            logger.info(f'{path} is not exists! {path} will be created!')
             os.makedirs(path)
             pass
+    #----------------------------------------------------------------------
+    @classmethod 
+    def fileCheck(self,filePath):
+        path=os.path.dirname(filePath)
+        HDF5Utility.pathCreate(path)
+        exists=os.path.isfile(filePath)
+        if exists==True:
+            f=h5py.File(filePath,'r')
+            myKeys=list(f.keys())
+            f.close()
+            if myKeys==[]:
+                logger.warning(f'{filePath} has no data!{filePath} will be deleted!')
+                os.remove(filePath)
+                exists=False
+            pass
+        return exists
+        pass
 ########################################################################

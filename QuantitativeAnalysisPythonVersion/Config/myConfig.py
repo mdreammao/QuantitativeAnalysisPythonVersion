@@ -1,3 +1,14 @@
+import logging
+import os
+import time
+import datetime
+from Utility.HDF5Utility import *
+
+
+########################################################################
+#定义多线程数据
+MYJOBS=1
+
 #sql连接字符串
 SqlServer={
     'server170':'server=192.168.1.170;uid=reader;pwd=reader;',
@@ -10,8 +21,6 @@ OracleServer={
     'default':'yspread/Y*iaciej123456@172.17.21.3:1521/WDZX',
     }
 
-
-
 #本地文件存储地址
 LocalFileAddress=r'D:/BTP/LocalDataBase'
 TempLocalFileAddress=r'D:/BTP/LocalDataBase/temp'
@@ -21,6 +30,26 @@ TempLocalFileAddress=r'D:/BTP/LocalDataBase/temp'
 #LocalFileAddress=os.path.join(ROOT_PATH, 'LocalDataBase')
 #TempLocalFileAddress=os.path.join(LocalFileAddress, 'temp')
 
-
+#logger日志文件
+# 创建一个logger
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)  # Log等级总开关
+# 创建一个handler，用于写入日志文件
+rq = time.strftime('%Y%m%d%H%M', time.localtime(time.time()))
+localFilePath=os.path.join(LocalFileAddress,'log')
+HDF5Utility.pathCreate(localFilePath)
+logfile=os.path.join(LocalFileAddress,'log',datetime.datetime.strftime(datetime.datetime.now(),'%Y%m%d%H%M%S')+'.log')
+fh = logging.FileHandler(logfile, mode='w')
+fh.setLevel(logging.DEBUG)  # 输出到file的log等级的开关
+# 定义handler的输出格式
+formatter = logging.Formatter("%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s")
+fh.setFormatter(formatter)
+# 将logger添加到handler里面
+logger.addHandler(fh)
+#创建一个handler，用于输出到控制台
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+ch.setFormatter(formatter)
+logger.addHandler(ch)
 
 

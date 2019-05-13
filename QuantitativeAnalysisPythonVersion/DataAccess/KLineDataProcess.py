@@ -47,6 +47,12 @@ class KLineDataProcess(object):
         code=str(code).upper()
         startDate=str(startDate)
         endDate=str(endDate)
+        if startDate==EMPTY_STRING:
+            logger.info(f'startDate and endDate are not given,get all data of {code}({self.KLineLevel})')
+        elif endDate==EMPTY_STRING:
+            logger.info(f'endDate is not given,get all data of {code}({self.KLineLevel}) from {startDate} to end')
+        else:
+            logger.info(f'get data of {code}({self.KLineLevel}) from {startDate} to {endDate}')
         if self.KLineLevel=='minute':
             return self.__getMinuteDataByDateFromSqlSever(code,startDate,endDate)
         elif self.KLineLevel=='daily':
@@ -69,7 +75,8 @@ class KLineDataProcess(object):
         elif self.KLineLevel=='daily':
             store.append(self.KLineLevel,data,append=True,format="table",data_columns=['code','date','open','high','low','close','preClose','volume','amount','change','pctChange','adjFactor','vwap','status'])
         elif self.KLineLevel=='dailyDerivative':
-            store.append(self.KLineLevel,data,append=True,format="table",data_columns=['code','date','totalMv','freeMv','PE','PCF','PS','turnover',' totalShares','freeShares','limitStatus'])
+            #store.append(self.KLineLevel,data,append=True,format="table",data_columns=['code','date','totalMv','freeMv','PE','PCF','PS','turnover',' totalShares','freeShares','limitStatus'])
+            store.append(self.KLineLevel,data,append=True,format="table",data_columns=data.columns)
         elif self.KLineLevel=='dailyIndex':
             store.append(self.KLineLevel,data,append=True,format="table",data_columns=data.columns)
         elif self.KLineLevel=='minuteIndex':
@@ -79,7 +86,44 @@ class KLineDataProcess(object):
     #----------------------------------------------------------------------
     #输入code=600000.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
     def __getDataByDateFromLocalFile(self,code,startDate,endDate):
+        if self.update==True:
+            mydata=self.__getDataByDateFromLocalFileWithUpdate(code,startDate,endDate)
+        else:
+            mydata=self.__getDataByDateFromLocalFileWithoutUpdate(code,startDate,endDate)
+        return mydata
+        pass
+    #----------------------------------------------------------------------
+    #输入code=600000.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
+    def __getDataByDateFromLocalFileWithoutUpdate(self,code,startDate,endDate):
         code=str(code).upper();
+        logger.info(f'get data of {code}({self.KLineLevel}) start!')
+        fileName=code.replace('.','_')+".h5"
+        localFileStr=os.path.join(LocalFileAddress,'KLines',self.KLineLevel,fileName)
+        exists=os.path.isfile(localFileStr)
+        mydata=pd.DataFrame()
+        if exists==True:
+            f=h5py.File(localFileStr,'r')
+            myKeys=list(f.keys())
+            f.close()
+            if myKeys==[]:
+                logger.warning(f'{localFileStr} has no data!{localFileStr} will be deleted!')
+                os.remove(localFileStr)
+                exists=False
+        if exists==False:
+            logger.error(f'{code} has no data!')
+        else:
+            store = pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=True,complevel=9)
+            mydata=store.get(self.KLineLevel)
+            # mydata=store.select(self.KLineLevel,where=['date>="%s" and date<="%s"'%(startDate,endDate)])
+            mydata=mydata[(mydata['date']>=startDate) & (mydata['date']<=endDate)]
+            store.close()
+            #logger.info(f'get data of {code}({self.KLineLevel}) compelete!')
+        return mydata
+    #----------------------------------------------------------------------
+    #输入code=600000.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
+    def __getDataByDateFromLocalFileWithUpdate(self,code,startDate,endDate):
+        code=str(code).upper();
+        logger.info(f'get data of {code}({self.KLineLevel}) start!')
         #localFileStr=LocalFileAddress+"\\KLines\\{0}\\{1}.h5".format(self.KLineLevel,code.replace('.','_'))
         fileName=code.replace('.','_')+".h5"
         localFilePath=os.path.join(LocalFileAddress,'KLines',self.KLineLevel)
@@ -91,6 +135,7 @@ class KLineDataProcess(object):
             myKeys=list(f.keys())
             f.close()
             if myKeys==[]:
+                logger.warning(f'{localFileStr} has no data!{localFileStr} will be deleted!')
                 exists=False
         if exists==False:
             mydata=self.__getDataByDateFromSource(code)
@@ -102,11 +147,15 @@ class KLineDataProcess(object):
                 mydata=store.select(self.KLineLevel)
                 store.close()
                 if endDate==EMPTY_STRING or mydata['date'].max()<endDate:
-                    latestDate=datetime.datetime.strptime(mydata['date'].max(),"%Y%m%d")
-                    updateDate=(latestDate+datetime.timedelta(days=1)).strftime("%Y%m%d")
-                    updateData=self.__getDataByDateFromSource(code,updateDate)
-                    self.__saveDataToLocalFile(localFileStr,updateData)
-        
+                    #latestDate=datetime.datetime.strptime(mydata['date'].max(),"%Y%m%d")
+                    #更新日期从后一个交易日开始
+                    #updateDate=(latestDate+datetime.timedelta(days=1)).strftime("%Y%m%d")
+                    updateDate=TradedayDataProcess.getNextTradeday(mydata['date'].max())
+                    yesterday=(datetime.datetime.now()+datetime.timedelta(days=-1)).strftime("%Y%m%d")
+                    if yesterday>=updateDate:
+                        updateData=self.__getDataByDateFromSource(code,updateDate,yesterday)
+                        if updateData.empty==False:
+                            self.__saveDataToLocalFile(localFileStr,updateData)
         f=h5py.File(localFileStr,'r')
         myKeys=list(f.keys())
         f.close()
@@ -220,7 +269,7 @@ class KLineDataProcess(object):
         mydata=pd.DataFrame()
         for i in range(len(StockCodes)):
             code=StockCodes[i]
-            print(code)
+            #print(code)
             localdata=self.__getDataByDateFromLocalFile(code,str(startDate),str(endDate))
             mydata=mydata.append(localdata)
         return mydata

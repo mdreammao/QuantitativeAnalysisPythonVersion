@@ -7,6 +7,8 @@ from dateutil.relativedelta import relativedelta
 from Utility.HDF5Utility import *
 import os
 
+
+
 ########################################################################
 class TradedayDataProcess(object):
     """从RDF/本地文件中读取数据"""
@@ -16,12 +18,9 @@ class TradedayDataProcess(object):
     HDF5Utility.pathCreate(localFilePath)
     localFileStr=os.path.join(LocalFileAddress,'tradedays.h5')
     allTradedays=pd.DataFrame()
+
     #----------------------------------------------------------------------
     def __init__(self):
-        if len(TradedayDataProcess.allTradedays)==0:
-            TradedayDataProcess.allTradedays=TradedayDataProcess.__getTradedaysFromLocalFile()
-        else:
-            pass
         pass
     #----------------------------------------------------------------------
     @classmethod 
@@ -71,6 +70,8 @@ class TradedayDataProcess(object):
     #----------------------------------------------------------------------
     @classmethod 
     def __getTradedaysFromLocalFile(self):
+        if not TradedayDataProcess.allTradedays.empty:
+            return TradedayDataProcess.allTradedays
         exists=os.path.isfile(TradedayDataProcess.localFileStr)
         if exists==True:
             f=h5py.File(TradedayDataProcess.localFileStr,'r')
@@ -85,6 +86,7 @@ class TradedayDataProcess(object):
                 store.close()
         else:
             mydata=TradedayDataProcess.__getAllTradedaysFromRDF()
+        TradedayDataProcess.allTradedays=mydata
         return mydata
     #----------------------------------------------------------------------
     @classmethod 
