@@ -4,6 +4,7 @@ import pandas as pd
 from Config.myConstant import *
 from Config.myConfig import *
 from DataAccess.TradedayDataProcess import *
+from Utility.HDF5Utility import *
 import datetime
 import h5py
 import os
@@ -63,7 +64,10 @@ class IndexComponentDataProcess(object):
     #输入code=000300.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
     def __getDataByDateFromLocalFile(self,code,startDate,endDate):
         code=str(code).upper();
-        localFileStr=LocalFileAddress+"\\{0}\\{1}.h5".format('index',code.replace('.','_'))
+        localFilePath=os.path.join(LocalFileAddress,'index')
+        HDF5Utility.pathCreate(localFilePath)
+        localFileStr=os.path.join(LocalFileAddress,'index',code.replace('.','_')+'.h5')
+        #localFileStr=LocalFileAddress+"\\{0}\\{1}.h5".format('index',code.replace('.','_'))
         exists=os.path.isfile(localFileStr)
         if exists==True:
             f=h5py.File(localFileStr,'r')
@@ -92,7 +96,10 @@ class IndexComponentDataProcess(object):
     #输入code=000300.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
     def __getDataByIndexCodeFromLocalFile(self,indexCode):
         code=str(indexCode).upper();
-        localFileStr=LocalFileAddress+"\\{0}\\{1}.h5".format('index',self.indexMembers)
+        #localFileStr=LocalFileAddress+"\\{0}\\{1}.h5".format('index',self.indexMembers)
+        localFilePath=os.path.join(LocalFileAddress,'index')
+        HDF5Utility.pathCreate(localFilePath)
+        localFileStr=os.path.join(LocalFileAddress,'index',code.replace('.','_')+'.h5')
         exists=os.path.isfile(localFileStr)
         if exists==True:
             f=h5py.File(localFileStr,'r')
@@ -133,6 +140,10 @@ class IndexComponentDataProcess(object):
     def getCSI500DataByDate(self,startDate,endDate):
         localdata=self.__getDataByDateFromLocalFile('000905.SH',str(startDate),str(endDate))
         return localdata
+    #----------------------------------------------------------------------
+    def getIndexMember(self,indexCode,startDate,endDate):
+        indexCode=str(indexCode)
+        mydata=self.__getDataByIndexCodeFromLocalFile(indexCode)
     #----------------------------------------------------------------------
     def getStockBelongs(self,code,indexCode,startDate,endDate):
         code=str(code)

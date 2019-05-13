@@ -37,19 +37,16 @@
     <Compile Include="DataAccess\IndexComponentDataProcess.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DataAccess\IndexDailyKLineProcess.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="DataAccess\IndustryClassification.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="DataAccess\IndustryDailyKLineProcess.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DataAccess\KLineDataProcess.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DataAccess\StockSharesProcess.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataAccess\TickDataProcess.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DataAccess\TradedayDataProcess.py">
@@ -107,6 +104,9 @@
     <Compile Include="Strategy\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Utility\ComputeUtility.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Utility\HDF5Utility.py">
       <SubType>Code</SubType>
     </Compile>
@@ -120,6 +120,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Utility\SqlServerUtility.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Utility\UpdateBasicData.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Utility\__int__.py">

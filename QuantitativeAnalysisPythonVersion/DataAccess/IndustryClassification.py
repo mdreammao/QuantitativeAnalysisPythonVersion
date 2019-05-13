@@ -8,12 +8,14 @@ import h5py
 import os
 from DataAccess.TradedayDataProcess import *
 from dateutil.relativedelta import relativedelta
+from Utility.HDF5Utility import *
 
 ########################################################################
 class IndustryClassification(object):
     """申万行业分类"""
     nowStr=datetime.datetime.now().strftime('%Y%m%d')
-    localFileStr=LocalFileAddress+"\\industryClassification.h5"
+    localFileStr=os.path.join(LocalFileAddress,'industryClassification.h5')
+    
     allIndustry=pd.DataFrame()
     #----------------------------------------------------------------------
     def __init__(self):
@@ -75,7 +77,7 @@ class IndustryClassification(object):
             remove=mydata.iloc[row]['remove']
             dataWithIndex.loc[((dataWithIndex['date']>=entry) & (dataWithIndex['date']<=remove)),'industry']=mydata.iloc[row]['industry'][0:4]
             dataWithIndex.loc[((dataWithIndex['date']>=entry) & (dataWithIndex['date']<=remove)),'name']=mydata.iloc[row]['name']
-        dataWithIndex[dataWithIndex['industry'].isin(disabledIndustry)]=None
+        dataWithIndex.loc[dataWithIndex['industry'].isin(disabledIndustry),['industry','name']]=None
         dataWithIndex.fillna(method = 'bfill',inplace=True)
         dataWithIndex.set_index('date',drop=True,inplace=True)
         return dataWithIndex
@@ -87,8 +89,7 @@ class IndustryClassification(object):
             f=h5py.File(IndustryClassification.localFileStr,'r')
             myKeys=list(f.keys())
             f.close()
-            lastStoreDate=datetime.datetime.strptime(max(myKeys), "%Y%m%d")
-            if (myKeys==[] or (datetime.datetime.now() - relativedelta(days=+30))>lastStoreDate):#如果10天没有更新，重新抓取数据
+            if (myKeys==[]):
                 mydata=IndustryClassification.__getAllDataFromOracleServer()
             else:
                 store = pd.HDFStore(IndustryClassification.localFileStr,'r')
@@ -97,7 +98,12 @@ class IndustryClassification(object):
         else:
             mydata=IndustryClassification.__getAllDataFromOracleServer()
         return mydata
-    
+    #----------------------------------------------------------------------
+    @classmethod 
+    def updateIndustryInfo(self):
+        HDF5Utility.pathCreate(IndustryClassification.LocalFileAddress)
+        IndustryClassification.__getAllDataFromOracleServer()
+        pass
     #----------------------------------------------------------------------
     @classmethod 
     def __getAllDataFromOracleServer(self):

@@ -6,7 +6,7 @@ import warnings
 from Config.myConstant import *
 from Config.myConfig import *
 import numpy as np
-import numba
+#import numba
 
 
 ########################################################################

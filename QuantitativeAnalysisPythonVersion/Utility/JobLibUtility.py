@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import datetime
-import numba
+#import numba
 import warnings
 from Config.myConstant import *
 from Config.myConfig import *
@@ -12,6 +12,7 @@ from Utility.HDF5Utility import *
 ########################################################################
 class JobLibUtility(object):
     """joblib并行化辅助程序"""
+    myjobs=MYJOBS
     #----------------------------------------------------------------------
     def __init__(self):
         pass
@@ -27,7 +28,7 @@ class JobLibUtility(object):
         for i in range(groupnum):
             tmpAddress[i]=TempLocalFileAddress+"\\tmp{0}.h5".format(str(i))
             HDF5Utility.fileClear(tmpAddress[i])
-        Parallel(n_jobs=-1)(delayed(myfunction)(list(stocks[i]),startDate,endDate,tmpAddress[i]) for i in range(groupnum))
+        Parallel(n_jobs=JobLibUtility.myjobs)(delayed(myfunction)(list(stocks[i]),startDate,endDate,tmpAddress[i]) for i in range(groupnum))
         for i in range(groupnum):
             HDF5Utility.dataTransfer(tmpAddress[i],targetFilePath)
         pass
@@ -43,7 +44,7 @@ class JobLibUtility(object):
         for i in range(groupnum):
             tmpAddress[i]=TempLocalFileAddress+"\\tmp{0}.h5".format(str(i))
             HDF5Utility.fileClear(tmpAddress[i])
-        Parallel(n_jobs=-1)(delayed(myfunction)(list(stocks[i]),startDate,endDate,tmpAddress[i]) for i in range(groupnum))
+        Parallel(n_jobs=JobLibUtility.myjobs)(delayed(myfunction)(list(stocks[i]),startDate,endDate,tmpAddress[i]) for i in range(groupnum))
         for i in range(groupnum):
             HDF5Utility.dataTransferToOneFile(tmpAddress[i],targetFilePath)
         pass
@@ -57,8 +58,35 @@ class JobLibUtility(object):
             mygroup=i%groupnum
             stocks[mygroup].append(stockCodes[i])
         tmpAddress={}
-        with parallel_backend("multiprocessing", n_jobs=-1):
+        with parallel_backend("multiprocessing", n_jobs=JobLibUtility.myjobs):
             mydata=Parallel()(delayed(myfunction)(list(stocks[i]),startDate,endDate) for i in range(groupnum))
+        for i in range(groupnum):
+            allData=allData.append(mydata[i])
+        return allData
+    #----------------------------------------------------------------------
+    @classmethod 
+    def useJobLibToUpdateData(self,myfunction,stockCodes,groupnum,startDate,endDate):
+        warnings.filterwarnings('ignore')
+        stocks={i:[] for i in range(groupnum)}
+        allData=pd.DataFrame()
+        for i in range(0,len(stockCodes)):
+            mygroup=i%groupnum
+            stocks[mygroup].append(stockCodes[i])
+        tmpAddress={}
+        with parallel_backend("multiprocessing", n_jobs=JobLibUtility.myjobs):
+            mydata=Parallel()(delayed(myfunction)(list(stocks[i]),startDate,endDate) for i in range(groupnum))
+    #----------------------------------------------------------------------
+    @classmethod 
+    def useJobLibToUpdateFacotrs(self,myfunction,stockCodes,groupnum,factors):
+        warnings.filterwarnings('ignore')
+        stocks={i:[] for i in range(groupnum)}
+        allData=pd.DataFrame()
+        for i in range(0,len(stockCodes)):
+            mygroup=i%groupnum
+            stocks[mygroup].append(stockCodes[i])
+        tmpAddress={}
+        with parallel_backend("multiprocessing", n_jobs=JobLibUtility.myjobs):
+            mydata=Parallel()(delayed(myfunction)(list(stocks[i]),factors) for i in range(groupnum))
         for i in range(groupnum):
             allData=allData.append(mydata[i])
         return allData

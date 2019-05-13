@@ -4,16 +4,28 @@ import cx_Oracle as oracle
 from Config.myConfig import *
 import pandas as pd
 from dateutil.relativedelta import relativedelta
+from Utility.HDF5Utility import *
 import os
+
+
 
 ########################################################################
 class TradedayDataProcess(object):
     """从RDF/本地文件中读取数据"""
     nowStr=datetime.datetime.now().strftime('%Y%m%d')
-    localFileStr=LocalFileAddress+"\\tradedays.h5"
+    #localFileStr=LocalFileAddress+"\\tradedays.h5"
+    localFilePath=os.path.join(LocalFileAddress)
+    HDF5Utility.pathCreate(localFilePath)
+    localFileStr=os.path.join(LocalFileAddress,'tradedays.h5')
     allTradedays=pd.DataFrame()
+
     #----------------------------------------------------------------------
     def __init__(self):
+        pass
+    #----------------------------------------------------------------------
+    @classmethod 
+    def updateAllTradedays(self):
+        mydata=TradedayDataProcess.__getAllTradedaysFromRDF()
         pass
     #----------------------------------------------------------------------
     @classmethod 
@@ -39,16 +51,27 @@ class TradedayDataProcess(object):
         return mydata
     #----------------------------------------------------------------------
     @classmethod 
-    def getNextTradeday(self,today):
+    def getNextTradeday(self,today,location=1):
         if len(TradedayDataProcess.allTradedays)==0:
             TradedayDataProcess.allTradedays=TradedayDataProcess.__getTradedaysFromLocalFile()
         else:
             pass
         mydata=TradedayDataProcess.allTradedays.loc[(TradedayDataProcess.allTradedays['date']>today),'date']
-        return mydata['date'].max()
+        return mydata.iloc[location-1]
+    #----------------------------------------------------------------------
+    @classmethod 
+    def getPreviousTradeday(self,today,location=1):
+        if len(TradedayDataProcess.allTradedays)==0:
+            TradedayDataProcess.allTradedays=TradedayDataProcess.__getTradedaysFromLocalFile()
+        else:
+            pass
+        mydata=TradedayDataProcess.allTradedays.loc[(TradedayDataProcess.allTradedays['date']<today),'date']
+        return mydata.iloc[-location]
     #----------------------------------------------------------------------
     @classmethod 
     def __getTradedaysFromLocalFile(self):
+        if not TradedayDataProcess.allTradedays.empty:
+            return TradedayDataProcess.allTradedays
         exists=os.path.isfile(TradedayDataProcess.localFileStr)
         if exists==True:
             f=h5py.File(TradedayDataProcess.localFileStr,'r')
@@ -63,6 +86,7 @@ class TradedayDataProcess(object):
                 store.close()
         else:
             mydata=TradedayDataProcess.__getAllTradedaysFromRDF()
+        TradedayDataProcess.allTradedays=mydata
         return mydata
     #----------------------------------------------------------------------
     @classmethod 
@@ -76,7 +100,7 @@ class TradedayDataProcess(object):
         mydata=pd.DataFrame(myCursor.fetchall(),columns=['date'])
         #mydata['date']=mydata['date'].astype(str)
        # mydata['date']=pd.to_datetime(mydata['date'],format='%Y%m%d')
-        store = pd.HDFStore(TradedayDataProcess.localFileStr,'a')
+        store = pd.HDFStore(TradedayDataProcess.localFileStr,'a',complib='blosc:zstd',append=True,complevel=9)
         store.append(TradedayDataProcess.nowStr,mydata,append=False,format="table",data_columns=['date'])
         store.close()
         return mydata
