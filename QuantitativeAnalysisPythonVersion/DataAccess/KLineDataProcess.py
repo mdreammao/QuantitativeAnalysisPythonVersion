@@ -47,12 +47,14 @@ class KLineDataProcess(object):
         code=str(code).upper()
         startDate=str(startDate)
         endDate=str(endDate)
+        '''
         if startDate==EMPTY_STRING:
             logger.info(f'startDate and endDate are not given,get all data of {code}({self.KLineLevel})')
         elif endDate==EMPTY_STRING:
             logger.info(f'endDate is not given,get all data of {code}({self.KLineLevel}) from {startDate} to end')
         else:
             logger.info(f'get data of {code}({self.KLineLevel}) from {startDate} to {endDate}')
+        '''
         if self.KLineLevel=='minute':
             return self.__getMinuteDataByDateFromSqlSever(code,startDate,endDate)
         elif self.KLineLevel=='daily':
@@ -96,7 +98,7 @@ class KLineDataProcess(object):
     #输入code=600000.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
     def __getDataByDateFromLocalFileWithoutUpdate(self,code,startDate,endDate):
         code=str(code).upper();
-        logger.info(f'get data of {code}({self.KLineLevel}) start!')
+        #logger.info(f'get data of {code}({self.KLineLevel}) start!')
         fileName=code.replace('.','_')+".h5"
         localFileStr=os.path.join(LocalFileAddress,'KLines',self.KLineLevel,fileName)
         exists=os.path.isfile(localFileStr)
@@ -136,11 +138,15 @@ class KLineDataProcess(object):
             f.close()
             if myKeys==[]:
                 logger.warning(f'{localFileStr} has no data!{localFileStr} will be deleted!')
+                os.remove(localFileStr)
                 exists=False
         if exists==False:
             mydata=self.__getDataByDateFromSource(code)
-            os.remove(localFileStr)
-            self.__saveDataToLocalFile(localFileStr,mydata)
+            if mydata.empty==False:
+                self.__saveDataToLocalFile(localFileStr,mydata)
+                exists=True
+            else:
+                logger.error(f'{localFileStr} has no data from source!')
         else:
             if self.update==True:
                 store = pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=True,complevel=9)
@@ -156,10 +162,7 @@ class KLineDataProcess(object):
                         updateData=self.__getDataByDateFromSource(code,updateDate,yesterday)
                         if updateData.empty==False:
                             self.__saveDataToLocalFile(localFileStr,updateData)
-        f=h5py.File(localFileStr,'r')
-        myKeys=list(f.keys())
-        f.close()
-        if myKeys==[]:
+        if exists==False:
             mydata=pd.DataFrame()
         else:
             store = pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=True,complevel=9)
@@ -259,11 +262,12 @@ class KLineDataProcess(object):
         return mydata    
         
         
-        #----------------------------------------------------------------------
+    #----------------------------------------------------------------------
     #输入code=600000.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
     def getDataByDate(self,code,startDate,endDate):
         localdata=self.__getDataByDateFromLocalFile(code,str(startDate),str(endDate))
         return localdata
+    #----------------------------------------------------------------------
     #输入code=600000.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
     def getLotsDataByDate(self,StockCodes,startDate,endDate):
         mydata=pd.DataFrame()
@@ -274,14 +278,20 @@ class KLineDataProcess(object):
             mydata=mydata.append(localdata)
         return mydata
     #----------------------------------------------------------------------
+    #输入code=600000.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
+    def updateLotsDataByDate(self,StockCodes,startDate,endDate):
+        mydata=pd.DataFrame()
+        for i in range(len(StockCodes)):
+            code=StockCodes[i]
+            self.__getDataByDateFromLocalFile(code,str(startDate),str(endDate))
+    #----------------------------------------------------------------------
     def parallelizationGetDataByDate(self,stockCodes,startDate,endDate):
-        mydata=JobLibUtility.useJobLibToGetData(self.getLotsDataByDate,stockCodes,80,startDate,endDate)
+        mydata=JobLibUtility.useJobLibToGetData(self.getLotsDataByDate,stockCodes,MYGROUPS,startDate,endDate)
         return mydata
         pass
     #----------------------------------------------------------------------
     def parallelizationUpdateDataByDate(self,stockCodes,startDate,endDate):
-        mydata=JobLibUtility.useJobLibToUpdateData(self.getLotsDataByDate,stockCodes,80,startDate,endDate)
-        return mydata
+        JobLibUtility.useJobLibToUpdateData(self.updateLotsDataByDate,stockCodes,MYGROUPS,startDate,endDate)
         pass
     
     

@@ -49,8 +49,8 @@ def main():
     startDate=20100101
     endDate=20190510
     UpdateBasicData.updateAll()
-    #stock=KLineDataProcess('dailyDerivative',True)
-    #stock.getDataByDate('601628.SH',startDate,endDate)
+    #myindex=IndexComponentDataProcess()
+    #mydata=myindex.getStockPropertyInIndex('600000.SH','000016.SH',startDate,endDate)
     '''
     myindex=IndexComponentDataProcess()
     index500=myindex.getCSI500DataByDate(startDate,endDate)

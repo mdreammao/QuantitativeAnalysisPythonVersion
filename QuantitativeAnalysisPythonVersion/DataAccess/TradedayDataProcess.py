@@ -2,6 +2,7 @@ import datetime
 import h5py
 import cx_Oracle as oracle
 from Config.myConfig import *
+from Config.myConstant import *
 import pandas as pd
 from dateutil.relativedelta import relativedelta
 from Utility.HDF5Utility import *
@@ -66,6 +67,12 @@ class TradedayDataProcess(object):
         else:
             pass
         mydata=TradedayDataProcess.allTradedays.loc[(TradedayDataProcess.allTradedays['date']<today),'date']
+        if mydata.empty==True:
+            logger.warning(f'There is no date data less than {today}')
+            return TradedayDataProcess.allTradedays['date'].min()
+        if len(mydata)<location:
+            return mydata.iloc[0]
+            pass
         return mydata.iloc[-location]
     #----------------------------------------------------------------------
     @classmethod 

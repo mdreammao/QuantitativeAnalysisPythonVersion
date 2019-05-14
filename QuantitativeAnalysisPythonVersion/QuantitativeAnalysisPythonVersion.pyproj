@@ -43,6 +43,9 @@
     <Compile Include="DataAccess\KLineDataProcess.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DataAccess\StockIPOInfoProcess.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DataAccess\StockSharesProcess.py">
       <SubType>Code</SubType>
     </Compile>

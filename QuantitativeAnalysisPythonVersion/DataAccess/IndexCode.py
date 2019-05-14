@@ -12,39 +12,33 @@ from dateutil.relativedelta import relativedelta
 class IndexCode(object):
     """指数信息"""
     nowStr=datetime.datetime.now().strftime('%Y%m%d')
-    localFileStr=LocalFileAddress+"\\indexCode.h5"
+    localFileStr=os.path.join(LocalFileAddress,'indexCode.h5')
     allIndex=None
-    #----------------------------------------------------------------------
-    def __init__(self):
-        """Constructor"""
-        pass
     #----------------------------------------------------------------------
     #返还指数信息，'code'指数代码,'name'指数名称,'code2'指数数据库内部代码,'name2'指数数据库内部名称
     @classmethod 
     def getIndexCodeInfo(self):
         if not IndexCode.allIndex:
-            IndexCode.allIndex=IndexCode.__getIndustryFromLocalFile()
+            IndexCode.allIndex=IndexCode.__getIndexCodeFromLocalFile()
         else:
             pass
         mydata=IndexCode.allIndex
         return mydata
     #----------------------------------------------------------------------
     @classmethod 
-    def __getIndustryFromLocalFile(self):
+    def updateIndexCodeFromLocalFile(self):
+        logger.info(f'update index code list!')
+        mydata=IndexCode.__getAllDataFromOracleServer()
+    #----------------------------------------------------------------------
+    @classmethod 
+    def __getIndexCodeFromLocalFile(self):
         exists=os.path.isfile(IndexCode.localFileStr)
         if exists==True:
-            f=h5py.File(IndexCode.localFileStr,'r')
-            myKeys=list(f.keys())
-            f.close()
-            lastStoreDate=datetime.datetime.strptime(max(myKeys), "%Y%m%d")
-            if (myKeys==[] or (datetime.datetime.now() - relativedelta(month=+3))>lastStoreDate):#如果3个月没有更新，重新抓取数据
-                mydata=IndexCode.__getAllDataFromOracleServer()
-            else:
-                store = pd.HDFStore(IndexCode.localFileStr,'r')
-                mydata=store.select(max(myKeys))
-                store.close()
+            store = pd.HDFStore(IndexCode.localFileStr,'r')
+            mydata=store['data']
+            store.close()
         else:
-            mydata=IndexCode.__getAllDataFromOracleServer()
+            logger.warning(f'There is no index code list data!')
         return mydata
     
     #----------------------------------------------------------------------
@@ -57,8 +51,8 @@ class IndexCode(object):
         cursor.execute(oracleStr)
         mydata = cursor.fetchall()
         mydata = pd.DataFrame(mydata,columns=['code','name','code2','name2'])
-        store = pd.HDFStore(IndexCode.localFileStr,'a')
-        store.append(IndexCode.nowStr,mydata,append=False,format="table",data_columns=['code','name','code2','name2'])
+        store = pd.HDFStore(IndexCode.localFileStr,'a',complib='blosc:zstd',append=True,complevel=9)
+        store.append('data',mydata,append=False,format="table",data_columns=mydata.columns)
         store.close()
         return mydata  
     #----------------------------------------------------------------------
