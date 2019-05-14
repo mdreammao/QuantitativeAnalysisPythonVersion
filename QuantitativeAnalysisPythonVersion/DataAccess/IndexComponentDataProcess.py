@@ -13,6 +13,9 @@ import os
 ########################################################################
 class IndexComponentDataProcess(object):
     """从SqlServer/RDF/本地文件中获取数据"""
+    indexMembersData=pd.DataFrame()
+    indexComponentData=pd.DataFrame()
+    indexList=[HS300,SSE50,CSI500]
     #----------------------------------------------------------------------
     def __init__(self,update=False,OracleSource=OracleServer['default']):
         """Constructor"""
@@ -62,93 +65,143 @@ class IndexComponentDataProcess(object):
         return mydata  
     #----------------------------------------------------------------------
     #输入code=000300.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
-    def __getDataByDateFromLocalFile(self,code,startDate,endDate):
+    #指数股票成员信息
+    def updateIndexComponentFromLocalFile(self,code,startDate,endDate):
         code=str(code).upper();
-        localFilePath=os.path.join(LocalFileAddress,'index')
+        localFilePath=os.path.join(LocalFileAddress,'index',self.key)
         HDF5Utility.pathCreate(localFilePath)
-        localFileStr=os.path.join(LocalFileAddress,'index',code.replace('.','_')+'.h5')
-        #localFileStr=LocalFileAddress+"\\{0}\\{1}.h5".format('index',code.replace('.','_'))
+        localFileStr=os.path.join(LocalFileAddress,'index',self.key,code.replace('.','_')+'.h5')
         exists=os.path.isfile(localFileStr)
-        if exists==True:
-            f=h5py.File(localFileStr,'r')
-            myKeys=list(f.keys())
-            f.close()
-            if myKeys==[]:
-                exists=False
         if exists==False:
             mydata=self.__getDataByDateFromSource(code)
             self.__saveDataToLocalFile(localFileStr,mydata)
         else:
-            if self.update==True:
-                store = pd.HDFStore(localFileStr,'a')
-                mydata=store.select(self.key)
-                store.close()
-                if endDate==EMPTY_STRING or mydata['date'].max()<endDate:
-                    latestDate=datetime.datetime.strptime(mydata['date'].max(),"%Y%m%d")
-                    updateDate=(latestDate+datetime.timedelta(days=1)).strftime("%Y%m%d")
-                    updateData=self.__getDailyDataByDateFromOracleServer(code,updateDate)
-                    self.__saveDataToLocalFile(localFileStr,updateData)
-        store = pd.HDFStore(localFileStr,'a')
-        mydata=store.select(self.key,where=['date>="%s" and date<="%s"'%(startDate,endDate)])
-        store.close()
+            store = pd.HDFStore(localFileStr,'a')
+            date=store['date']
+            store.close()
+            updateDate=TradedayDataProcess.getNextTradeday(date.max())
+            updateData=self.__getDailyDataByDateFromOracleServer(code,updateDate,endDate)
+            if updateData.empty==False:
+                self.__saveDataToLocalFile(localFileStr,updateData)
+            
+    #----------------------------------------------------------------------
+    #输入code=000300.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
+    #指数股票成员信息
+    def __getIndexComponentFromLocalFile(self,code,startDate,endDate):
+        code=str(code).upper();
+        localFilePath=os.path.join(LocalFileAddress,'index',self.key)
+        HDF5Utility.pathCreate(localFilePath)
+        localFileStr=os.path.join(LocalFileAddress,'index',self.key,code.replace('.','_')+'.h5')
+        if self.update==True:
+            self.updateIndexComponentFromLocalFile(code,startDate,endDate)
+            pass
+        exists=os.path.isfile(localFileStr)
+        if exists==True:
+            store = pd.HDFStore(localFileStr,'a')
+            mydata=store.select('data',where=['date>="%s" and date<="%s"'%(startDate,endDate)])
+            store.close()
+        else:
+            logger.waring(f'There is no component data of {code}')
+            mydata=pd.DataFrame()
+            pass
         return mydata
     #----------------------------------------------------------------------
     #输入code=000300.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
-    def __getDataByIndexCodeFromLocalFile(self,indexCode):
+    #股票进出指数信息
+    def updateIndexEntryAndRemoveFromLocalFile(self,indexCode):
         code=str(indexCode).upper();
         #localFileStr=LocalFileAddress+"\\{0}\\{1}.h5".format('index',self.indexMembers)
-        localFilePath=os.path.join(LocalFileAddress,'index')
+        localFilePath=os.path.join(LocalFileAddress,'index',self.indexMembers)
         HDF5Utility.pathCreate(localFilePath)
-        localFileStr=os.path.join(LocalFileAddress,'index',code.replace('.','_')+'.h5')
+        localFileStr=os.path.join(LocalFileAddress,'index',self.indexMembers,code.replace('.','_')+'.h5')
+        exists=os.path.isfile(localFileStr)
+        mydata=self.__getDailyDataByIndexCodeFromOracleServer(indexCode)
+        self.__saveDataToLocalFileByIndexCode(indexCode,localFileStr,mydata)
+        pass
+    #----------------------------------------------------------------------
+    #输入code=000300.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
+    #股票进出指数信息
+    def __getIndexEntryAndRemoveFromLocalFile(self,indexCode):
+        code=str(indexCode).upper();
+        localFilePath=os.path.join(LocalFileAddress,'index',self.indexMembers)
+        HDF5Utility.pathCreate(localFilePath)
+        localFileStr=os.path.join(LocalFileAddress,'index',self.indexMembers,code.replace('.','_')+'.h5')
+        if self.update==True:
+            self.updateIndexEntryAndRemoveFromLocalFile(indexCode)
+            pass
         exists=os.path.isfile(localFileStr)
         if exists==True:
-            f=h5py.File(localFileStr,'r')
-            myKeys=list(f.keys())
-            f.close()
-            if (myKeys==[]) or (indexCode not in myKeys):
-                exists=False
-        if exists==False:
-            mydata=self.__getDailyDataByIndexCodeFromOracleServer(indexCode)
-            self.__saveDataToLocalFileByIndexCode(indexCode,localFileStr,mydata)
-            return mydata
+            store = pd.HDFStore(localFileStr,'a')
+            mydata=store['data']
+            store.close()
+            pass
         else:
-            if self.update==True:
-                mydata=self.__getDailyDataByIndexCodeFromOracleServer(indexCode)
-                self.__saveDataToLocalFileByIndexCode(indexCode,localFileStr,mydata)
-                return mydata
-        store = pd.HDFStore(localFileStr,'a')
-        mydata=store.select(indexCode)
-        store.close()
-        latestDate=datetime.datetime.strptime(mydata['updateDate'].max(),"%Y%m%d")
-        needUpdateDate=latestDate+datetime.timedelta(days=30)
-        if needUpdateDate<datetime.datetime.now():
-            mydata=self.__getDailyDataByIndexCodeFromOracleServer(indexCode)
-            self.__saveDataToLocalFileByIndexCode(indexCode,localFileStr,mydata)
+            mydata=pd.DataFrame()
+            logger.warning(f'There is no {indexCode} member data!!')
+            pass
         return mydata
     #----------------------------------------------------------------------
     #输入code=000016.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
     def getSSE50DataByDate(self,startDate,endDate):
-        localdata=self.__getDataByDateFromLocalFile('000016.SH',str(startDate),str(endDate))
+        localdata=self.__getIndexComponentFromLocalFile('000016.SH',str(startDate),str(endDate))
         return localdata
     #----------------------------------------------------------------------
     #输入code=000300.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
     def getHS300DataByDate(self,startDate,endDate):
-        localdata=self.__getDataByDateFromLocalFile('000300.SH',str(startDate),str(endDate))
+        localdata=self.__getIndexComponentFromLocalFile('000300.SH',str(startDate),str(endDate))
         return localdata
     #----------------------------------------------------------------------
     #输入code=000905.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
     def getCSI500DataByDate(self,startDate,endDate):
-        localdata=self.__getDataByDateFromLocalFile('000905.SH',str(startDate),str(endDate))
+        localdata=self.__getIndexComponentFromLocalFile('000905.SH',str(startDate),str(endDate))
         return localdata
     #----------------------------------------------------------------------
     def getIndexMember(self,indexCode,startDate,endDate):
         indexCode=str(indexCode)
-        mydata=self.__getDataByIndexCodeFromLocalFile(indexCode)
+        mydata=self.__getIndexEntryAndRemoveFromLocalFile(indexCode)
     #----------------------------------------------------------------------
+    #获取股票在指数中的属性
+    @classmethod
+    def getStockPropertyInIndex(self,code,indexCode,startDate,endDate):
+        if len(IndexComponentDataProcess.indexMembersData)==0:
+            IndexComponentDataProcess.indexMembersData=IndexComponentDataProcess.getIndexComponentAllFromLocalFile()
+        mydata=IndexComponentDataProcess.indexMembersData
+        mydata=mydata[(mydata['date']>=startDate) & (mydata['date']<=endDate) & (mydata['indexCode']==indexCode)]
+        mydata=mydata[mydata['code']==code]
+        tradedays=TradedayDataProcess.getTradedays(startDate,endDate)
+        days=pd.DataFrame(tradedays,columns=['date'])
+        mydata=pd.merge(days,mydata,how='left',left_on='date',right_on='date')
+        mydata.set_index('date',drop=True,inplace=True)
+        return mydata
+    #----------------------------------------------------------------------
+    #获取股票在指数中的属性
+    @classmethod
+    def getIndexComponentAllFromLocalFile(self):
+        mydataAll=pd.DataFrame()
+        for code in IndexComponentDataProcess.indexList:
+            code=str(code).upper();
+            localFilePath=os.path.join(LocalFileAddress,'index','indexComponent')
+            HDF5Utility.pathCreate(localFilePath)
+            localFileStr=os.path.join(LocalFileAddress,'index','indexComponent',code.replace('.','_')+'.h5')
+            exists=os.path.isfile(localFileStr)
+            if exists==True:
+                store = pd.HDFStore(localFileStr,'a')
+                mydata=store.select('data')
+                store.close()
+            else:
+                logger.waring(f'There is no component data of {code}')
+                mydata=pd.DataFrame()
+                pass
+            mydataAll=mydataAll.append(mydata)
+            pass
+        return mydataAll
+        pass
+    #----------------------------------------------------------------------
+    #获取股票是否属于某指数
     def getStockBelongs(self,code,indexCode,startDate,endDate):
         code=str(code)
         indexCode=str(indexCode)
-        mydata=self.__getDataByIndexCodeFromLocalFile(indexCode)
+        mydata=self.__getIndexEntryAndRemoveFromLocalFile(indexCode)
         tradedays=TradedayDataProcess.getTradedays(startDate,endDate)
         dataWithIndex=pd.DataFrame(tradedays,columns=['date'])
         #dataWithIndex.set_index(['date'],inplace=True)
@@ -163,14 +216,19 @@ class IndexComponentDataProcess(object):
         return dataWithIndex
     #----------------------------------------------------------------------
     #输入code=000300.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
+    #存储指数的成员信息
     def __saveDataToLocalFile(self,localFileStr,data):
-        store = pd.HDFStore(localFileStr,'a')
-        store.append(self.key,data,append=True,format="table",data_columns=['date','indexCode','code','totalShares','freeSharesRatio','sharesInIndex','weightFactor','weight','preClose','preCloseAdjusted','totalMarketValue','marketValueInIndex'])
+        store = pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=True,complevel=9)
+        date=data['date'].drop_duplicates()
+        store.append('date',date,append=True,format="table",data_columns=['date'])
+        #store.append('data',data,append=True,format="table",data_columns=['date','indexCode','code','totalShares','freeSharesRatio','sharesInIndex','weightFactor','weight','preClose','preCloseAdjusted','totalMarketValue','marketValueInIndex'])
+        store.append('data',data,append=True,format="table",data_columns=data.columns)
         store.close()
     #----------------------------------------------------------------------
     #输入code=000300.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
+    #存储指数股票进出信息
     def __saveDataToLocalFileByIndexCode(self,indexCode,localFileStr,data):
-        store = pd.HDFStore(localFileStr,'a')
-        store.append(indexCode,data,append=False,format="table",data_columns=['indexCode','code','entry','remove','updateDate'])
+        store = pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=True,complevel=9)
+        store.append('data',data,append=False,format="table",data_columns=['indexCode','code','entry','remove','updateDate'])
         store.close()
 ########################################################################

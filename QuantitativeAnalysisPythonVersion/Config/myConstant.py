@@ -1,5 +1,8 @@
 # encoding: UTF-8
 
+#开始日期
+FIRSTDATE='20070101'
+
 # 默认空值
 EMPTY_STRING = ''
 EMPTY_UNICODE = ''

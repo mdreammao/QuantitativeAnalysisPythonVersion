@@ -4,6 +4,7 @@ import os,sys
 import Config.myConfig
 import h5py
 
+
 ########################################################################
 class HDF5Utility(object):
     """description of class"""
@@ -54,7 +55,7 @@ class HDF5Utility(object):
     @classmethod 
     def pathCreate(self,path):
         if os.path.exists(path)==False:
-            logger.info(f'{path} is not exists! {path} will be created!')
+            #logger.info(f'{path} is not exists! {path} will be created!')
             os.makedirs(path)
             pass
     #----------------------------------------------------------------------
@@ -68,7 +69,7 @@ class HDF5Utility(object):
             myKeys=list(f.keys())
             f.close()
             if myKeys==[]:
-                logger.warning(f'{filePath} has no data!{filePath} will be deleted!')
+                #logger.warning(f'{filePath} has no data!{filePath} will be deleted!')
                 os.remove(filePath)
                 exists=False
             pass

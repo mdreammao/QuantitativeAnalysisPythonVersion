@@ -101,7 +101,7 @@ class IndustryClassification(object):
     #----------------------------------------------------------------------
     @classmethod 
     def updateIndustryInfo(self):
-        HDF5Utility.pathCreate(IndustryClassification.LocalFileAddress)
+        HDF5Utility.pathCreate(LocalFileAddress)
         IndustryClassification.__getAllDataFromOracleServer()
         pass
     #----------------------------------------------------------------------
