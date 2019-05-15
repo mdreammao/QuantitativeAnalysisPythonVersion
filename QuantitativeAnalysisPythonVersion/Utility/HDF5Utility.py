@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import os,sys
-import Config.myConfig
+from Config.myConfig import *
 import h5py
 
 
