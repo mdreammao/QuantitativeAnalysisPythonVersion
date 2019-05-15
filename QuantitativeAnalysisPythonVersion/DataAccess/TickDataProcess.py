@@ -9,96 +9,44 @@ import os
 from DataAccess.TradedayDataProcess import *
 from Utility.JobLibUtility import *
 from Utility.HDF5Utility import *
+import pymssql
 
 ########################################################################
 class TickDataProcess(object):
     """从170数据库获取TICK数据"""
     #----------------------------------------------------------------------
-    def __init__(self,tickLevel=EMPTY_STRING,update=False,SqlSource=SqlServer['server170']):
+    def __init__(self,record=False,SqlSource=SqlServer['server170']):
         """Constructor"""
-        self.tickLevel=tickLevel
-        self.update=update
+        self.record=record
+        strArry=SqlSource.split(';')
+        self.address=strArry[0].split('=')[1]
+        self.user=strArry[1].split('=')[1]
+        self.password=strArry[2].split('=')[1]
     #----------------------------------------------------------------------
-    #输入code=600000.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
-    def getDataByDate(self,code,startDate,endDate):
-        localdata=self.__getDataByDateFromLocalFile(code,str(startDate),str(endDate))
-        return localdata
+    def getResampleTickShotData(self,code,date):
+        mydata=self.getTickShotDataFromSqlServer(code,date)
+        mydata=mydata.resample('3s',label='right',closed='right').last()
+        mydata=mydata.fillna(method='ffill')
+        mydata['volumeIncrease']=mydata['volume']-mydata['volume'].shift(1)
+        mydata['amountIncrease']=mydata['amount']-mydata['amount'].shift(1)
+        mydata=mydata[((mydata.index.time>=datetime.time(9,30)) & (mydata.index.time<=datetime.time(11,30))) | ((mydata.index.time>=datetime.time(13,00)) & (mydata.index.time<=datetime.time(15,00)))]
+        pass
     #----------------------------------------------------------------------
-    #输入code=600000.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
-    def __getDataByDateFromSource(self,code,startDate=EMPTY_STRING,endDate=EMPTY_STRING):
-        code=str(code).upper()
-        startDate=str(startDate)
-        endDate=str(endDate)
-        if self.tickLevel=='stockTickShot':
-            return self.__getStockTickShotDataByDateFromSqlSever(code,startDate,endDate)
-    #----------------------------------------------------------------------
-    #输入code=600000.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
-    def __saveDataToLocalFile(self,localFileStr,data):
-        if data.shape[0]==0:
-            return
-        store = pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=True,complevel=9)
-        if self.tickLevel=='stockTickShot':
-            store.append(self.tickLevel,data,append=True,format="table",data_columns=data.columns)
-        store.close()
-    #----------------------------------------------------------------------
-    #输入code=600000.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
-    def __getStockTickShotDataByDateFromSqlSever(self,code,startDate=EMPTY_STRING,endDate=EMPTY_STRING):
-        database='MarketData'
+    def getTickShotDataFromSqlServer(self,code,date):
+        date=str(date)
+        month=date[0:6]
+        database='WindFullMarket'+month
+        table='MarketData_'+code.replace('.','_')
         connect=pymssql.connect( self.address,self.user,self.password,database,charset='utf8')
         cursor = connect.cursor()
-        if startDate==EMPTY_STRING:
-             sql = "SELECT [stkcd] as [code], [tdate] as [date],[ttime] as [time],[Open] as [open] ,[High] as [high],[Low] as [low],[Close] as [close] ,[Volume] as [volume],[Amount] as [amount]  FROM [{0}].[dbo].[Min1_{1}] order by [tdate],[ttime]".format(database,code.replace('.','_'))
-        elif endDate==EMPTY_STRING:
-            sql = "SELECT [stkcd] as [code], [tdate] as [date],[ttime] as [time],[Open] as [open] ,[High] as [high],[Low] as [low],[Close] as [close] ,[Volume] as [volume],[Amount] as [amount]  FROM [{0}].[dbo].[Min1_{1}] where [tdate]>={2} order by [tdate],[ttime]".format(database,code.replace('.','_'),startDate)
-        else:
-            sql = "SELECT [stkcd] as [code], [tdate] as [date],[ttime] as [time],[Open] as [open] ,[High] as [high],[Low] as [low],[Close] as [close] ,[Volume] as [volume],[Amount] as [amount]  FROM [{0}].[dbo].[Min1_{1}] where [tdate]>={2} and [tdate]<={3} order by [tdate],[ttime]".format(database,code.replace('.','_'),startDate,endDate)
-            
+        sql="select [stkcd],[tdate],[ttime],[cp],[S1],[S2],[S3],[S4],[S5],[B1],[B2],[B3],[B4],[B5],[SV1],[SV2],[SV3],[SV4],[SV5],[BV1],[BV2],[BV3],[BV4],[BV5],[ts],[tt] FROM [{0}].[dbo].[{1}] where [tdate]={2} and ((ttime>=92500000 and ttime<=113000000) or (ttime>=130000000 and ttime<=150000000)) order by ttime".format(database,table,date)
         cursor.execute(sql)
         mydata=cursor.fetchall()
-        mydata = pd.DataFrame(mydata,columns=['code' ,'date','time' ,'open' ,'high','low','close' ,'volume' ,'amount'])
-        mydata[['open','high','low','close','volume','amount']] = mydata[['open','high','low','close','volume','amount']].astype('float')
+        mydata = pd.DataFrame(mydata,columns=['code' ,'date','time' ,'lastPrice','S1','S2','S3','S4','S5','B1','B2','B3','B4','B5','SV1','SV2','SV3','SV4','SV5','BV1','BV2','BV3','BV4','BV5','volume' ,'amount'])
+        mydata[['lastPrice','S1','S2','S3','S4','S5','B1','B2','B3','B4','B5','SV1','SV2','SV3','SV4','SV5','BV1','BV2','BV3','BV4','BV5','volume' ,'amount']] = mydata[['lastPrice','S1','S2','S3','S4','S5','B1','B2','B3','B4','B5','SV1','SV2','SV3','SV4','SV5','BV1','BV2','BV3','BV4','BV5','volume' ,'amount']].astype('float')
+        mydata['mytime']=pd.to_datetime(mydata['date']+mydata['time'],format='%Y%m%d%H%M%S%f')
+        mydata.set_index('mytime',inplace=True,drop=True)
         return mydata    
 
-    #----------------------------------------------------------------------
-    #输入code=600000.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
-    def __getDataByDateFromLocalFile(self,code,startDate,endDate):
-        code=str(code).upper();
-        fileName=code.replace('.','_')+".h5"
-        localFilePath=os.path.join(LocalFileAddress,'Ticks',self.tickLevel)
-        HDF5Utility.pathCreate(localFilePath)
-        localFileStr=os.path.join(LocalFileAddress,'Ticks',self.tickLevel,fileName)
-        exists=os.path.isfile(localFileStr)
-        if exists==True:
-            f=h5py.File(localFileStr,'r')
-            myKeys=list(f.keys())
-            f.close()
-            if myKeys==[]:
-                exists=False
-        if exists==False:
-            mydata=self.__getDataByDateFromSource(code)
-            os.remove(localFileStr)
-            self.__saveDataToLocalFile(localFileStr,mydata)
-        else:
-            if self.update==True:
-                store = pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=True,complevel=9)
-                mydata=store.select(self.tickLevel)
-                store.close()
-                if endDate==EMPTY_STRING or mydata['date'].max()<endDate:
-                    latestDate=datetime.datetime.strptime(mydata['date'].max(),"%Y%m%d")
-                    updateDate=(latestDate+datetime.timedelta(days=1)).strftime("%Y%m%d")
-                    updateData=self.__getDataByDateFromSource(code,updateDate)
-                    self.__saveDataToLocalFile(localFileStr,updateData)
-        
-        f=h5py.File(localFileStr,'r')
-        myKeys=list(f.keys())
-        f.close()
-        if myKeys==[]:
-            mydata=pd.DataFrame()
-        else:
-            store = pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=True,complevel=9)
-            mydata=store.get(self.tickLevel)
-            # mydata=store.select(self.KLineLevel,where=['date>="%s" and date<="%s"'%(startDate,endDate)])
-            mydata=mydata[(mydata['date']>=startDate) & (mydata['date']<=endDate)]
-            store.close()
-        #mydata.set_index('date',drop=True,inplace=True)
-        return mydata
+        pass
+    

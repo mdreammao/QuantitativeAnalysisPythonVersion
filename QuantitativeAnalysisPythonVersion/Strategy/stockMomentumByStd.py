@@ -89,11 +89,11 @@ class stockMomentumByStd(object):
             m['timeStamp']=m['date']+m['time']
             #日内分钟信息
             #成交量在前20分钟的分位数
-            m['ts_rank_volume']=m['volume'].shift(-1).rolling(20,min_periods=15).apply((lambda x:pd.Series(x).rank().iloc[-1]/len(x)),raw=True)
+            m['ts_rank_volume']=m['volume'].shift(1).rolling(20,min_periods=15).apply((lambda x:pd.Series(x).rank().iloc[-1]/len(x)),raw=True)
             #每分钟收益
-            m['minuteReturn']=(m['close']-m['close'].shift(-1))/m['close'].shift(-1)
+            m['minuteReturn']=(m['close']-m['close'].shift(1))/m['close'].shift(1)
             #收益标准差
-            m['minuteStd20']=m['minuteReturn'].shift(-1).rolling(20,min_periods=17).std()
+            m['minuteStd20']=m['minuteReturn'].shift(1).rolling(20,min_periods=17).std()
             #收益标准差分位数
             m['ts_rank_minuteStd20']=m['minuteStd20'].rolling(20,min_periods=15).apply((lambda x:pd.Series(x).rank().iloc[-1]/len(x)),raw=True)
 

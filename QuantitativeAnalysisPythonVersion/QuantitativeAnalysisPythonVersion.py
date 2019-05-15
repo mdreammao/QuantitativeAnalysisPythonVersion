@@ -6,6 +6,7 @@ from DataAccess.TradedayDataProcess import *
 from DataAccess.IndustryClassification import *
 from DataAccess.IndexCode import *
 from DataAccess.StockSharesProcess import *
+from DataAccess.TickDataProcess import *
 from DataPrepare.dataPrepareByIndex import *
 from DataPrepare.dailyKLineDataPrepared import *
 from Strategy.stockReverseMovement import *
@@ -14,6 +15,7 @@ from Strategy.stockReverseByStd import *
 from Strategy.myAnalysisForReverseByStd import *
 from Strategy.stockMomentumByStd import *
 from Strategy.myAnalysisForMomentumByStd import *
+from Strategy.stockReverseByStdOnTick import *
 from DataPrepare.dailyFactorsProcess import *
 from Utility.mytest import *
 from Utility.JobLibUtility import *
@@ -48,10 +50,11 @@ def main():
     warnings.filterwarnings('ignore')
     startDate=20100101
     endDate=20190510
-    UpdateBasicData.updateAll()
-    #myindex=IndexComponentDataProcess()
-    #mydata=myindex.getStockPropertyInIndex('600000.SH','000016.SH',startDate,endDate)
+    code='600000.SH'
+    mystd=stockReverseByStdOnTick()
+    mystd.reverse(code,startDate,endDate)
     '''
+    UpdateBasicData.updateAll()
     myindex=IndexComponentDataProcess()
     index500=myindex.getCSI500DataByDate(startDate,endDate)
     index300=myindex.getHS300DataByDate(startDate,endDate)

@@ -101,6 +101,9 @@
     <Compile Include="Strategy\stockReverseByStd.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Strategy\stockReverseByStdOnTick.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Strategy\stockReverseMovement.py">
       <SubType>Code</SubType>
     </Compile>

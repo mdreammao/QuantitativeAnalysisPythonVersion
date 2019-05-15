@@ -41,7 +41,7 @@ class ComputeUtility(object):
             period=20
             ratio=0.8
         myMinPeriods=math.floor(period*ratio)
-        mydata[col2]=mydata[col1].shift(-1).rolling(period,min_periods=myMinPeriods).std()
+        mydata[col2]=mydata[col1].shift(1).rolling(period,min_periods=myMinPeriods).std()
         return mydata
         pass
     #----------------------------------------------------------------------
