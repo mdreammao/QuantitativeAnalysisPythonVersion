@@ -20,6 +20,9 @@ class JobLibUtility(object):
     @classmethod 
     def useJobLib(self,myfunction,stockCodes,groupnum,startDate,endDate,targetFilePath):
         warnings.filterwarnings('ignore')
+        if groupnum>len(stockCodes):
+            groupnum=len(stockCodes)
+            pass
         stocks={i:[] for i in range(groupnum)}
         for i in range(0,len(stockCodes)):
             mygroup=i%groupnum
@@ -36,6 +39,9 @@ class JobLibUtility(object):
     @classmethod 
     def useJobLibStoreToOneFile(self,myfunction,stockCodes,groupnum,startDate,endDate,targetFilePath):
         warnings.filterwarnings('ignore')
+        if groupnum>len(stockCodes):
+            groupnum=len(stockCodes)
+            pass
         stocks={i:[] for i in range(groupnum)}
         for i in range(0,len(stockCodes)):
             mygroup=i%groupnum
@@ -52,6 +58,9 @@ class JobLibUtility(object):
     @classmethod 
     def useJobLibToGetData(self,myfunction,stockCodes,groupnum,startDate,endDate):
         warnings.filterwarnings('ignore')
+        if groupnum>len(stockCodes):
+            groupnum=len(stockCodes)
+            pass
         stocks={i:[] for i in range(groupnum)}
         allData=pd.DataFrame()
         for i in range(0,len(stockCodes)):
@@ -67,6 +76,9 @@ class JobLibUtility(object):
     @classmethod 
     def useJobLibToUpdateData(self,myfunction,stockCodes,groupnum,startDate,endDate):
         warnings.filterwarnings('ignore')
+        if groupnum>len(stockCodes):
+            groupnum=len(stockCodes)
+            pass
         stocks={i:[] for i in range(groupnum)}
         allData=pd.DataFrame()
         for i in range(0,len(stockCodes)):
@@ -79,6 +91,9 @@ class JobLibUtility(object):
     @classmethod 
     def useJobLibToUpdateFacotrs(self,myfunction,stockCodes,groupnum,factors):
         warnings.filterwarnings('ignore')
+        if groupnum>len(stockCodes):
+            groupnum=len(stockCodes)
+            pass
         stocks={i:[] for i in range(groupnum)}
         allData=pd.DataFrame()
         for i in range(0,len(stockCodes)):

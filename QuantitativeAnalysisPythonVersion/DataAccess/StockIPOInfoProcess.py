@@ -77,7 +77,7 @@ class StockIPOInfoProcess(object):
     def __getStockIPOInfoFromLocalFile(self):
         exists=os.path.isfile(StockIPOInfoProcess.localFileIPOStr)
         if exists==True:
-            store = pd.HDFStore(StockIPOInfoProcess.localFileIPOStr,'r')
+            store = pd.HDFStore(StockIPOInfoProcess.localFileIPOStr,'r',complib='blosc:zstd',append=True,complevel=9)
             mydata=store['data']
             store.close()
             mydata.fillna('20991231',inplace=True)
@@ -118,7 +118,7 @@ class StockIPOInfoProcess(object):
     def __getStockListFromLocalFile(self):
         exists=os.path.isfile(StockIPOInfoProcess.localFileStockListStr)
         if exists==True:
-            store = pd.HDFStore(StockIPOInfoProcess.localFileStockListStr,'a')
+            store = pd.HDFStore(StockIPOInfoProcess.localFileStockListStr,'a',complib='blosc:zstd',append=True,complevel=9)
             mydata=store['data']
             store.close()
         if exists==False:

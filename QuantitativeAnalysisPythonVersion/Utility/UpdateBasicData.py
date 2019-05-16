@@ -39,20 +39,20 @@ class UpdateBasicData(object):
         logger.info('update stock daily derivative data')
         #UpdateBasicData.updateMultipleStocksDailyDerivatives(stockCodes,startDate,endDate)
         logger.info('update stock minute KLines')
-        UpdateBasicData.updateMultipleStocksMinuteKLines(stockCodes,startDate,endDate)
+        #UpdateBasicData.updateMultipleStocksMinuteKLines(stockCodes,startDate,endDate)
         logger.info('update index daily KLines')
-        UpdateBasicData.updateDailyIndexKLines('000016.SH',startDate,endDate)
-        UpdateBasicData.updateDailyIndexKLines('000300.SH',startDate,endDate)
-        UpdateBasicData.updateDailyIndexKLines('000905.SH',startDate,endDate)
+        #UpdateBasicData.updateDailyIndexKLines('000016.SH',startDate,endDate)
+        #UpdateBasicData.updateDailyIndexKLines('000300.SH',startDate,endDate)
+        #UpdateBasicData.updateDailyIndexKLines('000905.SH',startDate,endDate)
         logger.info('update index minute KLines')
-        UpdateBasicData.updateMinuteIndexKLines('000016.SH',startDate,endDate)
-        UpdateBasicData.updateMinuteIndexKLines('000300.SH',startDate,endDate)
-        UpdateBasicData.updateMinuteIndexKLines('000905.SH',startDate,endDate)
+        #UpdateBasicData.updateMinuteIndexKLines('000016.SH',startDate,endDate)
+        #UpdateBasicData.updateMinuteIndexKLines('000300.SH',startDate,endDate)
+        #UpdateBasicData.updateMinuteIndexKLines('000905.SH',startDate,endDate)
         logger.info('update industry info')
         UpdateBasicData.updateIndustry()
         logger.info('update daily factors')
         factors=['closeStd','index','marketValue','industry']
-        UpdateBasicData.updateDailyFactors(stockCodes,factors)
+        #UpdateBasicData.updateDailyFactors(stockCodes,factors)
         pass
     #----------------------------------------------------------------------
     @classmethod 

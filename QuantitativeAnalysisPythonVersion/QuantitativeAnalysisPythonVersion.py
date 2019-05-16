@@ -48,16 +48,13 @@ def main():
 
 
     warnings.filterwarnings('ignore')
-    startDate=20130101
-    endDate=20131231
-    code='600000.SH'
-    tmp=KLineDataProcess('minute',True)
-    #tmp.getDataByDate('002261.SZ',20100101,20190515)
-    print(datetime.datetime.now())
-    UpdateBasicData.updateAll()
-    #mystd=stockReverseByStdOnTick()
-    #mystd.reverse(code,startDate,endDate)
-    print(datetime.datetime.now())
+    startDate=20100101
+    endDate=20190515
+    tick=TickDataProcess()
+    list=['600000.SH','000001.SZ']
+    tick.recordResampleTickShotDataFromSqlServer(list[0],startDate,endDate)
+   # tick.parallelizationUpdateDataByDate(list,startDate,endDate)
+
     '''
     UpdateBasicData.updateAll()
     myindex=IndexComponentDataProcess()
