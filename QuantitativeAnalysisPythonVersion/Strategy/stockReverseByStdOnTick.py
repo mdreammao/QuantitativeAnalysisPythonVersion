@@ -31,11 +31,24 @@ class stockReverseByStdOnTick(object):
         dailyKLine=KLineDataProcess('daily')
         dailyData=dailyKLine.getDataByDate(code,startDate,endDate)
         tick=TickDataProcess()
+        mydata=[]
         for today in days:
-            tickData=tick.getResampleTickShotData(code,today)
+            #logger.info(f'{code} in {today} start!')
             todayInfo=dailyFactor[dailyFactor['date']==today]
             todayKLine=dailyData[dailyData['date']==today]
+            if (todayInfo.empty==False) & (todayKLine['status'].iloc[0]!='停牌'):
+                tickData=tick.getResampleTickShotData(code,today)
+                mydata.append(tickData)
+                pass
+            else:
+                logger.warning(f'There is no data of {code} in {today}')
             pass
+        mydata=pd.concat(mydata,axis=0)
+        file=os.path.join(TempLocalFileAddress,'tick.h5')
+        store = pd.HDFStore(path=file,mode='a',complib='blosc:zstd',append=True,complevel=9)
+        store.append('data',mydata,append=False)
+        store.close()
+        print(mydata.shape)
         pass
 
 ########################################################################

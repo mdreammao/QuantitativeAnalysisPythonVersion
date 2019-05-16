@@ -30,6 +30,7 @@ class TickDataProcess(object):
         mydata['volumeIncrease']=mydata['volume']-mydata['volume'].shift(1)
         mydata['amountIncrease']=mydata['amount']-mydata['amount'].shift(1)
         mydata=mydata[((mydata.index.time>=datetime.time(9,30)) & (mydata.index.time<=datetime.time(11,30))) | ((mydata.index.time>=datetime.time(13,00)) & (mydata.index.time<=datetime.time(15,00)))]
+        return mydata
         pass
     #----------------------------------------------------------------------
     def getTickShotDataFromSqlServer(self,code,date):

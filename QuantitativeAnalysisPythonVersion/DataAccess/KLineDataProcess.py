@@ -7,6 +7,7 @@ import datetime
 import h5py
 import os
 from DataAccess.TradedayDataProcess import *
+from DataAccess.StockIPOInfoProcess import *
 from Utility.JobLibUtility import *
 from Utility.HDF5Utility import *
 
@@ -71,23 +72,35 @@ class KLineDataProcess(object):
     def __saveDataToLocalFile(self,localFileStr,data):
         if data.shape[0]==0:
             return
-        store = pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=True,complevel=9)
-        if self.KLineLevel=='minute':
-            store.append(self.KLineLevel,data,append=True,format="table",data_columns=['code','date','time','open','high','low','close','volume','amount'])
-        elif self.KLineLevel=='daily':
-            store.append(self.KLineLevel,data,append=True,format="table",data_columns=['code','date','open','high','low','close','preClose','volume','amount','change','pctChange','adjFactor','vwap','status'])
-        elif self.KLineLevel=='dailyDerivative':
-            #store.append(self.KLineLevel,data,append=True,format="table",data_columns=['code','date','totalMv','freeMv','PE','PCF','PS','turnover',' totalShares','freeShares','limitStatus'])
+        mydate=data['date'].drop_duplicates()
+        try:
+            store = pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=True,complevel=9)
             store.append(self.KLineLevel,data,append=True,format="table",data_columns=data.columns)
-        elif self.KLineLevel=='dailyIndex':
-            store.append(self.KLineLevel,data,append=True,format="table",data_columns=data.columns)
-        elif self.KLineLevel=='minuteIndex':
-            store.append(self.KLineLevel,data,append=True,format="table",data_columns=data.columns)
-        store.close()
+            store.append('date',mydate,append=True,format="table",data_columns=['date'])
+            store.close()
+        except:
+            logger.error(f'{localFileStr} error!')
+        
 
     #----------------------------------------------------------------------
     #输入code=600000.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
     def __getDataByDateFromLocalFile(self,code,startDate,endDate):
+         #如果股票已经退市，需要对endDate做一些调整
+        IPOInfo=StockIPOInfoProcess.getStockIPOInfoByCode(code)
+        if IPOInfo.empty==False:
+            listDate=IPOInfo['listDate'].iloc[0]
+            delistDate=IPOInfo['delistDate'].iloc[0]
+            if startDate<listDate:
+                startDate=listDate
+                pass
+            if endDate>=delistDate:
+                endDate=TradedayDataProcess.getPreviousTradeday(delistDate)
+        if startDate<=endDate:
+            logger.info(f'get data of {code} from {startDate} to {endDate} start!')
+        else:
+            logger.warning(f'There is no data of {code} from {startDate} to {endDate}')
+            mydata=pd.DataFrame()
+            return mydata
         if self.update==True:
             mydata=self.__getDataByDateFromLocalFileWithUpdate(code,startDate,endDate)
         else:
@@ -149,17 +162,26 @@ class KLineDataProcess(object):
                 logger.error(f'{localFileStr} has no data from source!')
         else:
             if self.update==True:
-                store = pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=True,complevel=9)
-                mydata=store.select(self.KLineLevel)
-                store.close()
-                if endDate==EMPTY_STRING or mydata['date'].max()<endDate:
-                    #latestDate=datetime.datetime.strptime(mydata['date'].max(),"%Y%m%d")
+                try:
+                    store = pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=True,complevel=9)
+                    #mydata=store.select(self.KLineLevel)
+                    #mydate=mydata['date'].drop_duplicates()
+                    #store.append('date',mydate,append=False,format="table",data_columns=['date'])
+                    mydate=store['date']
+                    store.close()
+                except :
+                    logger.error(f'read data({self.KLineLevel}) error of {code}')
+                    return pd.DataFrame()
+                    pass
+                if endDate==EMPTY_STRING or mydate.max()<endDate:
                     #更新日期从后一个交易日开始
-                    #updateDate=(latestDate+datetime.timedelta(days=1)).strftime("%Y%m%d")
-                    updateDate=TradedayDataProcess.getNextTradeday(mydata['date'].max())
+                    updateDate=TradedayDataProcess.getNextTradeday(mydate.max())
                     yesterday=(datetime.datetime.now()+datetime.timedelta(days=-1)).strftime("%Y%m%d")
-                    if yesterday>=updateDate:
-                        updateData=self.__getDataByDateFromSource(code,updateDate,yesterday)
+                    #更新到昨日或者指定的日期
+                    if (endDate>yesterday) | (endDate==EMPTY_STRING):
+                        endDate=yesterday
+                    if endDate>=updateDate:
+                        updateData=self.__getDataByDateFromSource(code,updateDate,endDate)
                         if updateData.empty==False:
                             self.__saveDataToLocalFile(localFileStr,updateData)
         if exists==False:
@@ -196,7 +218,8 @@ class KLineDataProcess(object):
             return myderivativedata
         mytradedays=TradedayDataProcess.getAllTradedays()
         myderivativedata=myderivativedata[myderivativedata['date'].isin(mytradedays)]
-        myderivativedata[['totalMarketValue','freeMarketValue','PE','PCF','PS','turnover','totalShares','freeShares']] = myderivativedata[['totalMarketValue','freeMarketValue','PE','PCF','PS','turnover','totalShares','freeShares']].astype('float')
+        myderivativedata[['totalMarketValue','freeMarketValue','PE','PCF','PS','turnover','totalShares','freeShares','limitStatus']] = myderivativedata[['totalMarketValue','freeMarketValue','PE','PCF','PS','turnover','totalShares','freeShares','limitStatus']].astype('float')
+
         return myderivativedata
 
     
@@ -284,6 +307,7 @@ class KLineDataProcess(object):
         for i in range(len(StockCodes)):
             code=StockCodes[i]
             self.__getDataByDateFromLocalFile(code,str(startDate),str(endDate))
+           
     #----------------------------------------------------------------------
     def parallelizationGetDataByDate(self,stockCodes,startDate,endDate):
         mydata=JobLibUtility.useJobLibToGetData(self.getLotsDataByDate,stockCodes,MYGROUPS,startDate,endDate)

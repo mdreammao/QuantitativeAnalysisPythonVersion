@@ -105,7 +105,7 @@ class StockIPOInfoProcess(object):
             mydate=store['date']
             firstDate=TradedayDataProcess.getNextTradeday(mydate.max())
             if firstDate<=lastDate:
-                mydata=StockIPOInfoProcess.__getStockListByDate(firtDate,lastDate)
+                mydata=StockIPOInfoProcess.__getStockListByDate(firstDate,lastDate)
                 if mydata.empty==False:
                     mydate=mydata['date'].drop_duplicates()
                     store.append('data',mydata,append=True,format="table",data_columns=mydata.columns)

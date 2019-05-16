@@ -48,11 +48,16 @@ def main():
 
 
     warnings.filterwarnings('ignore')
-    startDate=20100101
-    endDate=20190510
+    startDate=20130101
+    endDate=20131231
     code='600000.SH'
-    mystd=stockReverseByStdOnTick()
-    mystd.reverse(code,startDate,endDate)
+    tmp=KLineDataProcess('minute',True)
+    #tmp.getDataByDate('002261.SZ',20100101,20190515)
+    print(datetime.datetime.now())
+    UpdateBasicData.updateAll()
+    #mystd=stockReverseByStdOnTick()
+    #mystd.reverse(code,startDate,endDate)
+    print(datetime.datetime.now())
     '''
     UpdateBasicData.updateAll()
     myindex=IndexComponentDataProcess()

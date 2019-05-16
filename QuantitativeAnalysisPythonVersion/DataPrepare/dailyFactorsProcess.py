@@ -48,6 +48,7 @@ class dailyFactorsProcess(object):
                 store = pd.HDFStore(path=factorFilePath,mode='a',complib='blosc:zstd',append=True,complevel=9)
                 factorData=store['factors']
                 factorData=factorData[(factorData['date']>=startDate) & (factorData['date']<=endDate)]
+                store.close()
                 mydata=pd.merge(mydata,factorData,how='left',left_on='date',right_on='date')
                 pass
         return mydata
@@ -152,6 +153,7 @@ class dailyFactorsProcess(object):
                     mydata.reset_index(drop=False,inplace=True)
                     mycolumns=['date','is50','is300','is500','weight50','weight300','weight500']
                     mydata=mydata[mycolumns]
+                    mydata[['is50','is300','is500']]=mydata[['is50','is300','is500']].astype('int64')
                     pass
                 elif factor=='marketValue':
                     mydata.set_index('date',drop=True,inplace=True)
