@@ -76,7 +76,7 @@ class IndexComponentDataProcess(object):
             mydata=self.__getDataByDateFromSource(code)
             self.__saveDataToLocalFile(localFileStr,mydata)
         else:
-            store = pd.HDFStore(localFileStr,'a')
+            store = pd.HDFStore(localFileStr,'r')
             date=store['date']
             store.close()
             updateDate=TradedayDataProcess.getNextTradeday(date.max())
@@ -97,7 +97,7 @@ class IndexComponentDataProcess(object):
             pass
         exists=os.path.isfile(localFileStr)
         if exists==True:
-            store = pd.HDFStore(localFileStr,'a')
+            store = pd.HDFStore(localFileStr,'r')
             mydata=store.select('data',where=['date>="%s" and date<="%s"'%(startDate,endDate)])
             store.close()
         else:
@@ -131,7 +131,7 @@ class IndexComponentDataProcess(object):
             pass
         exists=os.path.isfile(localFileStr)
         if exists==True:
-            store = pd.HDFStore(localFileStr,'a')
+            store = pd.HDFStore(localFileStr,'r')
             mydata=store['data']
             store.close()
             pass
@@ -185,7 +185,7 @@ class IndexComponentDataProcess(object):
             localFileStr=os.path.join(LocalFileAddress,'index','indexComponent',code.replace('.','_')+'.h5')
             exists=os.path.isfile(localFileStr)
             if exists==True:
-                store = pd.HDFStore(localFileStr,'a')
+                store = pd.HDFStore(localFileStr,'r')
                 mydata=store.select('data')
                 store.close()
             else:
@@ -207,11 +207,11 @@ class IndexComponentDataProcess(object):
         #dataWithIndex.set_index(['date'],inplace=True)
         mydata=mydata[mydata['code']==code]
         mydata.fillna('20991231',inplace=True)
-        dataWithIndex['exists']=0
+        dataWithIndex['exists']=0.0
         for row in range(len(mydata)):
             entry=mydata.iloc[row]['entry']
             remove=mydata.iloc[row]['remove']
-            dataWithIndex.loc[((dataWithIndex['date']>=entry) & (dataWithIndex['date']<remove)),'exists']=1
+            dataWithIndex.loc[((dataWithIndex['date']>=entry) & (dataWithIndex['date']<remove)),'exists']=1.0
         dataWithIndex.set_index('date',drop=True,inplace=True)
         return dataWithIndex
     #----------------------------------------------------------------------

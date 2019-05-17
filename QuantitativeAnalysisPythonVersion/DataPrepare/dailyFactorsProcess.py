@@ -153,7 +153,7 @@ class dailyFactorsProcess(object):
                     mydata.reset_index(drop=False,inplace=True)
                     mycolumns=['date','is50','is300','is500','weight50','weight300','weight500']
                     mydata=mydata[mycolumns]
-                    mydata[['is50','is300','is500']]=mydata[['is50','is300','is500']].astype('int64')
+                    #mydata[['is50','is300','is500']]=mydata[['is50','is300','is500']].astype('int64')
                     pass
                 elif factor=='marketValue':
                     mydata.set_index('date',drop=True,inplace=True)

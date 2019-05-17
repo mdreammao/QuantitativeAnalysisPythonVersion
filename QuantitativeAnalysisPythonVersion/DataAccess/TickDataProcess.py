@@ -45,6 +45,9 @@ class TickDataProcess(object):
         #获取股票日线数据，筛选出非停牌的日期
         daily=KLineDataProcess('daily')
         dailyData=daily.getDataByDate(code,startDate,endDate)
+        if dailyData.empty==True:
+            logger.warning(f'There no daily data of {code} from {startDate} to {endDate}!')
+            return 
         dailyData=dailyData[dailyData['status']!='停牌']
         tradedays=list(dailyData['date'])
         for date in tradedays:
@@ -55,7 +58,10 @@ class TickDataProcess(object):
             if exists==False:
                 logger.info(f'get tickshot data of {code} in {date} from source!')
                 mydata=self.__getResampleTickShotDataFromSqlServer(code,date)
-                store = pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=True,complevel=9)
+                if mydata.empty:
+                    return 
+                    pass
+                store = pd.HDFStore(file,'a',complib='blosc:zstd',append=True,complevel=9)
                 store.append('data',mydata,append=False,format="table",data_columns=mydata.columns)
                 store.close()
             else:
@@ -64,7 +70,13 @@ class TickDataProcess(object):
         pass
     #----------------------------------------------------------------------
     def __getResampleTickShotDataFromSqlServer(self,code,date):
-        mydata=self.getTickShotDataFromSqlServer(code,date)
+        try:
+            mydata=self.__getTickShotDataFromSqlServer(code,date)
+        except:
+            logger.error(f'There is no tick data of {code} in {date} from source!!')
+            return 
+            pass
+
         mydata=mydata.resample('3s',label='right',closed='right').last()
         mydata=mydata.fillna(method='ffill')
         mydata['volumeIncrease']=mydata['volume']-mydata['volume'].shift(1)
@@ -80,7 +92,7 @@ class TickDataProcess(object):
         table='MarketData_'+code.replace('.','_')
         connect=pymssql.connect( self.address,self.user,self.password,database,charset='utf8')
         cursor = connect.cursor()
-        sql="select [stkcd],[tdate],left(rtrim(ttime),6)+'000' as [ttime],[cp],[S1],[S2],[S3],[S4],[S5],[B1],[B2],[B3],[B4],[B5],[SV1],[SV2],[SV3],[SV4],[SV5],[BV1],[BV2],[BV3],[BV4],[BV5],[ts],[tt] FROM [{0}].[dbo].[{1}] where [tdate]={2} and ((left(rtrim(ttime),6)>=92500 and left(rtrim(ttime),6)<=113000) or (left(rtrim(ttime),6)>=130000 and left(rtrim(ttime),6)<=150000)) order by ttime".format(database,table,date)
+        sql="select [stkcd],rtrim([tdate]),left(rtrim(ttime),6)+'000' as [ttime],[cp],[S1],[S2],[S3],[S4],[S5],[B1],[B2],[B3],[B4],[B5],[SV1],[SV2],[SV3],[SV4],[SV5],[BV1],[BV2],[BV3],[BV4],[BV5],[ts],[tt] FROM [{0}].[dbo].[{1}] where [tdate]={2} and ((left(rtrim(ttime),6)>=92500 and left(rtrim(ttime),6)<=113000) or (left(rtrim(ttime),6)>=130000 and left(rtrim(ttime),6)<=150000)) order by ttime".format(database,table,date)
         cursor.execute(sql)
         mydata=cursor.fetchall()
         mydata = pd.DataFrame(mydata,columns=['code' ,'date','time' ,'lastPrice','S1','S2','S3','S4','S5','B1','B2','B3','B4','B5','SV1','SV2','SV3','SV4','SV5','BV1','BV2','BV3','BV4','BV5','volume' ,'amount'])

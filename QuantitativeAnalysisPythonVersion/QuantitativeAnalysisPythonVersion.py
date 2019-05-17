@@ -50,13 +50,12 @@ def main():
     warnings.filterwarnings('ignore')
     startDate=20100101
     endDate=20190515
-    tick=TickDataProcess()
-    list=['600000.SH','000001.SZ']
-    tick.recordResampleTickShotDataFromSqlServer(list[0],startDate,endDate)
-   # tick.parallelizationUpdateDataByDate(list,startDate,endDate)
+    print(datetime.datetime.now())
+    UpdateBasicData.updateDailyAndMinuteAll()
+    print(datetime.datetime.now())
+    #UpdateBasicData.updateTickAll()
 
     '''
-    UpdateBasicData.updateAll()
     myindex=IndexComponentDataProcess()
     index500=myindex.getCSI500DataByDate(startDate,endDate)
     index300=myindex.getHS300DataByDate(startDate,endDate)

@@ -56,7 +56,10 @@ class HDF5Utility(object):
     def pathCreate(self,path):
         if os.path.exists(path)==False:
             #logger.info(f'{path} is not exists! {path} will be created!')
-            os.makedirs(path)
+            try:
+                os.makedirs(path)
+            except:
+                pass
             pass
     #----------------------------------------------------------------------
     @classmethod 
