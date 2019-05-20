@@ -74,7 +74,7 @@ class TickDataProcess(object):
             mydata=self.__getTickShotDataFromSqlServer(code,date)
         except:
             logger.error(f'There is no tick data of {code} in {date} from source!!')
-            return 
+            return pd.DataFrame()
             pass
 
         mydata=mydata.resample('3s',label='right',closed='right').last()
