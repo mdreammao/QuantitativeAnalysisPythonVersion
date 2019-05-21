@@ -1,11 +1,14 @@
 from DataAccess.IndexComponentDataProcess import *
 from DataAccess.KLineDataProcess import *
 from DataAccess.TradedayDataProcess import *
+from DataPrepare.dailyFactorsProcess import *
+from Utility.HDF5Utility import *
 from Utility.JobLibUtility import *
 import warnings
 from Config.myConstant import *
 from Config.myConfig import *
 import numpy as np
+import os 
 #import numba
 
 
@@ -14,20 +17,24 @@ class stockReverseByStd(object):
     """股票异动,专注股票大涨之后的回调"""
     #----------------------------------------------------------------------
     def __init__(self):
-        self.__localFileStr=LocalFileAddress+"\\intermediateResult\\stdFeature.h5"
-        self.__localFileStrResult=LocalFileAddress+"\\intermediateResult\\stdReverseResult.h5"
+        #self.__localFileStr=LocalFileAddress+"\\intermediateResult\\stdFeature.h5"
+        path=os.path.join(LocalFileAddress,'intermediateResult')
+        HDF5Utility.pathCreate(path)
+        self.__localFileStr=os.path.join(LocalFileAddress,'intermediateResult','stdFeature.h5')
+        #self.__localFileStrResult=LocalFileAddress+"\\intermediateResult\\stdReverseResult.h5"
+        self.__localFileStrResult=os.path.join(LocalFileAddress,'intermediateResult','stdReverseResult.h5')
         self.__allMinute=pd.DataFrame()
         self.__key='factorsWithRank'
-        self.__factorsAddress=LocalFileAddress+"\\{0}\\{1}.h5".format('dailyFactors',self.__key)
+        #self.__factorsAddress=LocalFileAddress+"\\{0}\\{1}.h5".format('dailyFactors',self.__key)
+        self.__factorsAddress=os.path.join(LocalFileAddress,'dailyFactors',self.__key+'.h5')
         pass
     #----------------------------------------------------------------------
     def getStockList(self,startDate,endDate):
-        
-        fileStr=LocalFileAddress+"\\{0}\\{1}.h5".format('dailyFactors','stockCodes')
-        store = pd.HDFStore(fileStr,'a')
-        stockCodes=list(store.select('stockCodes')['code'])
+        #fileStr=LocalFileAddress+"\\{0}\\{1}.h5".format('dailyFactors','stockCodes')
+        fileStr=os.path.join(LocalFileAddress,'stockCode.h5')
+        store = pd.HDFStore(fileStr,'r')
+        stockCodes=list(store['data'])
         store.close()
-        stockCodes.remove('601268.SH')
         return stockCodes
     #----------------------------------------------------------------------
     def parallelizationDataPrepared(self,startDate,endDate):
@@ -36,15 +43,19 @@ class stockReverseByStd(object):
         pass
 
     #----------------------------------------------------------------------
-    def dataPrepared(self,stockCodes,startDate,endDate,recordFilePath):
+    def dataPrepared(self,stockCodes,startDate,endDate):
         warnings.filterwarnings('ignore')
+        recordFilePath=self.__localFileStrResult
         mytradedays=TradedayDataProcess.getTradedays(startDate,endDate)
         mylist=stockCodes
-        myMinute=KLineDataProcess('minute',False)
+        myMinute=dkl.KLineDataProcess('minute')
         num=0
-        store = pd.HDFStore(self.__factorsAddress,'a')
-        allDailyData=store.select(self.__key,where=['date>="%s" and date<="%s"'%(startDate,endDate)])
-        store.close()
+        dailyFactor=dailyFactorsProcess()
+        factors=['closeStd','index','marketValue','industry']
+        allDailyData=dailyFactor.getMultipleStockDailyFactors(mylist,factors,startDate,endDate)
+        #store = pd.HDFStore(self.__factorsAddress,'a')
+        #allDailyData=store.select(self.__key,where=['date>="%s" and date<="%s"'%(startDate,endDate)])
+        #store.close()
         store = pd.HDFStore(recordFilePath,'a')
         oldKeys=store.keys()
         for code in mylist:

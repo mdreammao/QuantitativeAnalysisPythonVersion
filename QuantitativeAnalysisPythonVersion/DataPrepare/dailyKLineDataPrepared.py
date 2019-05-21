@@ -24,9 +24,9 @@ class dailyKLineDataPrepared(object):
         pass
 #----------------------------------------------------------------------
     def getStockDailyFeatureData(self,stockCodes,startDate,endDate):
-        myDaily=KLineDataProcess('daily',True)
-        myDailyDerivative=KLineDataProcess('dailyDerivative',True)
-        myindex=IndexComponentDataProcess(True)
+        myDaily=KLineDataProcess('daily')
+        myDailyDerivative=KLineDataProcess('dailyDerivative')
+        myindex=IndexComponentDataProcess()
         exists=os.path.isfile(self.localFileStr)
         if exists==True:
             store = pd.HDFStore(self.localFileStr,'a')

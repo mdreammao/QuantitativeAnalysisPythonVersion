@@ -6,8 +6,7 @@ import warnings
 from Config.myConstant import *
 from Config.myConfig import *
 from joblib import Parallel, delayed,parallel_backend
-from Strategy.stockReverseByStd import *
-from Utility.HDF5Utility import *
+#from Utility.HDF5Utility import *
 
 ########################################################################
 class JobLibUtility(object):
@@ -104,5 +103,24 @@ class JobLibUtility(object):
             mydata=Parallel()(delayed(myfunction)(list(stocks[i]),factors) for i in range(groupnum))
         for i in range(groupnum):
             allData=allData.append(mydata[i])
+        return allData
+    #----------------------------------------------------------------------
+    @classmethod 
+    def useJobLibToComputeByCodes(self,myfunction,stockCodes,groupnum,startDate,endDate,parameters):
+        warnings.filterwarnings('ignore')
+        if groupnum>len(stockCodes):
+            groupnum=len(stockCodes)
+            pass
+        stocks={i:[] for i in range(groupnum)}
+        allData=[]
+        for i in range(0,len(stockCodes)):
+            mygroup=i%groupnum
+            stocks[mygroup].append(stockCodes[i])
+        tmpAddress={}
+        with parallel_backend("multiprocessing", n_jobs=JobLibUtility.myjobs):
+            mydata=Parallel()(delayed(myfunction)(list(stocks[i]),startDate,endDate,parameters) for i in range(groupnum))
+        for i in range(groupnum):
+            allData=allData.append(mydata[i])
+        allData=pd.concat(allData)
         return allData
 ########################################################################

@@ -48,13 +48,14 @@ def main():
 
 
     warnings.filterwarnings('ignore')
-    startDate=20100101
+    startDate=20190101
     endDate=20190515
+    myReverse=stockReverseByStdOnTick()
     print(datetime.datetime.now())
-    UpdateBasicData.updateDailyAndMinuteAll()
+    codes=['600000.SH','000001.SZ']
+    mydata=myReverse.reverse_multipleCodes(codes,startDate,endDate)
     print(datetime.datetime.now())
-    #UpdateBasicData.updateTickAll()
-
+    print(mydata)
     '''
     myindex=IndexComponentDataProcess()
     index500=myindex.getCSI500DataByDate(startDate,endDate)
@@ -81,11 +82,9 @@ def main():
     factors=['closeStd','index','marketValue','industry']
     mytry.updateStockDailyFactors(codes,factors)
     '''
-
-    
     #temp=stockReverseByStd()
-    #temp.dataPrepared(stockCodes,startDate,endDate)
     #stockCodes=temp.getStockList(startDate,endDate)
+    #temp.dataPrepared(stockCodes,startDate,endDate)
     #temp.parallelizationReverse(startDate,endDate)
     #myanalysis=myAnalysisForReverseByStd()
     #myanalysis.analysis(startDate,endDate)

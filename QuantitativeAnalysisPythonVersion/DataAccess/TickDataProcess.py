@@ -25,7 +25,7 @@ class TickDataProcess(object):
         self.password=strArry[2].split('=')[1]
         self.filePath=os.path.join(LocalFileAddress,'TickShots')
     #----------------------------------------------------------------------
-    def getDataByDateFromLocalFile(self,code,startDate,endDate):
+    def getDataByDateFromLocalFile(self,code,date):
         path=os.path.join(self.filePath,code.replace('.','_'))
         file=os.path.join(path,date+'.h5')
         HDF5Utility.pathCreate(path)
@@ -34,8 +34,8 @@ class TickDataProcess(object):
             logger.warning(f'There is no tickshot data of {code} in {date} from local file!')
             mydata=pd.DataFrame()
         else:
-            logger.info(f'get tickshot data of {code} in {date} from local file!')
-            store = pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=True,complevel=9)
+            #logger.info(f'get tickshot data of {code} in {date} from local file!')
+            store = pd.HDFStore(file,'a',complib='blosc:zstd',append=True,complevel=9)
             mydata=store['data']
             store.close()
             pass
