@@ -87,6 +87,8 @@ class UpdateBasicData(object):
     #----------------------------------------------------------------------
     @classmethod 
     def updateStockCodes(self,startDate,endDate):
+        startDate=str(startDate)
+        endDate=str(endDate)
         localFileStr=os.path.join(LocalFileAddress,'stockCode.h5')
         exists=HDF5Utility.fileCheck(localFileStr)
         if exists==True:

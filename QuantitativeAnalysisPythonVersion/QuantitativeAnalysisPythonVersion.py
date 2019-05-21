@@ -52,8 +52,9 @@ def main():
     endDate=20190515
     myReverse=stockReverseByStdOnTick()
     print(datetime.datetime.now())
-    codes=['600000.SH','000001.SZ']
-    mydata=myReverse.reverse_multipleCodes(codes,startDate,endDate)
+    codes=UpdateBasicData.updateStockCodes(startDate,endDate)
+    print(len(codes))
+    mydata=myReverse.reverse_multipleCodes(codes,startDate,endDate,[300,100000000,1.5])
     print(datetime.datetime.now())
     print(mydata)
     '''
