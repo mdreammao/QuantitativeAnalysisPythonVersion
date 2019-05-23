@@ -8,8 +8,10 @@ from DataAccess.TradedayDataProcess import *
 from DataAccess.StockSharesProcess import *
 from DataAccess.StockIPOInfoProcess import *
 from DataAccess.IndustryClassification import *
+from DataAccess.IndexComponentDataProcess import *
 import numpy as np
 import datetime 
+import traceback
 
 ########################################################################
 class dailyFactorsProcess(object):
@@ -45,10 +47,9 @@ class dailyFactorsProcess(object):
                 print(f'error! {code} has no factor {factor}!!')
                 pass
             else:
-                store = pd.HDFStore(path=factorFilePath,mode='a',complib='blosc:zstd',append=True,complevel=9)
-                factorData=store['factors']
+                with pd.HDFStore(path=factorFilePath,mode='r',complib='blosc:zstd',append=True,complevel=9) as store:
+                    factorData=store['factors']
                 factorData=factorData[(factorData['date']>=startDate) & (factorData['date']<=endDate)]
-                store.close()
                 mydata=pd.merge(mydata,factorData,how='left',left_on='date',right_on='date')
                 pass
         return mydata
@@ -57,11 +58,12 @@ class dailyFactorsProcess(object):
     def getMultipleStockDailyFactors(self,codeList,factorList,startDate,endDate):
         startDate=str(startDate)
         endDate=str(endDate)
-        allData=pd.DataFrame()
+        allData=[]
         for code in codeList:
             mydata= self.getSingleStockDailyFactors(code,factorList,startDate,endDate)
-            allData=allData.append(mydata)
+            allData.append(mydata)
             pass
+        allData=pd.concat(allData)
         return allData
         pass
     #----------------------------------------------------------------------
@@ -91,12 +93,11 @@ class dailyFactorsProcess(object):
                     lastDate=EMPTY_STRING
                     pass
                 else:
-                    store = pd.HDFStore(path=factorFilePath,mode='a',complib='blosc:zstd',append=True,complevel=9)
-                    existsDate=store.select('date')
+                    with pd.HDFStore(path=factorFilePath,mode='r',complib='blosc:zstd',append=True,complevel=9) as store:
+                        existsDate=store['date']
                     lastDate=existsDate.max()
                     startDate=lastDate
                     endDate=self.endDate
-                    store.close()
                     if startDate>=endDate:
                         continue
                 pass
@@ -165,20 +166,19 @@ class dailyFactorsProcess(object):
                     mydata.reset_index(drop=False,inplace=True)
                     mycolumns=['date','freeShares','freeMarketValue']
                     mydata=mydata[mycolumns]
-                store = pd.HDFStore(path=factorFilePath,mode='a',complib='blosc:zstd',append=True,complevel=9)
-                if lastDate==EMPTY_STRING:
-                    #mydata=mydata[(mydata['date']<'20181231')]
-                    mydate=mydata['date']
-                    pass
-                else:
-                    mydata=mydata[(mydata['date']>lastDate)]
-                    mydate=mydata['date']
-                    pass
-                if mydata.empty==False:
-                    store.append('date',mydate,append=True,format="table",data_columns=['date'],complevel=9)
-                    store.append('factors',mydata,append=True,format="table",data_columns=mydata.columns,complevel=9)
-                    pass
-                store.close()
+                try:
+                    with pd.HDFStore(path=factorFilePath,mode='a',complib='blosc:zstd',append=True,complevel=9) as store:
+                        if lastDate==EMPTY_STRING:
+                            mydate=mydata['date']
+                        else:
+                            mydata=mydata[(mydata['date']>lastDate)]
+                            mydate=mydata['date']
+                        if mydata.empty==False:
+                            store.append('date',mydate,append=True,format="table",data_columns=['date'],complevel=9)
+                            store.append('factors',mydata,append=True,format="table",data_columns=mydata.columns,complevel=9)
+                except Exception as excp:
+                    logger.error(f'{code} in {date} error!  {excp}')
+                    logger.error(traceback.format_exc())
             pass
         pass
     #----------------------------------------------------------------------

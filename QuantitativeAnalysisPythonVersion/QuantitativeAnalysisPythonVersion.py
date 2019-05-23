@@ -48,15 +48,21 @@ def main():
 
 
     warnings.filterwarnings('ignore')
-    startDate=20190101
+    startDate=20170101
     endDate=20190515
+    #UpdateBasicData.updateDailyAndMinuteAll()
+    #UpdateBasicData.updateTickAll()
+    
+    
+    
     myReverse=stockReverseByStdOnTick()
     print(datetime.datetime.now())
     codes=UpdateBasicData.updateStockCodes(startDate,endDate)
     print(len(codes))
-    mydata=myReverse.reverse_multipleCodes(codes,startDate,endDate,[300,100000000,1.5])
+    mydata=myReverse.reverse_multipleCodes(codes,startDate,endDate,[300,100000000,2.5])
     print(datetime.datetime.now())
     print(mydata)
+    
     '''
     myindex=IndexComponentDataProcess()
     index500=myindex.getCSI500DataByDate(startDate,endDate)

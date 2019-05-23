@@ -34,9 +34,8 @@ class IndexCode(object):
     def __getIndexCodeFromLocalFile(self):
         exists=os.path.isfile(IndexCode.localFileStr)
         if exists==True:
-            store = pd.HDFStore(IndexCode.localFileStr,'r')
-            mydata=store['data']
-            store.close()
+            with pd.HDFStore(IndexCode.localFileStr,'r') as store:
+                mydata=store['data']
         else:
             logger.warning(f'There is no index code list data!')
         return mydata
@@ -51,9 +50,8 @@ class IndexCode(object):
         cursor.execute(oracleStr)
         mydata = cursor.fetchall()
         mydata = pd.DataFrame(mydata,columns=['code','name','code2','name2'])
-        store = pd.HDFStore(IndexCode.localFileStr,'a',complib='blosc:zstd',append=True,complevel=9)
-        store.append('data',mydata,append=False,format="table",data_columns=mydata.columns)
-        store.close()
+        with pd.HDFStore(IndexCode.localFileStr,'a',complib='blosc:zstd',append=True,complevel=9) as store:
+            store.append('data',mydata,append=False,format="table",data_columns=mydata.columns)
         return mydata  
     #----------------------------------------------------------------------
 ########################################################################

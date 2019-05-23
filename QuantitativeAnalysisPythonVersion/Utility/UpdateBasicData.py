@@ -34,13 +34,13 @@ class UpdateBasicData(object):
         logger.info('update stockCodes!')
         stockCodes=UpdateBasicData.updateStockCodes(startDate,endDate)
         logger.info('update stockList')
-        #UpdateBasicData.updateStockList(startDate,endDate)
+        UpdateBasicData.updateStockList(startDate,endDate)
         logger.info('update stock daily KLines')
-        #UpdateBasicData.updateMultipleStocksDailyKLines(stockCodes,startDate,endDate)
+        UpdateBasicData.updateMultipleStocksDailyKLines(stockCodes,startDate,endDate)
         logger.info('update stock daily derivative data')
-        #UpdateBasicData.updateMultipleStocksDailyDerivatives(stockCodes,startDate,endDate)
+        UpdateBasicData.updateMultipleStocksDailyDerivatives(stockCodes,startDate,endDate)
         logger.info('update stock minute KLines')
-        #UpdateBasicData.updateMultipleStocksMinuteKLines(stockCodes,startDate,endDate)
+        UpdateBasicData.updateMultipleStocksMinuteKLines(stockCodes,startDate,endDate)
         logger.info('update index daily KLines')
         UpdateBasicData.updateDailyIndexKLines('000016.SH',startDate,endDate)
         UpdateBasicData.updateDailyIndexKLines('000300.SH',startDate,endDate)
@@ -92,14 +92,14 @@ class UpdateBasicData(object):
         localFileStr=os.path.join(LocalFileAddress,'stockCode.h5')
         exists=HDF5Utility.fileCheck(localFileStr)
         if exists==True:
-            store=pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=False,complevel=9)
+            store=pd.HDFStore(localFileStr,'r',complib='blosc:zstd',append=False,complevel=9)
             lastDate=store['date'].iloc[-1]['date']
             if lastDate<endDate:
                 exists=False
             store.close()
             pass
         if exists==True:
-            store=pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=False,complevel=9)
+            store=pd.HDFStore(localFileStr,'r',complib='blosc:zstd',append=False,complevel=9)
             stockCodes=store['data']
             store.close()
             pass

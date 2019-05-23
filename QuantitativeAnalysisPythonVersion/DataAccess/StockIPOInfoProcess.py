@@ -53,9 +53,8 @@ class StockIPOInfoProcess(object):
         if exists==True:
             os.remove(StockIPOInfoProcess.localFileIPOStr)
         logger.info(f'Update stock IPO Info!')
-        store = pd.HDFStore(StockIPOInfoProcess.localFileIPOStr,'a',complib='blosc:zstd',append=True,complevel=9)
-        store.append('data',mydata,append=False,format="table",data_columns=mydata.columns)
-        store.close()
+        with pd.HDFStore(StockIPOInfoProcess.localFileIPOStr,'a',complib='blosc:zstd',append=True,complevel=9) as store:
+            store.append('data',mydata,append=False,format="table",data_columns=mydata.columns)
         pass
     #----------------------------------------------------------------------
     @classmethod 
@@ -77,9 +76,8 @@ class StockIPOInfoProcess(object):
     def __getStockIPOInfoFromLocalFile(self):
         exists=os.path.isfile(StockIPOInfoProcess.localFileIPOStr)
         if exists==True:
-            store = pd.HDFStore(StockIPOInfoProcess.localFileIPOStr,'r',complib='blosc:zstd',append=True,complevel=9)
-            mydata=store['data']
-            store.close()
+            with pd.HDFStore(StockIPOInfoProcess.localFileIPOStr,'r',complib='blosc:zstd',append=True,complevel=9) as store:
+                mydata=store['data']
             mydata.fillna('20991231',inplace=True)
         else:
             logger.error(f'There is no IPO data from local file!')
@@ -95,22 +93,20 @@ class StockIPOInfoProcess(object):
         if exists==False:
             mydata=StockIPOInfoProcess.__getStockListByDate(firstDate,lastDate)
             mydate=mydata['date'].drop_duplicates()
-            store = pd.HDFStore(StockIPOInfoProcess.localFileStockListStr,'a',complib='blosc:zstd',append=True,complevel=9)
-            store.append('data',mydata,append=False,format="table",data_columns=mydata.columns)
-            store.append('date',mydate,append=False,format="table")
-            store.close()
+            with pd.HDFStore(StockIPOInfoProcess.localFileStockListStr,'a',complib='blosc:zstd',append=True,complevel=9) as store:
+                store.append('data',mydata,append=False,format="table",data_columns=mydata.columns)
+                store.append('date',mydate,append=False,format="table")
             pass
         else:
-            store = pd.HDFStore(StockIPOInfoProcess.localFileStockListStr,'a',complib='blosc:zstd',append=True,complevel=9)
-            mydate=store['date']
-            firstDate=TradedayDataProcess.getNextTradeday(mydate.max())
-            if firstDate<=lastDate:
-                mydata=StockIPOInfoProcess.__getStockListByDate(firstDate,lastDate)
-                if mydata.empty==False:
-                    mydate=mydata['date'].drop_duplicates()
-                    store.append('data',mydata,append=True,format="table",data_columns=mydata.columns)
-                    store.append('date',mydate,append=False,format="table")
-            store.close()
+            with pd.HDFStore(StockIPOInfoProcess.localFileStockListStr,'a',complib='blosc:zstd',append=True,complevel=9) as store:
+                mydate=store['date']
+                firstDate=TradedayDataProcess.getNextTradeday(mydate.max())
+                if firstDate<=lastDate:
+                    mydata=StockIPOInfoProcess.__getStockListByDate(firstDate,lastDate)
+                    if mydata.empty==False:
+                        mydate=mydata['date'].drop_duplicates()
+                        store.append('data',mydata,append=True,format="table",data_columns=mydata.columns)
+                        store.append('date',mydate,append=False,format="table")
             pass
         pass
     #----------------------------------------------------------------------
@@ -118,9 +114,8 @@ class StockIPOInfoProcess(object):
     def __getStockListFromLocalFile(self):
         exists=os.path.isfile(StockIPOInfoProcess.localFileStockListStr)
         if exists==True:
-            store = pd.HDFStore(StockIPOInfoProcess.localFileStockListStr,'a',complib='blosc:zstd',append=True,complevel=9)
-            mydata=store['data']
-            store.close()
+            with pd.HDFStore(StockIPOInfoProcess.localFileStockListStr,'a',complib='blosc:zstd',append=True,complevel=9) as store:
+                mydata=store['data']
         if exists==False:
             mydata=pd.DataFrame()
             logger.error(f'There is no stockList data from local File!')
@@ -137,7 +132,7 @@ class StockIPOInfoProcess(object):
             pass
         mydata=StockIPOInfoProcess.allStockIPOInfo
         mydata=mydata[(mydata['listDate']<=endDate) & (mydata['delistDate']>startDate)]
-        dataAll=pd.DataFrame()
+        dataAll=[]
         dateList=list(TradedayDataProcess.getTradedays(startDate,endDate))
         for date in dateList:
             logger.info(f'stockList of {date} start!')
@@ -145,23 +140,9 @@ class StockIPOInfoProcess(object):
             tmpdata=tmpdata[['code','name','exchange']]
             stockData=tmpdata.copy(deep=True)
             stockData['date']=date
-            dataAll=dataAll.append(stockData)
+            dataAll.append(stockData)
             pass
-        '''
-        for row in mydata.itertuples():
-            code=str(getattr(row, 'code'))
-            name=str(getattr(row, 'name'))
-            listDate=str(getattr(row, 'listDate'))
-            delistDate=str(getattr(row,'delistDate'))
-            #获取日期数据
-            firstDate=max(listDate,startDate)
-            lastDate=min(endDate,delistDate)
-            dateList=TradedayDataProcess.getTradedays(firstDate,lastDate)
-            stockData=pd.DataFrame(dateList,columns=['date'])
-            stockData['code']=code
-            stockData['name']=name
-            dataAll=dataAll.append(stockData)
-        '''
+        dataAll=pd.concat(dataAll)
         dataAll=dataAll[(dataAll['date']>=startDate) & (dataAll['date']<=endDate)]
         return dataAll
         pass
@@ -175,9 +156,8 @@ class StockIPOInfoProcess(object):
         oracleStr="select s_info_windcode,S_INFO_NAME,S_INFO_EXCHMARKET,S_INFO_LISTBOARD,S_INFO_LISTDATE,S_INFO_DELISTDATE from wind_filesync.AShareDescription order by S_INFO_LISTDATE"
         myCursor.execute(oracleStr)
         mydata=pd.DataFrame(myCursor.fetchall(),columns=['code','name','exchange','board','listDate','delistDate'])
-        store = pd.HDFStore(StockIPOInfoProcess.localFileIPOStr,'a')
-        store.append(StockIPOInfoProcess.nowStr,mydata,append=False,format="table",data_columns=['code','name','exchange','board','listDate','delistDate'])
-        store.close()
+        with pd.HDFStore(StockIPOInfoProcess.localFileIPOStr,'a') as store:
+            store.append('data',mydata,append=False,format="table",data_columns=['code','name','exchange','board','listDate','delistDate'])
         mydata.fillna('20991231',inplace=True)
         return mydata
         pass

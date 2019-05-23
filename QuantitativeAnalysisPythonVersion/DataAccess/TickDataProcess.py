@@ -26,6 +26,7 @@ class TickDataProcess(object):
         self.filePath=os.path.join(LocalFileAddress,'TickShots')
     #----------------------------------------------------------------------
     def getDataByDateFromLocalFile(self,code,date):
+        date=str(date)
         path=os.path.join(self.filePath,code.replace('.','_'))
         file=os.path.join(path,date+'.h5')
         HDF5Utility.pathCreate(path)
@@ -35,9 +36,10 @@ class TickDataProcess(object):
             mydata=pd.DataFrame()
         else:
             #logger.info(f'get tickshot data of {code} in {date} from local file!')
-            store = pd.HDFStore(file,'a',complib='blosc:zstd',append=True,complevel=9)
-            mydata=store['data']
-            store.close()
+            with pd.HDFStore(file,'r',complib='blosc:zstd',append=True,complevel=9) as store:
+                #store = pd.HDFStore(file,'r',complib='blosc:zstd',append=True,complevel=9)
+                mydata=store['data']
+                #store.close()
             pass
         return mydata
     #----------------------------------------------------------------------
@@ -58,12 +60,11 @@ class TickDataProcess(object):
             if exists==False:
                 logger.info(f'get tickshot data of {code} in {date} from source!')
                 mydata=self.__getResampleTickShotDataFromSqlServer(code,date)
-                if mydata.empty:
-                    return 
-                    pass
-                store = pd.HDFStore(file,'a',complib='blosc:zstd',append=True,complevel=9)
-                store.append('data',mydata,append=False,format="table",data_columns=mydata.columns)
-                store.close()
+                if mydata.empty==False:
+                    with pd.HDFStore(file,'a',complib='blosc:zstd',append=True,complevel=9) as store:
+                        store.append('data',mydata,append=False,format="table",data_columns=mydata.columns)
+                else:
+                    logger.warning(f'there is no data of {code} in {date} from source!')
             else:
                 logger.info(f'Tickshot data of {code} in {date} is exists!')
                 pass

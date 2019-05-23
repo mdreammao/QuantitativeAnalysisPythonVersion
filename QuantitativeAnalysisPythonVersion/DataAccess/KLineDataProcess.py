@@ -48,14 +48,6 @@ class KLineDataProcess(object):
         code=str(code).upper()
         startDate=str(startDate)
         endDate=str(endDate)
-        '''
-        if startDate==EMPTY_STRING:
-            logger.info(f'startDate and endDate are not given,get all data of {code}({self.KLineLevel})')
-        elif endDate==EMPTY_STRING:
-            logger.info(f'endDate is not given,get all data of {code}({self.KLineLevel}) from {startDate} to end')
-        else:
-            logger.info(f'get data of {code}({self.KLineLevel}) from {startDate} to {endDate}')
-        '''
         if self.KLineLevel=='minute':
             return self.__getMinuteDataByDateFromSqlSever(code,startDate,endDate)
         elif self.KLineLevel=='daily':
@@ -74,14 +66,11 @@ class KLineDataProcess(object):
             return
         mydate=data['date'].drop_duplicates()
         try:
-            store = pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=True,complevel=9)
-            store.append(self.KLineLevel,data,append=True,format="table",data_columns=data.columns)
-            store.append('date',mydate,append=True,format="table",data_columns=['date'])
-            store.close()
-        except:
-            logger.error(f'{localFileStr} error!')
-        
-
+            with pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=True,complevel=9) as store:
+                store.append(self.KLineLevel,data,append=True,format="table",data_columns=data.columns)
+                store.append('date',mydate,append=True,format="table",data_columns=['date'])
+        except Exception as excp:
+            logger.error(f'{localFileStr} error! {excp}')
     #----------------------------------------------------------------------
     #输入code=600000.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
     def __getDataByDateFromLocalFile(self,code,startDate,endDate):
@@ -116,23 +105,12 @@ class KLineDataProcess(object):
         localFileStr=os.path.join(LocalFileAddress,'KLines',self.KLineLevel,fileName)
         exists=os.path.isfile(localFileStr)
         mydata=pd.DataFrame()
-        if exists==True:
-            f=h5py.File(localFileStr,'r')
-            myKeys=list(f.keys())
-            f.close()
-            if myKeys==[]:
-                logger.warning(f'{localFileStr} has no data!{localFileStr} will be deleted!')
-                os.remove(localFileStr)
-                exists=False
         if exists==False:
             logger.error(f'{code} has no data!')
         else:
-            store = pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=True,complevel=9)
-            mydata=store.get(self.KLineLevel)
-            # mydata=store.select(self.KLineLevel,where=['date>="%s" and date<="%s"'%(startDate,endDate)])
+            with pd.HDFStore(localFileStr,'r',complib='blosc:zstd',append=True,complevel=9) as store:
+                mydata=store[self.KLineLevel]
             mydata=mydata[(mydata['date']>=startDate) & (mydata['date']<=endDate)]
-            store.close()
-            #logger.info(f'get data of {code}({self.KLineLevel}) compelete!')
         return mydata
     #----------------------------------------------------------------------
     #输入code=600000.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
@@ -145,14 +123,6 @@ class KLineDataProcess(object):
         HDF5Utility.pathCreate(localFilePath)
         localFileStr=os.path.join(LocalFileAddress,'KLines',self.KLineLevel,fileName)
         exists=os.path.isfile(localFileStr)
-        if exists==True:
-            f=h5py.File(localFileStr,'r')
-            myKeys=list(f.keys())
-            f.close()
-            if myKeys==[]:
-                logger.warning(f'{localFileStr} has no data!{localFileStr} will be deleted!')
-                os.remove(localFileStr)
-                exists=False
         if exists==False:
             mydata=self.__getDataByDateFromSource(code)
             if mydata.empty==False:
@@ -163,12 +133,8 @@ class KLineDataProcess(object):
         else:
             if self.update==True:
                 try:
-                    store = pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=True,complevel=9)
-                    #mydata=store.select(self.KLineLevel)
-                    #mydate=mydata['date'].drop_duplicates()
-                    #store.append('date',mydate,append=False,format="table",data_columns=['date'])
-                    mydate=store['date']
-                    store.close()
+                    with pd.HDFStore(localFileStr,'r',complib='blosc:zstd',append=True,complevel=9) as store:
+                        mydate=store['date']
                 except :
                     logger.error(f'read data({self.KLineLevel}) error of {code}')
                     return pd.DataFrame()
@@ -187,15 +153,10 @@ class KLineDataProcess(object):
         if exists==False:
             mydata=pd.DataFrame()
         else:
-            store = pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=True,complevel=9)
-            mydata=store.get(self.KLineLevel)
-            # mydata=store.select(self.KLineLevel,where=['date>="%s" and date<="%s"'%(startDate,endDate)])
+            with pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=True,complevel=9) as store:
+                mydata=store[self.KLineLevel]
             mydata=mydata[(mydata['date']>=startDate) & (mydata['date']<=endDate)]
-            store.close()
-        #mydata.set_index('date',drop=True,inplace=True)
         return mydata
-
-    
     #----------------------------------------------------------------------
     #输入code=600000.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
     def __getDailyDerivativeDataByDateFromOracleServer(self,code,startDate=EMPTY_STRING,endDate=EMPTY_STRING):
@@ -219,7 +180,6 @@ class KLineDataProcess(object):
         mytradedays=TradedayDataProcess.getAllTradedays()
         myderivativedata=myderivativedata[myderivativedata['date'].isin(mytradedays)]
         myderivativedata[['totalMarketValue','freeMarketValue','PE','PCF','PS','turnover','totalShares','freeShares','limitStatus']] = myderivativedata[['totalMarketValue','freeMarketValue','PE','PCF','PS','turnover','totalShares','freeShares','limitStatus']].astype('float')
-
         return myderivativedata
 
     

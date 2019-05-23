@@ -120,7 +120,7 @@ class JobLibUtility(object):
         with parallel_backend("multiprocessing", n_jobs=JobLibUtility.myjobs):
             mydata=Parallel()(delayed(myfunction)(list(stocks[i]),startDate,endDate,parameters) for i in range(groupnum))
         for i in range(groupnum):
-            allData=allData.append(mydata[i])
+            allData.append(mydata[i])
         allData=pd.concat(allData)
         return allData
 ########################################################################

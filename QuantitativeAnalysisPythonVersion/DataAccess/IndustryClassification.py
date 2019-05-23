@@ -86,15 +86,12 @@ class IndustryClassification(object):
     def __getIndustryFromLocalFile(self):
         exists=os.path.isfile(IndustryClassification.localFileStr)
         if exists==True:
-            f=h5py.File(IndustryClassification.localFileStr,'r')
-            myKeys=list(f.keys())
-            f.close()
-            if (myKeys==[]):
+            try:
+                with pd.HDFStore(IndustryClassification.localFileStr,'r') as store:
+                    mydata=store['data']
+            except Exception as excp:
+                os.remove(IndustryClassification.localFileStr)
                 mydata=IndustryClassification.__getAllDataFromOracleServer()
-            else:
-                store = pd.HDFStore(IndustryClassification.localFileStr,'r')
-                mydata=store.select(max(myKeys))
-                store.close()
         else:
             mydata=IndustryClassification.__getAllDataFromOracleServer()
         return mydata
@@ -114,11 +111,10 @@ class IndustryClassification(object):
         cursor.execute(oracleStr)
         mydata = cursor.fetchall()
         mydata = pd.DataFrame(mydata,columns=['code','industry','industryCode','name','industryName1','industryName2','industryName3','entry','remove'])
-        store = pd.HDFStore(IndustryClassification.localFileStr,'a')
         mydata['remove'].fillna(20991231,inplace=True)
         mydata[['entry','remove']] = mydata[['entry','remove']].astype('str')
-        store.append(IndustryClassification.nowStr,mydata,append=False,format="table",data_columns=['code','industry','industryCode','name','industryName1','industryName2','industryName3','entry','remove'])
-        store.close()
+        with pd.HDFStore(IndustryClassification.localFileStr,'a') as store:
+            store.append('data',mydata,append=False,format="table",data_columns=mydata.columns)
         return mydata  
     #----------------------------------------------------------------------
 ########################################################################

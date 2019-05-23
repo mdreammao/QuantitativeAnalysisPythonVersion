@@ -93,7 +93,10 @@ class stockReverseByStdOnTick(object):
                         pass
                     mytime=datetime.datetime.strptime(now[1]+now[2],'%Y%m%d%H%M%S%f')  
                     increaseToday=tickList[i][3]/myStatus['preClose']-1
-                    increase5m=tickList[i][3]/tickList[i-100][3]-1
+                    if (i>=100) & (tickList[i-100][3]>0):
+                        increase5m=tickList[i][3]/tickList[i-100][3]-1
+                    else:
+                        increase5m=np.nan
                     if ((positionNow==0) &(positionYesterday==0) &(i<=4500) &(i>=100)& (increaseToday>std1*myStatus['closeStd20']) & (maxPosition>0)& (downCeiling==False)):
                         #开空头,按照盘口一档及二档的价格交易
                         [price,deltaPosition,amount]=TradeUtility.sellByTickShotData(tickShot,maxPosition,0.001)

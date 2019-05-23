@@ -177,7 +177,7 @@ class IndexComponentDataProcess(object):
     #获取股票在指数中的属性
     @classmethod
     def getIndexComponentAllFromLocalFile(self):
-        mydataAll=pd.DataFrame()
+        mydataAll=[]
         for code in IndexComponentDataProcess.indexList:
             code=str(code).upper();
             localFilePath=os.path.join(LocalFileAddress,'index','indexComponent')
@@ -185,15 +185,14 @@ class IndexComponentDataProcess(object):
             localFileStr=os.path.join(LocalFileAddress,'index','indexComponent',code.replace('.','_')+'.h5')
             exists=os.path.isfile(localFileStr)
             if exists==True:
-                store = pd.HDFStore(localFileStr,'r')
-                mydata=store.select('data')
-                store.close()
+                with pd.HDFStore(localFileStr,'r') as store:
+                    mydata=store['data']
             else:
                 logger.waring(f'There is no component data of {code}')
                 mydata=pd.DataFrame()
                 pass
-            mydataAll=mydataAll.append(mydata)
-            pass
+            mydataAll.append(mydata)
+        mydataAll=pd.concat(mydataAll)
         return mydataAll
         pass
     #----------------------------------------------------------------------
@@ -218,17 +217,14 @@ class IndexComponentDataProcess(object):
     #输入code=000300.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
     #存储指数的成员信息
     def __saveDataToLocalFile(self,localFileStr,data):
-        store = pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=True,complevel=9)
         date=data['date'].drop_duplicates()
-        store.append('date',date,append=True,format="table",data_columns=['date'])
-        #store.append('data',data,append=True,format="table",data_columns=['date','indexCode','code','totalShares','freeSharesRatio','sharesInIndex','weightFactor','weight','preClose','preCloseAdjusted','totalMarketValue','marketValueInIndex'])
-        store.append('data',data,append=True,format="table",data_columns=data.columns)
-        store.close()
+        with pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=True,complevel=9) as store:
+            store.append('date',date,append=True,format="table",data_columns=['date'])
+            store.append('data',data,append=True,format="table",data_columns=data.columns)
     #----------------------------------------------------------------------
     #输入code=000300.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
     #存储指数股票进出信息
     def __saveDataToLocalFileByIndexCode(self,indexCode,localFileStr,data):
-        store = pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=True,complevel=9)
-        store.append('data',data,append=False,format="table",data_columns=['indexCode','code','entry','remove','updateDate'])
-        store.close()
+        with pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=True,complevel=9) as store:
+            store.append('data',data,append=False,format="table",data_columns=['indexCode','code','entry','remove','updateDate'])
 ########################################################################

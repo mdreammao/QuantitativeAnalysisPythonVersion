@@ -12,9 +12,6 @@ import time
 class StockSharesProcess(object):
     """从RDF/本地文件中读取数据,获取股票股本信息和IPO信息"""
     nowStr=datetime.datetime.now().strftime('%Y%m%d')
-    #localFileStr=LocalFileAddress+"\\stockShares.h5"
-    #localFileIPOStr=LocalFileAddress+"\\stockIPODate.h5"
-    #localFileStockListStr=LocalFileAddress+"\\stockList.h5"
     localFileStr=os.path.join(LocalFileAddress,'stockShares.h5')
     localFileIPOStr=os.path.join(LocalFileAddress,'stockIPODate.h5')
     localFileStockListStr=os.path.join(LocalFileAddress,'stockList.h5')
