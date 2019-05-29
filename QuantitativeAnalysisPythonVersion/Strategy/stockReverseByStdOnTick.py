@@ -44,6 +44,9 @@ class stockReverseByStdOnTick(object):
         dailyFactor=dailyRepo.getSingleStockDailyFactors(code,factors,startDate,endDate)
         dailyKLine=KLineDataProcess('daily')
         dailyData=dailyKLine.getDataByDate(code,startDate,endDate)
+        if dailyData.empty==True:
+            logger.error(f'there is no data of {code} from {startDate} to {endDate}')
+            return pd.DataFrame()
         tick=TickDataProcess()
         mydata=[]
         position=0
@@ -56,7 +59,16 @@ class stockReverseByStdOnTick(object):
         for today in days:
             #logger.info(f'{code} in {today} start!')
             todayInfo=dailyFactor[dailyFactor['date']==today]
+            if todayInfo.empty==True:
+                logger.error(f'there is no factor data of {code} in date {today}')
+                continue
+                pass
+
             todayKLine=dailyData[dailyData['date']==today]
+            if todayKLine.empty==True:
+                logger.error(f'there is no KLine data of {code} in date {today}')
+                continue
+                pass
             myStatus['date']=today
             myStatus['closeStd20']=todayInfo['closeStd20'].iloc[0]
             myStatus['weight50']=todayInfo['weight50'].iloc[0]
@@ -67,9 +79,6 @@ class stockReverseByStdOnTick(object):
             myStatus['preClose']=todayKLine['preClose'].iloc[0]
             positionNow=positionYesterday
             if (todayInfo.empty==False) & (todayKLine['status'].iloc[0]!='停牌'):
-                tickData=tick.getDataByDateFromLocalFile(code,today)
-                #['code', 'date', 'time', 'lastPrice', 'S1', 'S2', 'S3', 'S4', 'S5', 'B1','B2', 'B3', 'B4', 'B5', 'SV1', 'SV2', 'SV3', 'SV4', 'SV5', 'BV1', 'BV2','BV3', 'BV4', 'BV5', 'volume', 'amount', 'volumeIncrease','amountIncrease']
-                tickList=tickData.as_matrix()
                 if myindex==300:
                     maxPosition=myStatus['weight300']*totalCash*0.01/myStatus['preClose']
                 elif myindex==500:
@@ -79,16 +88,22 @@ class stockReverseByStdOnTick(object):
                 else:
                     maxPosition=myStatus['totalCash']*0.001/myStatus['preClose']
                 maxPosition=round(maxPosition,-2)
+                if maxPosition==0:
+                    continue
+                tickData=tick.getDataByDateFromLocalFile(code,today)
+                #['code' ,'date','time' ,'lastPrice','S1','S2','S3','S4','S5','S6','S7','S8','S9','S10','B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','SV1','SV2','SV3','SV4','SV5','SV6','SV7','SV8','SV9','SV10','BV1','BV2','BV3','BV4','BV5','BV6','BV7','BV8','BV9','BV10','volume' ,'amount','volumeIncrease','amountIncrease']
+                tickList=tickData.as_matrix()
                 for i in range(0,len(tickList)-60):
                     now=tickList[i]
+                    midPrice=(now[4]+now[14])/2
                     lastPrice=now[3]
-                    tickShot=now[4:24]
+                    tickShot=now[4:43]
                     upCeiling=False
                     downCeiling=False
-                    if now[14]==0:
+                    if now[24]==0:
                         upCeiling=True
                         pass
-                    if now[19]==0:
+                    if now[34]==0:
                         downCeiling=True
                         pass
                     mytime=datetime.datetime.strptime(now[1]+now[2],'%Y%m%d%H%M%S%f')  
@@ -98,7 +113,7 @@ class stockReverseByStdOnTick(object):
                     else:
                         increase5m=np.nan
                     if ((positionNow==0) &(positionYesterday==0) &(i<=4500) &(i>=100)& (increaseToday>std1*myStatus['closeStd20']) & (maxPosition>0)& (downCeiling==False)):
-                        #开空头,按照盘口一档及二档的价格交易
+                        #开空头
                         [price,deltaPosition,amount]=TradeUtility.sellByTickShotData(tickShot,maxPosition,0.001)
                         positionNow=-deltaPosition
                         myTrade['date']=today

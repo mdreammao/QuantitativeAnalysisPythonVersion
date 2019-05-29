@@ -67,13 +67,22 @@
     <Compile Include="DataPrepare\dataPrepareByIndex.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DataPrepare\MinuteFactorsProcess.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="DataPrepare\MinuteKLineDataPrepared.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="DataPrepare\tickFactorsProcess.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataPrepare\tickFactors\changeOfTickShot\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataPrepare\tickFactors\factorBase.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataPrepare\tickFactors\statusOfTickShot\buySellVolumeRatio.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataPrepare\tickFactors\statusOfTickShot\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataPrepare\tickFactors\__init__.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DataPrepare\__init__.py">
@@ -142,6 +151,9 @@
     <Folder Include="DataAccess\" />
     <Folder Include="Config\" />
     <Folder Include="DataPrepare\" />
+    <Folder Include="DataPrepare\tickFactors\" />
+    <Folder Include="DataPrepare\tickFactors\changeOfTickShot\" />
+    <Folder Include="DataPrepare\tickFactors\statusOfTickShot\" />
     <Folder Include="Monitor\" />
     <Folder Include="Strategy\" />
     <Folder Include="Utility\" />

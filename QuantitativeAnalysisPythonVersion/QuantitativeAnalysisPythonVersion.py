@@ -17,6 +17,7 @@ from Strategy.stockMomentumByStd import *
 from Strategy.myAnalysisForMomentumByStd import *
 from Strategy.stockReverseByStdOnTick import *
 from DataPrepare.dailyFactorsProcess import *
+from DataPrepare.tickFactorsProcess import *
 from Utility.mytest import *
 from Utility.JobLibUtility import *
 from Utility.UpdateBasicData import *
@@ -48,13 +49,15 @@ def main():
 
 
     warnings.filterwarnings('ignore')
-    startDate=20170101
+    startDate=20190101
     endDate=20190515
-    #UpdateBasicData.updateDailyAndMinuteAll()
-    #UpdateBasicData.updateTickAll()
+    UpdateBasicData.updateDailyAndMinuteAll()
+    UpdateBasicData.updateTickAll(startDate)
     
-    
-    
+    #tickfactor=tickFactorsProcess()
+    #tickfactor.updateAllFactorByCodeAndDate('600000.SH',endDate)
+
+    '''
     myReverse=stockReverseByStdOnTick()
     print(datetime.datetime.now())
     codes=UpdateBasicData.updateStockCodes(startDate,endDate)
@@ -62,8 +65,12 @@ def main():
     mydata=myReverse.reverse_multipleCodes(codes,startDate,endDate,[300,100000000,2.5])
     print(datetime.datetime.now())
     print(mydata)
+    path=TempLocalFileAddress
+    HDF5Utility.pathCreate(path)
+    file=os.path.join(TempLocalFileAddress,'reverse.h5')
+    with pd.HDFStore(file,'a',complib='blosc:zstd',append=True,complevel=9) as store:
+        store.append('data',mydata,append=True,format="table",data_columns=mydata.columns)
     
-    '''
     myindex=IndexComponentDataProcess()
     index500=myindex.getCSI500DataByDate(startDate,endDate)
     index300=myindex.getHS300DataByDate(startDate,endDate)
@@ -102,5 +109,8 @@ def main():
     #myanalysis.analysis(startDate,endDate)
     
     pass
+
 if __name__ == '__main__':
     main()
+    
+

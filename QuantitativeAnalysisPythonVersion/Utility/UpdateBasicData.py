@@ -6,6 +6,7 @@ from DataAccess.StockIPOInfoProcess import *
 from DataPrepare.dailyFactorsProcess import *
 from DataAccess.IndexCode import *
 from DataAccess.TickDataProcess import *
+from DataPrepare.tickFactorsProcess import tickFactorsProcess
 from Config.myConfig import *
 from Config.myConfig import *
 import datetime
@@ -57,8 +58,8 @@ class UpdateBasicData(object):
         pass
     #----------------------------------------------------------------------
     @classmethod 
-    def updateTickAll(self):
-        startDate=str(20180101)
+    def updateTickAll(self,startDate=20100101):
+        startDate=str(startDate)
         yesterday=(datetime.datetime.now()+datetime.timedelta(days=-1)).strftime("%Y%m%d")
         today=datetime.datetime.now().strftime("%Y%m%d")
         logger.info('update tradedays!')
@@ -74,6 +75,26 @@ class UpdateBasicData(object):
         UpdateBasicData.updateStockList(startDate,endDate)
         logger.info('update tickShots')
         UpdateBasicData.updateMultipleStocksTickShots(stockCodes,startDate,endDate)
+    #----------------------------------------------------------------------
+    @classmethod 
+    def updateTickFactorAll(self,startDate=20100101):
+        startDate=str(startDate)
+        yesterday=(datetime.datetime.now()+datetime.timedelta(days=-1)).strftime("%Y%m%d")
+        today=datetime.datetime.now().strftime("%Y%m%d")
+        logger.info('update tradedays!')
+        tradedays=TradedayDataProcess.getTradedays(startDate,yesterday)
+        endDate=tradedays.max()
+        logger.info('update index code list!')
+        UpdateBasicData.updateIndexInfo(startDate,endDate)
+        logger.info('update stock IPO Info!')
+        UpdateBasicData.updateStockIPOInfo()
+        logger.info('update stockCodes!')
+        stockCodes=UpdateBasicData.updateStockCodes(startDate,endDate)
+        logger.info('update stockList')
+        UpdateBasicData.updateStockList(startDate,endDate)
+        logger.info('update tickShots')
+        UpdateBasicData.updateMultipleStocksTickFactors(stockCodes,startDate,endDate)
+        pass
     #----------------------------------------------------------------------
     @classmethod 
     def updateStockIPOInfo(self):
@@ -92,16 +113,14 @@ class UpdateBasicData(object):
         localFileStr=os.path.join(LocalFileAddress,'stockCode.h5')
         exists=HDF5Utility.fileCheck(localFileStr)
         if exists==True:
-            store=pd.HDFStore(localFileStr,'r',complib='blosc:zstd',append=False,complevel=9)
-            lastDate=store['date'].iloc[-1]['date']
+            with pd.HDFStore(localFileStr,'r',complib='blosc:zstd',append=False,complevel=9) as store:
+                lastDate=store['date'].iloc[-1]['date']
             if lastDate<endDate:
                 exists=False
-            store.close()
             pass
         if exists==True:
-            store=pd.HDFStore(localFileStr,'r',complib='blosc:zstd',append=False,complevel=9)
-            stockCodes=store['data']
-            store.close()
+            with pd.HDFStore(localFileStr,'r',complib='blosc:zstd',append=False,complevel=9) as store:
+                stockCodes=store['data']
             pass
         else:
             myindex=IndexComponentDataProcess()
@@ -111,10 +130,10 @@ class UpdateBasicData(object):
             stockCodes=(pd.concat([index500,index300,index50],ignore_index=True)['code'].drop_duplicates())
             stockCodes=stockCodes.sort_values()
             days=pd.DataFrame(TradedayDataProcess.getTradedays(startDate,endDate))
-            store=pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=False,complevel=9)
-            store['data']=stockCodes
-            store['date']=days
-            store.close()
+            with pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=False,complevel=9) as store:
+                store.append('data',stockCodes,append=False,format="table")
+                store.append('date',days,append=False,format="table")
+                pass
             pass
         return list(stockCodes)
         pass
@@ -193,6 +212,12 @@ class UpdateBasicData(object):
     @classmethod 
     def updateMultipleStocksTickShots(self,codeList,startDate,endDate):
         tickStock=TickDataProcess()
+        tickStock.parallelizationUpdateDataByDate(codeList,startDate,endDate)
+        pass
+    #----------------------------------------------------------------------
+    @classmethod 
+    def updateMultipleStocksTickFactors(self,codeList,startDate,endDate):
+        tickStock=tickFactorsProcess()
         tickStock.parallelizationUpdateDataByDate(codeList,startDate,endDate)
         pass
     #----------------------------------------------------------------------

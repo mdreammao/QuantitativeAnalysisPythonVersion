@@ -153,7 +153,7 @@ class KLineDataProcess(object):
         if exists==False:
             mydata=pd.DataFrame()
         else:
-            with pd.HDFStore(localFileStr,'a',complib='blosc:zstd',append=True,complevel=9) as store:
+            with pd.HDFStore(localFileStr,'r',complib='blosc:zstd',append=True,complevel=9) as store:
                 mydata=store[self.KLineLevel]
             mydata=mydata[(mydata['date']>=startDate) & (mydata['date']<=endDate)]
         return mydata

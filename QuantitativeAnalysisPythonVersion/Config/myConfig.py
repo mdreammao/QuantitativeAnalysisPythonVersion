@@ -10,6 +10,18 @@ from Utility.HDF5Utility import *
 MYJOBS=-1
 MYGROUPS=400
 
+#tick因子的映射
+tickFactorList=[
+    {'factorClass': 'factorRatio', 'factorName': 'factorRatioA', 'lag': 10},
+    {'factorClass': 'factorRatio', 'factorName': 'factorRatioB', 'lag': 5}
+    ]
+
+
+#需要计算的tick因子
+tickFactorsNeedToUpdate=[
+    {'module': 'DataPrepare.tickFactors.statusOfTickShot.buySellVolumeRatio', 'class': 'buySellVolumeRatio', 'name': 'buySellVolumeRatio','parameter':[5]}
+    ]
+
 #sql连接字符串
 SqlServer={
     'server170':'server=192.168.1.170;uid=reader;pwd=reader;',
