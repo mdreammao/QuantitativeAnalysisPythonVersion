@@ -76,7 +76,7 @@
     <Compile Include="DataPrepare\tickFactors\factorBase.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DataPrepare\tickFactors\statusOfTickShot\buySellVolumeRatio.py">
+    <Compile Include="DataPrepare\tickFactors\statusOfTickShot\buySellForce.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DataPrepare\tickFactors\statusOfTickShot\__init__.py">

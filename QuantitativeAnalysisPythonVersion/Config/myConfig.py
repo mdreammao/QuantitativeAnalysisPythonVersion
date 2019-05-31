@@ -19,7 +19,7 @@ tickFactorList=[
 
 #需要计算的tick因子
 tickFactorsNeedToUpdate=[
-    {'module': 'DataPrepare.tickFactors.statusOfTickShot.buySellVolumeRatio', 'class': 'buySellVolumeRatio', 'name': 'buySellVolumeRatio','parameter':[5]}
+    {'module': 'DataPrepare.tickFactors.statusOfTickShot.buySellForce', 'class': 'buySellForce', 'factor': 'buySellForce','parameter':[5]}
     ]
 
 #sql连接字符串

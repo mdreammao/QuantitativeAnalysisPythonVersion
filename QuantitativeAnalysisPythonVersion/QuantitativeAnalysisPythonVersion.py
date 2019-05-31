@@ -50,12 +50,12 @@ def main():
 
     warnings.filterwarnings('ignore')
     startDate=20190101
-    endDate=20190515
-    UpdateBasicData.updateDailyAndMinuteAll()
-    UpdateBasicData.updateTickAll(startDate)
-    
-    #tickfactor=tickFactorsProcess()
-    #tickfactor.updateAllFactorByCodeAndDate('600000.SH',endDate)
+    endDate=20190527
+    #UpdateBasicData.updateDailyAndMinuteAll()
+    #UpdateBasicData.updateTickAll(startDate)
+    stocks=['000001.SZ','000002.SZ','000006.SZ','000008.SZ']
+    tickfactor=tickFactorsProcess()
+    tickfactor.parallelizationUpdateDataByDate(stocks,startDate,endDate)
 
     '''
     myReverse=stockReverseByStdOnTick()

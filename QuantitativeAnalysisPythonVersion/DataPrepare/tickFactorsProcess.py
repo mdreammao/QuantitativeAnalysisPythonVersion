@@ -19,32 +19,42 @@ class tickFactorsProcess(object):
     #----------------------------------------------------------------------
     def __init__(self):
         pass
-    def updateAllFactorByCodeAndDays(self,code,startDate,endDate):
+    #----------------------------------------------------------------------
+    def updateAllFactorsByCodeAndDays(self,code,startDate,endDate):
         tradedays=TradedayDataProcess.getTradedays(startDate,endDate)
         for date in tradedays:
-            self.updateAllFactorByCodeAndDate(code,date)
+            self.updateAllFactorsByCodeAndDate(code,date)
         pass
-    def updateAllFactorByCodeAndDate(self,code,date):
-        tick=TickDataProcess()
+    
+    #----------------------------------------------------------------------
+    def updateAllFactorsByCodeAndDate(self,code,date):
         code=str(code)
         date=str(date)
-        data=tick.getDataByDateFromLocalFile(code,date)
-        if data.shape[0]==0:
-            logger.warning(f'There is no tickshot data of {code} in {date}!')
-            return 
+        data=pd.DataFrame()
+        logger.info(f'Compute factors of {code} in {date} start!')
         factorList=tickFactorsNeedToUpdate
         for factor in factorList:
             mymodule = importlib.import_module(factor['module'])
             myclass=getattr(mymodule, factor['class'])
             myinstance=myclass()
-            myinstance.updateFactor(code,date,data)
+            exists=myinstance.checkLocalFile(code,date,factor['factor'])
+            if exists==False:
+                if data.shape[0]==0:
+                    tick=TickDataProcess()
+                    data=tick.getDataByDateFromLocalFile(code,date)
+                    if data.shape[0]==0:
+                        logger.warning(f'There is no tickShots of {code} in {date}')
+                        return
+                    pass
+                myinstance.updateFactor(code,date,data)
+                pass
+            
     #----------------------------------------------------------------------
     #输入code=600000.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
     def updateLotsDataByDate(self,StockCodes,startDate,endDate):
-        mydata=pd.DataFrame()
         for i in range(len(StockCodes)):
             code=StockCodes[i]
-            self.updateAllFactorByCodeAndDays(code,str(startDate),str(endDate))
+            self.updateAllFactorsByCodeAndDays(code,str(startDate),str(endDate))
     #----------------------------------------------------------------------
     def parallelizationUpdateDataByDate(self,stockCodes,startDate,endDate):
         JobLibUtility.useJobLibToUpdateData(self.updateLotsDataByDate,stockCodes,MYGROUPS,startDate,endDate)

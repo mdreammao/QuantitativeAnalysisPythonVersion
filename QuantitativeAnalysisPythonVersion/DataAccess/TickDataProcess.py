@@ -77,11 +77,14 @@ class TickDataProcess(object):
             logger.error(f'There is no tick data of {code} in {date} from source!!')
             return pd.DataFrame()
             pass
-
         mydata=mydata.resample('3s',label='right',closed='right').last()
         mydata=mydata.fillna(method='ffill')
+        #成交量增量及mid价格
         mydata['volumeIncrease']=mydata['volume']-mydata['volume'].shift(1)
         mydata['amountIncrease']=mydata['amount']-mydata['amount'].shift(1)
+        mydata.loc[(mydata['BV1']>0) & (mydata['SV1']>0),'midPrice']=(mydata['B1']+mydata['S1'])/2
+        mydata.loc[(mydata['BV1']>0) & (mydata['SV1']==0),'midPrice']=mydata['B1']
+        mydata.loc[(mydata['BV1']==0) & (mydata['SV1']>0),'midPrice']=mydata['S1']
         mydata=mydata[((mydata.index.time>=datetime.time(9,30)) & (mydata.index.time<=datetime.time(11,30))) | ((mydata.index.time>=datetime.time(13,00)) & (mydata.index.time<=datetime.time(15,00)))]
         return mydata
         pass
