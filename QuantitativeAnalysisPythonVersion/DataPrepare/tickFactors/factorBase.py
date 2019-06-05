@@ -22,7 +22,7 @@ class factorBase(object):
     def checkLocalFile(self,code,date,factor):
         path=os.path.join(LocalFileAddress,'tickFactors',str(factor),str(code))
         fileName=os.path.join(path,str(date)+'.h5')
-        HDF5Utility.pathCreate(path)
+        #HDF5Utility.pathCreate(path)
         exists=os.path.exists(fileName)
         return exists
     #----------------------------------------------------------------------
@@ -45,12 +45,13 @@ class factorBase(object):
                 store.append('data',data,append=False,format="table",data_columns=data.columns)
         pass
     #----------------------------------------------------------------------
-    def getFromLocalFile(self,code,date,factor):
+    def getDataFromLocalFile(self,code,date,factor):
         path=os.path.join(LocalFileAddress,'tickFactors',str(factor),str(code))
         fileName=os.path.join(path,str(date)+'.h5')
         data=pd.DataFrame()
         exists=os.path.exists(fileName)
         if exists==False:
+            logger.warning(f'There is no data of {code}({factor}) in {date} from local file!')
             return data
         with pd.HDFStore(fileName,'r',complib='blosc:zstd',append=True,complevel=9) as store:
             data=store['data']

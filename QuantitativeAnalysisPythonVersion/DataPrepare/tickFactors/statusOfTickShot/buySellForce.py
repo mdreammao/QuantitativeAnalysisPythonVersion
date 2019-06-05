@@ -3,6 +3,7 @@ from Config.myConfig import *
 from DataPrepare.tickFactors.factorBase import factorBase
 from DataAccess.TickDataProcess import TickDataProcess
 import pandas as pd
+import numpy as np
 ########################################################################
 class buySellForce(factorBase):
     """描述盘口状态的因子"""
@@ -75,6 +76,12 @@ class buySellForce(factorBase):
                 select=(mydata['S1']<=mydata[price].shift(1)) & (mydata[price].shift(1)!=0) & (mydata['B1']!=mydata['S1'])
                 result.loc[select,'sellForceIncrease']=(result['sellForceIncrease']+mydata[volume].shift(1))[select]
             result['sellForceIncrease']=result['sellForceIncrease']/result['buyVolume10'].shift(1)
+            #多空力量变化
+            result['buySellForceChange']=result['buyForceIncrease']-result['sellForceIncrease']
+            select=((result['buyForceIncrease']==np.nan) & (result['sellForceIncrease']!=np.nan))
+            result.loc[select,'buySellForceChange']=-result['sellForceIncrease'][select]
+            select=((result['sellForceIncrease']==np.nan) & (result['buyForceIncrease']!=np.nan))
+            result.loc[select,'buySellForceChange']=result['buyForceIncrease'][select]
             #挂单量比
             result['buySellVolumeRatio2']=((result['buyVolume2']/(result['sellVolume2']+result['buyVolume2']))-0.5)*2
             result['buySellVolumeRatio5']=((result['buyVolume5']/(result['sellVolume5']+result['buyVolume5']))-0.5)*2
@@ -96,7 +103,7 @@ class buySellForce(factorBase):
             result['ts_volume1']=(mydata['BV1']+mydata['SV1']).rolling(50,min_periods=20).apply((lambda x:pd.Series(x).rank().iloc[-1]/len(x)),raw=True)
             result['ts_volume2']=(result['buyVolume2']+result['sellVolume2']).rolling(50,min_periods=20).apply((lambda x:pd.Series(x).rank().iloc[-1]/len(x)),raw=True)
             result['ts_volume5']=(result['buyVolume5']+result['sellVolume5']).rolling(50,min_periods=20).apply((lambda x:pd.Series(x).rank().iloc[-1]/len(x)),raw=True)
-            mycolumns=['buySellVolumeRatio2','buySellVolumeRatio5','buySellPriceRatio2','buySellPriceRatio5','buyForceIncrease','sellForceIncrease']
+            mycolumns=['buySellVolumeRatio2','buySellVolumeRatio5','buySellVolumeRatio10','buySellPriceRatio2','buySellPriceRatio5','buyForceIncrease','sellForceIncrease','buySellForceChange']
             for col in mycolumns:
                 result['ts_'+col]=result[col].rolling(50,min_periods=20).apply((lambda x:pd.Series(x).rank().iloc[-1]/len(x)),raw=True)
             #result['ts_buySellVolumeRatio2']=result['buySellVolumeRatio2'].rolling(50,min_periods=20).apply((lambda x:pd.Series(x).rank().iloc[-1]/len(x)),raw=True)
