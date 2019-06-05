@@ -7,7 +7,7 @@ from Utility.HDF5Utility import *
 
 ########################################################################
 #定义多线程数据
-MYJOBS=1
+MYJOBS=-1
 MYGROUPS=400
 
 #tick因子的映射

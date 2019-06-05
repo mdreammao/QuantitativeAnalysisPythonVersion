@@ -50,6 +50,10 @@ class tickFactorsProcess(object):
         for col in dailyData.columns:
             if col not in ['date','code','return']:
                 mydata[col]=dailyData[col].iloc[0]
+        dailyKLineRepo=KLineDataProcess('daily')
+        dailyKLineData=dailyKLineRepo.getDataByDate(code,date,date)
+        mydata['preClose']=dailyKLineData['preClose'].iloc[0]
+        mydata['increaseToday']=mydata['midPrice']/mydata['preClose']-1
         return mydata
     #----------------------------------------------------------------------
     def getFactorsUsedByDateFromLocalFile(self,code,date,factors=TICKFACTORSUSED):

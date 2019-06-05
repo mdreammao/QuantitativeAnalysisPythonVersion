@@ -38,11 +38,14 @@ class buySellForce(factorBase):
             result['midIncreaseNext5m']=mydata['midPrice'].shift(-100)/mydata['midPrice']-1
             result['midIncreaseNext10m']=mydata['midPrice'].shift(-200)/mydata['midPrice']-1
             result['midIncreaseNext20m']=mydata['midPrice'].shift(-400)/mydata['midPrice']-1
+            #bid ask 间距
+            select=(mydata['S1']!=0) & (mydata['B1']!=0)
+            result.loc[select,'buySellSpread']=((mydata['B1']-mydata['S1'])/mydata['S1'])[select]
             #对手价增长率,计算买对价和卖对价的增长率
             select=(mydata['S1']!=0) & (mydata['B1'].shift(-20)!=0)
-            result.loc[select,'buyIncreaseNext1m']=mydata[select]['B1'].shift(-20)/mydata[select]['S1']-1
+            result.loc[select,'buyIncreaseNext1m']=(mydata['B1'].shift(-20)/mydata['S1']-1)[select]
             select=(mydata['B1']!=0) & (mydata['S1'].shift(-20)!=0)
-            result.loc[select,'sellIncreaseNext1m']=mydata[select]['S1'].shift(-20)/mydata[select]['B1']-1
+            result.loc[select,'sellIncreaseNext1m']=(mydata['S1'].shift(-20)/mydata['B1']-1)[select]
             #买卖盘口静态信息
             result['buyVolume2']=mydata['BV1']+mydata['BV2']
             result['sellVolume2']=mydata['SV1']+mydata['SV2']
@@ -51,9 +54,19 @@ class buySellForce(factorBase):
             result['buyVolume10']=(mydata['BV1']+mydata['BV2']+mydata['BV3']+mydata['BV4']+mydata['BV5']+mydata['BV6']+mydata['BV7']+mydata['BV8']+mydata['BV9']+mydata['BV10'])
             result['sellVolume10']=(mydata['SV1']+mydata['SV2']+mydata['SV3']+mydata['SV4']+mydata['SV5']+mydata['SV6']+mydata['SV7']+mydata['SV8']+mydata['SV9']+mydata['SV10'])
             #计算盘口变动,只有买卖盘价格变化的时候才计算
-            #计算买方力量
+            #计算买方力量和卖方力量
             S=['S1','S2','S3','S4','S5','S6','S7','S8','S9','S10']
             SV=['SV1','SV2','SV3','SV4','SV5','SV6','SV7','SV8','SV9','SV10']
+            B=['B1','B2','B3','B4','B5','B6','B7','B8','B9','B10']
+            BV=['BV1','BV2','BV3','BV4','BV5','BV6','BV7','BV8','BV9','BV10']
+            #------------------------------------------------------------------
+            result['buyForceIncrease']=0
+            result['sellForceIncrease']=0
+            for i in range(len(B)):
+                price=B[i]
+                volume=BV[i]
+                select=(mydata['B1']<mydata[price].shift(1)) & (mydata[price].shift(1)!=0) & (mydata['B1']!=mydata['S1'])
+                result.loc[select,'buyForceIncrease']=(result['buyForceIncrease']-mydata[volume].shift(1))[select]
             select=(mydata['B1']>=mydata['B1'].shift(1)) & (mydata['B1']!=mydata['S1'])
             result.loc[select,'buyForceIncrease']=mydata['BV1'][select]
             select=(mydata['B1']==mydata['B1'].shift(1)) & (mydata['B1']!=mydata['S1'])
@@ -63,24 +76,30 @@ class buySellForce(factorBase):
                 volume=SV[i]
                 select=(mydata['B1']>=mydata[price].shift(1)) & (mydata[price].shift(1)!=0) & (mydata['B1']!=mydata['S1'])
                 result.loc[select,'buyForceIncrease']=(result['buyForceIncrease']+mydata[volume].shift(1))[select]
-            result['buyForceIncrease']=result['buyForceIncrease']/result['sellVolume10'].shift(1)
-            #计算卖方力量
-            B=['B1','B2','B3','B4','B5','B6','B7','B8','B9','B10']
-            BV=['BV1','BV2','BV3','BV4','BV5','BV6','BV7','BV8','BV9','BV10']
+            select=result['sellVolume10'].shift(1)>=0
+            result.loc[select,'buyForceIncrease']=(result['buyForceIncrease']/result['sellVolume10'].shift(1))[select]
+            #------------------------------------------------------------------
+            for i in range(len(S)):
+                price=S[i]
+                volume=SV[i]
+                select=(mydata['S1']>mydata[price].shift(1)) & (mydata[price].shift(1)!=0) & (mydata['B1']!=mydata['S1'])
+                result.loc[select,'sellForceIncrease']=(result['sellForceIncrease']-mydata[volume].shift(1))[select]
             select=(mydata['S1']<=mydata['S1'].shift(1)) & (mydata['B1']!=mydata['S1'])
             result.loc[select,'sellForceIncrease']=mydata['SV1'][select]
             select=(mydata['S1']==mydata['S1'].shift(1)) & (mydata['B1']!=mydata['S1'])
             result.loc[select,'sellForceIncrease']=(result['sellForceIncrease']-mydata['SV1'].shift(1))[select]
-            for i in range(len(S)):
+            for i in range(len(B)):
                 price=B[i]
                 volume=BV[i]
                 select=(mydata['S1']<=mydata[price].shift(1)) & (mydata[price].shift(1)!=0) & (mydata['B1']!=mydata['S1'])
                 result.loc[select,'sellForceIncrease']=(result['sellForceIncrease']+mydata[volume].shift(1))[select]
-            result['sellForceIncrease']=result['sellForceIncrease']/result['buyVolume10'].shift(1)
+            select=result['buyVolume10'].shift(1)>0
+            result.loc[select,'sellForceIncrease']=(result['sellForceIncrease']/result['buyVolume10'].shift(1))[select]
+            #------------------------------------------------------------------
             #多空力量变化
-            select=((result['buyForceIncrease']==np.nan) & (result['sellForceIncrease']!=np.nan))
+            select=((result['buyForceIncrease'].isna()) & (~result['sellForceIncrease'].isna()))
             result.loc[select,'buyForceIncrease']=0
-            select=((result['sellForceIncrease']==np.nan) & (result['buyForceIncrease']!=np.nan))
+            select=((result['sellForceIncrease'].isna()) & (~result['buyForceIncrease'].isna()))
             result.loc[select,'sellForceIncrease']=0
             result['buySellForceChange']=result['buyForceIncrease']-result['sellForceIncrease']
             #挂单量比
