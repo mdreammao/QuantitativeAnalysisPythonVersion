@@ -39,10 +39,13 @@ class midPriceChange(factorBase):
             result['differenceHighLow']=mydata['midPrice'].rolling(50,min_periods=20).max()/mydata['midPrice'].rolling(50,min_periods=20).min()-1
             result['vwap3m']= (mydata['amount']-mydata['amount'].shift(60))/(mydata['volume']-mydata['volume'].shift(60))
             result['differenceMidVwap']=mydata['midPrice']- result['vwap3m']
-            result['midStd60']=mydata['midPrice'].rolling(60,min_periods=20).std()*math.sqrt(14400/3)
+            result['midPriceIncrease']=mydata['midPrice']/mydata['midPrice'].shift(1)-1
+            result['midStd60']=result['midPriceIncrease'].rolling(60,min_periods=20).std()*math.sqrt(14400/3)
+            result['midBoundedVariation']=result['midPriceIncrease'].rolling(60,min_periods=60).apply(lambda x:x.abs().sum())
+            result['midIncreaseToBV']=result['midIncreasePrevious3m']/result['midBoundedVariation']
             #计算指标的ts值,按50个数据计算
-            mycolumns=['midIncreasePrevious3m','differenceHighLow','vwap3m','differenceMidVwap','midStd60']
-            #mycolumns=[]
+            #mycolumns=['midIncreasePrevious3m','differenceHighLow','vwap3m','differenceMidVwap','midStd60']
+            mycolumns=[]
             for col in mycolumns:
                 result['ts_'+col]=result[col].rolling(50,min_periods=20).apply((lambda x:pd.Series(x).rank().iloc[-1]/len(x)),raw=True)
             pass

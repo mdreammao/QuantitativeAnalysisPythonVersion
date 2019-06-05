@@ -32,7 +32,6 @@ class myAnalysisForFactorsByDate(object):
             #data=data[mycolumns]
             data=data[(data['time']>='093500000') & (data['time']<='145000000')]
             data=data[(data['SV1']>0) & (data['BV1']>0)]
-            data=data[(data['buyForceIncrease']!=np.nan) | (data['sellForceIncrease']!=np.nan)]
 
             #逐日存储数据
             fileName=os.path.join(self.path,str(day)+'.h5')
