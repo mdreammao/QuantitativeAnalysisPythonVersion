@@ -44,6 +44,8 @@ class tickFactorsProcess(object):
         tick=TickDataProcess()
         tickData=tick.getDataByDateFromLocalFile(code,date)
         mydata=pd.merge(mydata,tickData,how='left',left_index=True,right_index=True)
+        if mydata.shape[0]==0:
+            return mydata
         dailyFactor=['closeStd','index','marketValue','industry']
         dailyRepo=dailyFactorsProcess()
         dailyData=dailyRepo.getSingleStockDailyFactors(code,dailyFactor,date,date)

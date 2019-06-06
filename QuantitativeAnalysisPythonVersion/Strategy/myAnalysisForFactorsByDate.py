@@ -21,9 +21,24 @@ class myAnalysisForFactorsByDate(object):
         HDF5Utility.pathCreate(self.path)
         pass
 #----------------------------------------------------------------------
+    def getDataFromLocalDaily(self,today):
+        fileName=os.path.join(self.path,str(today)+'.h5')
+        data=pd.DataFrame()
+        try:
+            with pd.HDFStore(fileName,'r',complib='blosc:zstd',append=True,complevel=9) as store:
+                data=store['data']
+        except Exception as excp:
+            logger.error(f'{fileName} error! {excp}')
+            pass
+        return data
+#----------------------------------------------------------------------
     def getDataFromLocal(self,startDate,endDate):
-        all=[]
         tradedays=TradedayDataProcess.getTradedays(startDate,endDate)
+        tradedays=list(tradedays)
+        with parallel_backend("multiprocessing", n_jobs=JobLibUtility.myjobs):
+            mydata=Parallel()(delayed(self.getDataFromLocalDaily)(tradedays[i]) for i in range(len(tradedays)))
+        all=pd.concat(mydata)
+        '''
         for day in tradedays:
             fileName=os.path.join(self.path,str(day)+'.h5')
             try:
@@ -34,6 +49,7 @@ class myAnalysisForFactorsByDate(object):
                 logger.error(f'{fileName} error! {excp}')
                 pass
         all=pd.concat(all)
+        '''
         return all
         pass
 #----------------------------------------------------------------------
