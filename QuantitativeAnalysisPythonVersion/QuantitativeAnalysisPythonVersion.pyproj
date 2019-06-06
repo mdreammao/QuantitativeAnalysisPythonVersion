@@ -70,13 +70,16 @@
     <Compile Include="DataPrepare\tickFactorsProcess.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DataPrepare\tickFactors\changeOfTickShot\midPriceChange.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DataPrepare\tickFactors\changeOfTickShot\__init__.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DataPrepare\tickFactors\factorBase.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DataPrepare\tickFactors\statusOfTickShot\buySellVolumeRatio.py">
+    <Compile Include="DataPrepare\tickFactors\statusOfTickShot\buySellForce.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="DataPrepare\tickFactors\statusOfTickShot\__init__.py">
@@ -95,10 +98,16 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="QuantitativeAnalysisPythonVersion.py" />
+    <Compile Include="Strategy\myAnalysisForFactorsByDate.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Strategy\myAnalysisForMomentumByStd.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Strategy\myAnalysisForReverseByStd.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Strategy\myAnalysisForReverseByTick.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Strategy\myRandomForestForCeiling.py">
@@ -111,6 +120,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Strategy\stockReverseByStdOnTick.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Strategy\StockReverseByTickInfo.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Strategy\stockReverseMovement.py">

@@ -94,6 +94,7 @@ class UpdateBasicData(object):
         UpdateBasicData.updateStockList(startDate,endDate)
         logger.info('update tickShots')
         UpdateBasicData.updateMultipleStocksTickFactors(stockCodes,startDate,endDate)
+
         pass
     #----------------------------------------------------------------------
     @classmethod 

@@ -61,7 +61,7 @@ class JobLibUtility(object):
             groupnum=len(stockCodes)
             pass
         stocks={i:[] for i in range(groupnum)}
-        allData=pd.DataFrame()
+        allData=[]
         for i in range(0,len(stockCodes)):
             mygroup=i%groupnum
             stocks[mygroup].append(stockCodes[i])
@@ -69,8 +69,24 @@ class JobLibUtility(object):
         with parallel_backend("multiprocessing", n_jobs=JobLibUtility.myjobs):
             mydata=Parallel()(delayed(myfunction)(list(stocks[i]),startDate,endDate) for i in range(groupnum))
         for i in range(groupnum):
-            allData=allData.append(mydata[i])
+            allData.append(mydata[i])
+        allData=pd.concat(allData)
         return allData
+    #----------------------------------------------------------------------
+    @classmethod 
+    def useJobLibToGetFactorDataDaily(self,myfunction,stockCodes,groupnum,date,factors=TICKFACTORSUSED):
+        warnings.filterwarnings('ignore')
+        if groupnum>len(stockCodes):
+            groupnum=len(stockCodes)
+            pass
+        stocks={i:[] for i in range(groupnum)}
+        for i in range(0,len(stockCodes)):
+            mygroup=i%groupnum
+            stocks[mygroup].append(stockCodes[i])
+        with parallel_backend("multiprocessing", n_jobs=JobLibUtility.myjobs):
+            mydata=Parallel()(delayed(myfunction)(list(stocks[i]),date,factors) for i in range(groupnum))
+        mydata=pd.concat(mydata)
+        return mydata
     #----------------------------------------------------------------------
     @classmethod 
     def useJobLibToUpdateData(self,myfunction,stockCodes,groupnum,startDate,endDate):

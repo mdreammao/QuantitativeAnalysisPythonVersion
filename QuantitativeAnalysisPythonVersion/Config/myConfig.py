@@ -11,15 +11,16 @@ MYJOBS=-1
 MYGROUPS=400
 
 #tick因子的映射
-tickFactorList=[
-    {'factorClass': 'factorRatio', 'factorName': 'factorRatioA', 'lag': 10},
-    {'factorClass': 'factorRatio', 'factorName': 'factorRatioB', 'lag': 5}
+
+TICKFACTORSUSED=[
+    {'module': 'DataPrepare.tickFactors.statusOfTickShot.buySellForce', 'class': 'buySellForce', 'factor': 'buySellForce','parameter':[5]},
+    {'module': 'DataPrepare.tickFactors.changeOfTickShot.midPriceChange', 'class': 'midPriceChange', 'factor': 'midPriceChange','parameter':[5]}
     ]
 
-
 #需要计算的tick因子
-tickFactorsNeedToUpdate=[
-    {'module': 'DataPrepare.tickFactors.statusOfTickShot.buySellVolumeRatio', 'class': 'buySellVolumeRatio', 'name': 'buySellVolumeRatio','parameter':[5]}
+TICKFACTORSNEEDTOUPDATE=[
+    {'module': 'DataPrepare.tickFactors.statusOfTickShot.buySellForce', 'class': 'buySellForce', 'factor': 'buySellForce','parameter':[5]},
+    {'module': 'DataPrepare.tickFactors.changeOfTickShot.midPriceChange', 'class': 'midPriceChange', 'factor': 'midPriceChange','parameter':[5]}
     ]
 
 #sql连接字符串
