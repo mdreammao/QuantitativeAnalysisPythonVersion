@@ -72,9 +72,9 @@ class factorBase(object):
         pass
     #----------------------------------------------------------------------
     def checkLocalFile(self,code,factor):
-        path=self.__getPath(code,factor)
+        path=self.getPath(code,factor)
         HDF5Utility.pathCreate(path)
-        fileName=self.__getFileName(code,factor)
+        fileName=self.getFileName(code,factor)
         exists=os.path.exists(fileName)
         return exists
     #----------------------------------------------------------------------
@@ -94,8 +94,8 @@ class factorBase(object):
 
     #----------------------------------------------------------------------
     def saveToLocalFile(self,code,factor,data):
-        path=self.__getPath(code,factor)
-        fileName=self.__getFileName(code,factor)
+        path=self.getPath(code,factor)
+        fileName=self.getFileName(code,factor)
         HDF5Utility.pathCreate(path)
         exists=os.path.exists(fileName)
         #如果存在原数据,和原始数据一起合并存储
@@ -109,8 +109,8 @@ class factorBase(object):
         pass
     #----------------------------------------------------------------------
     def getDataFromLocalFile(self,code,factor):
-        path=self.__getPath(code,factor)
-        fileName=self.__getFileName(code,factor)
+        path=self.getPath(code,factor)
+        fileName=self.getFileName(code,factor)
         data=pd.DataFrame()
         exists=os.path.exists(fileName)
         if exists==False:

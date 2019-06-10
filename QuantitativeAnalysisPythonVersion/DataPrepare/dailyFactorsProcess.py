@@ -44,18 +44,9 @@ class dailyFactorsProcess(object):
             mymodule = importlib.import_module(factor['module'])
             myclass=getattr(mymodule, factor['class'])
             myinstance=myclass()
-            factorFilePath=myinstance.getFileName(code,factor['factor'])
-            exists=os.path.isfile(factorFilePath)
-            if exists==False:
-                print(f'error! {code} has no factor {factor}!!')
-                pass
-            else:
-                with pd.HDFStore(path=factorFilePath,mode='r',complib='blosc:zstd',append=True,complevel=9) as store:
-                    factorData=store['data']
-                factorData=factorData[(factorData['date']>=startDate) & (factorData['date']<=endDate)]
-                mydata=pd.merge(mydata,factorData,how='left',left_on='date',right_on='date')
-                pass
-            pass
+            factorData=myinstance.getDataFromLocalFile(code,factor['factor'])
+            factorData=factorData[(factorData['date']>=startDate) & (factorData['date']<=endDate)]
+            mydata=pd.merge(mydata,factorData,how='left',left_on='date',right_on='date')
         return mydata
     '''
         for factor in factorList:

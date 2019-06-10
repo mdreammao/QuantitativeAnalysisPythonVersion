@@ -51,9 +51,13 @@ def main():
 
 
     warnings.filterwarnings('ignore')
-    startDate=20190506
-    endDate=20190510
-    UpdateBasicData.updateDailyAll()
+    startDate=20100101
+    endDate=20190610
+    m=dailyFactorsProcess()
+    data=m.getSingleStockDailyFactors('600000.SH',startDate,endDate)
+
+
+    #UpdateBasicData.updateDailyAll()
     #UpdateBasicData.updateMinuteAll()
     #UpdateBasicData.updateTickAll(startDate)
     #UpdateBasicData.updateTickFactorAll(startDate)
