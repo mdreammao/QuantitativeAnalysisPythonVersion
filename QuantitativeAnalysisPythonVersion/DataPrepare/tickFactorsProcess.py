@@ -46,9 +46,9 @@ class tickFactorsProcess(object):
         mydata=pd.merge(mydata,tickData,how='left',left_index=True,right_index=True)
         if mydata.shape[0]==0:
             return mydata
-        dailyFactor=['closeStd','index','marketValue','industry']
+        #dailyFactor=['closeStd','index','marketValue','industry']
         dailyRepo=dailyFactorsProcess()
-        dailyData=dailyRepo.getSingleStockDailyFactors(code,dailyFactor,date,date)
+        dailyData=dailyRepo.getSingleStockDailyFactors(code,date,date)
         for col in dailyData.columns:
             if col not in ['date','code','return']:
                 mydata[col]=dailyData[col].iloc[0]

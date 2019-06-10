@@ -13,10 +13,12 @@ class buySellForce(factorBase):
         super().__init__()
         self.factor='buySellForce'
         pass
+    #----------------------------------------------------------------------
     def getFactorFromLocalFile(self,code,date):
         mydata=super().getFromLocalFile(code,date,'buySellForce')
         return mydata
         pass
+    #----------------------------------------------------------------------
     def updateFactor(self,code,date,data=pd.DataFrame()):
         exists=super().checkLocalFile(code,date,self.factor)
         if exists==True:
@@ -26,7 +28,7 @@ class buySellForce(factorBase):
              data=TickDataProcess().getDataByDateFromLocalFile(code,date)
         result=self.__computerFactor(code,date,data)
         super().updateFactor(code,date,self.factor,result)
-
+    #----------------------------------------------------------------------
     def __computerFactor(self,code,date,mydata):
         result=pd.DataFrame()
         if mydata.shape[0]!=0:

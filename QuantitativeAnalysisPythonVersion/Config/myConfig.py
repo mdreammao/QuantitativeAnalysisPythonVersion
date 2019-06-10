@@ -9,20 +9,39 @@ from Utility.HDF5Utility import *
 #定义多线程数据
 MYJOBS=-1
 MYGROUPS=400
+####################################################################
+#日频因子的参数配置
+#使用到的日频因子
+DAILYFACTORSUSED=[
+    {'module': 'DataPrepare.dailyFactors.index.index', 'class': 'index', 'factor': 'index'},
+    {'module': 'DataPrepare.dailyFactors.industry.industry', 'class': 'industry', 'factor': 'industry'},
+    {'module': 'DataPrepare.dailyFactors.marketValue.marketValue', 'class': 'marketValue', 'factor': 'marketValue'},
+    {'module': 'DataPrepare.dailyFactors.volatility.closeStd', 'class': 'closeStd', 'factor': 'closeStd'}
+    ]
 
-#tick因子的映射
+#需要计算的日频因子
+DAILYFACTORSNEEDTOUPDATE=[
+    {'module': 'DataPrepare.dailyFactors.index.index', 'class': 'index', 'factor': 'index'},
+    {'module': 'DataPrepare.dailyFactors.industry.industry', 'class': 'industry', 'factor': 'industry'},
+    {'module': 'DataPrepare.dailyFactors.marketValue.marketValue', 'class': 'marketValue', 'factor': 'marketValue'},
+    {'module': 'DataPrepare.dailyFactors.volatility.closeStd', 'class': 'closeStd', 'factor': 'closeStd'}
+    ]
 
+####################################################################
+#tick因子的参数配置
+
+#使用到的tick因子
 TICKFACTORSUSED=[
-    {'module': 'DataPrepare.tickFactors.statusOfTickShot.buySellForce', 'class': 'buySellForce', 'factor': 'buySellForce','parameter':[5]},
-    {'module': 'DataPrepare.tickFactors.changeOfTickShot.midPriceChange', 'class': 'midPriceChange', 'factor': 'midPriceChange','parameter':[5]}
+    {'module': 'DataPrepare.tickFactors.statusOfTickShot.buySellForce', 'class': 'buySellForce', 'factor': 'buySellForce'},
+    {'module': 'DataPrepare.tickFactors.changeOfTickShot.midPriceChange', 'class': 'midPriceChange', 'factor': 'midPriceChange'}
     ]
 
 #需要计算的tick因子
 TICKFACTORSNEEDTOUPDATE=[
-    {'module': 'DataPrepare.tickFactors.statusOfTickShot.buySellForce', 'class': 'buySellForce', 'factor': 'buySellForce','parameter':[5]},
-    {'module': 'DataPrepare.tickFactors.changeOfTickShot.midPriceChange', 'class': 'midPriceChange', 'factor': 'midPriceChange','parameter':[5]}
+    {'module': 'DataPrepare.tickFactors.statusOfTickShot.buySellForce', 'class': 'buySellForce', 'factor': 'buySellForce'},
+    {'module': 'DataPrepare.tickFactors.changeOfTickShot.midPriceChange', 'class': 'midPriceChange', 'factor': 'midPriceChange'}
     ]
-
+####################################################################
 #sql连接字符串
 SqlServer={
     'server170':'server=192.168.1.170;uid=reader;pwd=reader;',
@@ -44,6 +63,8 @@ TempLocalFileAddress=r'D:/BTP/LocalDataBase/temp'
 #LocalFileAddress=os.path.join(ROOT_PATH, 'LocalDataBase')
 #TempLocalFileAddress=os.path.join(LocalFileAddress, 'temp')
 
+
+####################################################################
 #logger日志文件
 # 创建一个logger
 logger = logging.getLogger()
@@ -65,5 +86,5 @@ ch = logging.StreamHandler()
 ch.setLevel(logging.INFO)
 ch.setFormatter(formatter)
 logger.addHandler(ch)
-
+####################################################################
 

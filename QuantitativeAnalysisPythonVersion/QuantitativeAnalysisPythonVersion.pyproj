@@ -61,6 +61,36 @@
     <Compile Include="DataPrepare\dailyFactorsProcess.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DataPrepare\dailyFactors\factorBase.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataPrepare\dailyFactors\index\index.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataPrepare\dailyFactors\index\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataPrepare\dailyFactors\industry\industry.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataPrepare\dailyFactors\industry\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataPrepare\dailyFactors\marketValue\marketValue.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataPrepare\dailyFactors\marketValue\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataPrepare\dailyFactors\volatility\closeStd.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataPrepare\dailyFactors\volatility\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataPrepare\dailyFactors\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DataPrepare\dailyKLineDataPrepared.py">
       <SubType>Code</SubType>
     </Compile>
@@ -113,6 +143,18 @@
     <Compile Include="Strategy\myRandomForestForCeiling.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Strategy\stockIntradayByTick.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Strategy\stockIntradayByTick\reverse\strategy1.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Strategy\stockIntradayByTick\reverse\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Strategy\stockIntradayByTick\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Strategy\stockMomentumByStd.py">
       <SubType>Code</SubType>
     </Compile>
@@ -163,11 +205,19 @@
     <Folder Include="DataAccess\" />
     <Folder Include="Config\" />
     <Folder Include="DataPrepare\" />
+    <Folder Include="DataPrepare\dailyFactors\" />
+    <Folder Include="DataPrepare\dailyFactors\index\" />
+    <Folder Include="DataPrepare\dailyFactors\industry\" />
+    <Folder Include="DataPrepare\dailyFactors\marketValue\" />
+    <Folder Include="DataPrepare\dailyFactors\volatility\" />
     <Folder Include="DataPrepare\tickFactors\" />
     <Folder Include="DataPrepare\tickFactors\changeOfTickShot\" />
     <Folder Include="DataPrepare\tickFactors\statusOfTickShot\" />
     <Folder Include="Monitor\" />
     <Folder Include="Strategy\" />
+    <Folder Include="Strategy\stockIntradayByTick\" />
+    <Folder Include="Strategy\stockIntradayByTick\momentum\" />
+    <Folder Include="Strategy\stockIntradayByTick\reverse\" />
     <Folder Include="Utility\" />
   </ItemGroup>
   <ItemGroup>

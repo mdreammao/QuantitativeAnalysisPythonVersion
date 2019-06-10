@@ -51,8 +51,8 @@ class stockReverseByStd(object):
         myMinute=dkl.KLineDataProcess('minute')
         num=0
         dailyFactor=dailyFactorsProcess()
-        factors=['closeStd','index','marketValue','industry']
-        allDailyData=dailyFactor.getMultipleStockDailyFactors(mylist,factors,startDate,endDate)
+        #factors=['closeStd','index','marketValue','industry']
+        allDailyData=dailyFactor.getMultipleStockDailyFactors(mylist,startDate,endDate)
         #store = pd.HDFStore(self.__factorsAddress,'a')
         #allDailyData=store.select(self.__key,where=['date>="%s" and date<="%s"'%(startDate,endDate)])
         #store.close()

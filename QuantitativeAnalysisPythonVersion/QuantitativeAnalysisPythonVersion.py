@@ -53,12 +53,20 @@ def main():
     warnings.filterwarnings('ignore')
     startDate=20190506
     endDate=20190510
-    #UpdateBasicData.updateDailyAndMinuteAll()
+    UpdateBasicData.updateDailyAll()
+    #UpdateBasicData.updateMinuteAll()
     #UpdateBasicData.updateTickAll(startDate)
     #UpdateBasicData.updateTickFactorAll(startDate)
-    stockCodes=UpdateBasicData.updateStockCodes(startDate,endDate)
+    #----------------------------------------------------------------------
+    
+    
+    
+    #stockCodes=UpdateBasicData.updateStockCodes(startDate,endDate)
     codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
-
+    mydaily=dailyFactorsProcess()
+    mydaily.updateStockDailyFactorsVersion2(codes)
+    #----------------------------------------------------------------------
+    '''
     ana=myAnalysisForFactorsByDate('tmp')
     #ana.prepareData(codes,startDate,endDate)
     data=ana.getDataFromLocal(startDate,endDate)
@@ -83,8 +91,8 @@ def main():
     print(x['buyIncreaseNext1m'].mean())
     print(x['sellIncreaseNext1m'].mean())
     #print(x)
-    
-
+    '''
+    #----------------------------------------------------------------------
     '''
     myReverse=stockReverseByStdOnTick()
     print(datetime.datetime.now())
