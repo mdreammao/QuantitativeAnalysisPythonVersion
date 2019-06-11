@@ -20,6 +20,7 @@ from Strategy.myAnalysisForReverseByTick import myAnalysisForReverseByTick
 from Strategy.myAnalysisForFactorsByDate import myAnalysisForFactorsByDate
 from DataPrepare.dailyFactorsProcess import *
 from DataPrepare.tickFactorsProcess import *
+from Strategy.stockIntradayByTick.reverse.strategy1 import strategy1
 from Utility.mytest import *
 from Utility.JobLibUtility import *
 from Utility.UpdateBasicData import *
@@ -53,22 +54,24 @@ def main():
     warnings.filterwarnings('ignore')
     startDate=20100101
     endDate=20190610
-    m=dailyFactorsProcess()
-    data=m.getSingleStockDailyFactors('600000.SH',startDate,endDate)
 
 
     #UpdateBasicData.updateDailyAll()
     #UpdateBasicData.updateMinuteAll()
     #UpdateBasicData.updateTickAll(startDate)
     #UpdateBasicData.updateTickFactorAll(startDate)
+    #stockCodes=UpdateBasicData.updateStockCodes(startDate,endDate)
+    #UpdateBasicData.updateDailyFactors(stockCodes)
     #----------------------------------------------------------------------
     
-    
-    
-    #stockCodes=UpdateBasicData.updateStockCodes(startDate,endDate)
+   
+    test=strategy1()
     codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
-    mydaily=dailyFactorsProcess()
-    mydaily.updateStockDailyFactorsVersion2(codes)
+    data=test.multipleCodes_parallel(codes,20190506,20190508)
+    #stockCodes=UpdateBasicData.updateStockCodes(startDate,endDate)
+    #codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
+    #mydaily=dailyFactorsProcess()
+    #mydaily.updateStockDailyFactorsVersion2(codes)
     #----------------------------------------------------------------------
     '''
     ana=myAnalysisForFactorsByDate('tmp')
