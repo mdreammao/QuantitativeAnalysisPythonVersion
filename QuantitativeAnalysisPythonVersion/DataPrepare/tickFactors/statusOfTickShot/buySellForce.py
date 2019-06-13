@@ -32,14 +32,8 @@ class buySellForce(factorBase):
     def __computerFactor(self,code,date,mydata):
         result=pd.DataFrame()
         if mydata.shape[0]!=0:
-           
             #index对齐即可
             result=pd.DataFrame(index=mydata.index)
-            #mid价格的增长率
-            result['midIncreaseNext1m']=mydata['midPrice'].shift(-20)/mydata['midPrice']-1
-            result['midIncreaseNext5m']=mydata['midPrice'].shift(-100)/mydata['midPrice']-1
-            result['midIncreaseNext10m']=mydata['midPrice'].shift(-200)/mydata['midPrice']-1
-            result['midIncreaseNext20m']=mydata['midPrice'].shift(-400)/mydata['midPrice']-1
             #bid ask 间距
             select=(mydata['S1']!=0) & (mydata['B1']!=0)
             result.loc[select,'buySellSpread']=((mydata['B1']-mydata['S1'])/mydata['S1'])[select]

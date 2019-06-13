@@ -52,6 +52,9 @@
     <Compile Include="DataAccess\TickDataProcess.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DataAccess\TickTransactionDataProcess.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DataAccess\TradedayDataProcess.py">
       <SubType>Code</SubType>
     </Compile>
@@ -115,6 +118,12 @@
     <Compile Include="DataPrepare\tickFactors\statusOfTickShot\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DataPrepare\tickFactors\targetFactor\targetFactor.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataPrepare\tickFactors\targetFactor\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DataPrepare\tickFactors\__init__.py">
       <SubType>Code</SubType>
     </Compile>
@@ -143,7 +152,16 @@
     <Compile Include="Strategy\myRandomForestForCeiling.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Strategy\stockIntradayByTick\momentum\strategy1.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Strategy\stockIntradayByTick\momentum\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Strategy\stockIntradayByTick\reverse\strategy1.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Strategy\stockIntradayByTick\reverse\strategy2.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Strategy\stockIntradayByTick\reverse\__init__.py">
@@ -209,6 +227,7 @@
     <Folder Include="DataPrepare\dailyFactors\volatility\" />
     <Folder Include="DataPrepare\tickFactors\" />
     <Folder Include="DataPrepare\tickFactors\changeOfTickShot\" />
+    <Folder Include="DataPrepare\tickFactors\targetFactor\" />
     <Folder Include="DataPrepare\tickFactors\statusOfTickShot\" />
     <Folder Include="Monitor\" />
     <Folder Include="Strategy\" />

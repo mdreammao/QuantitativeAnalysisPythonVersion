@@ -5,7 +5,7 @@ from DataPrepare.tickFactorsProcess import tickFactorsProcess
 from Utility.JobLibUtility import JobLibUtility
 import pandas as pd
 ########################################################################
-class strategy1(object):
+class strategyBreak(object):
     """description of class"""
     #----------------------------------------------------------------------
     def __init__(self):
@@ -29,7 +29,7 @@ class strategy1(object):
     def singleCode(self,code,startDate,endDate,parameters):
         days=list(TradedayDataProcess().getTradedays(startDate,endDate))
         tick=tickFactorsProcess()
-        select=['code','date','time','B1','S1','midIncreasePrevious3m','closeStd20','ts_closeStd20','ts_buySellForceChange','ts_buySellVolumeRatio5','ts_buySellVolumeRatio2','preClose','increaseToday','weight300','weight500']
+        select=['code','date','time','B1','S1','midIncreasePrevious3m','closeStd20','ts_closeStd20','ts_buySellForceChange','ts_buySellVolumeRatio5','ts_buySellVolumeRatio2','preClose','increaseToday','weight300','weight500','differenceHighLow']
         trade=[]
         for day in days:
             data=tick.getTickDataAndFactorsByDateFromLocalFile(code,day)
@@ -70,14 +70,15 @@ class strategy1(object):
             ts_buySellVolumeRatio2=mytick[myindex['ts_buySellVolumeRatio2']]
             midIncreasePrevious3m=mytick[myindex['midIncreasePrevious3m']]
             closeStd20=mytick[myindex['closeStd20']]
-            if (position==0)& (ts_buySellForceChange>=0.8) & (ts_buySellVolumeRatio5>=0.8) & (ts_buySellVolumeRatio2>=0.8) & (midIncreasePrevious3m<-0.5*closeStd20):
-                if (ts_buySellForceChange>=0.8) & (ts_buySellVolumeRatio5>=0.8) & (ts_buySellVolumeRatio2>=0.8) & (midIncreasePrevious3m<-0.5*closeStd20):
+            differenceHighLow=mytick[myindex['differenceHighLow']]
+            if (position==0):
+                if (ts_buySellForceChange>=0.8) & (ts_buySellVolumeRatio5>=0.8) & (ts_buySellVolumeRatio2>=0.8) & (differenceHighLow<0.01):
                     open=mytick[myindex['S1']]
                     position=1
                     startIndex=i
                     dict={'open':open,'openTime':mytime,'date':mytick[myindex['date']],'code':mytick[myindex['code']],'position':position,'weight300':weight300,'weight500':weight500}
                     pass
-                elif (ts_buySellForceChange<=0.2) & (ts_buySellVolumeRatio5<=0.2) & (ts_buySellVolumeRatio2<=0.2) & (midIncreasePrevious3m>0.5*closeStd20):
+                elif (ts_buySellForceChange<=0.2) & (ts_buySellVolumeRatio5<=0.2) & (ts_buySellVolumeRatio2<=0.2) & (differenceHighLow<0.01):
                     open=mytick[myindex['B1']]
                     startIndex=i
                     position=-1

@@ -31,12 +31,9 @@ class midPriceChange(factorBase):
     def __computerFactor(self,code,date,mydata):
         result=pd.DataFrame()
         if mydata.shape[0]!=0:
-            #result['midIncreaseNext1m']=mydata['midPrice'].shift(-20)/mydata['midPrice']-1
-            #result['midIncreaseNext5m']=mydata['midPrice'].shift(-100)/mydata['midPrice']-1
-            #result['midIncreaseNext10m']=mydata['midPrice'].shift(-200)/mydata['midPrice']-1
             #计算指标，根据前3分钟的数据计算
             result=pd.DataFrame(index=mydata.index)
-            mydata['midPrice'].fillna(method='ffill',inplace=True)
+            #mydata['midPrice'].fillna(method='ffill',inplace=True)
             result['midIncreasePrevious3m']=mydata['midPrice']/mydata['midPrice'].shift(60)-1
             result['differenceHighLow']=mydata['midPrice'].rolling(50,min_periods=20).max()/mydata['midPrice'].rolling(50,min_periods=20).min()-1
             result['vwap3m']= (mydata['amount']-mydata['amount'].shift(60))/(mydata['volume']-mydata['volume'].shift(60))

@@ -7,6 +7,7 @@ from DataAccess.IndustryClassification import *
 from DataAccess.IndexCode import *
 from DataAccess.StockSharesProcess import *
 from DataAccess.TickDataProcess import *
+from DataAccess.TickTransactionDataProcess import TickTransactionDataProcess
 from DataPrepare.dataPrepareByIndex import *
 from DataPrepare.dailyKLineDataPrepared import *
 from Strategy.stockReverseMovement import *
@@ -21,6 +22,7 @@ from Strategy.myAnalysisForFactorsByDate import myAnalysisForFactorsByDate
 from DataPrepare.dailyFactorsProcess import *
 from DataPrepare.tickFactorsProcess import *
 from Strategy.stockIntradayByTick.reverse.strategy1 import strategy1
+from Strategy.stockIntradayByTick.momentum.strategy1 import strategyBreak
 from Utility.mytest import *
 from Utility.JobLibUtility import *
 from Utility.UpdateBasicData import *
@@ -52,8 +54,10 @@ def main():
 
 
     warnings.filterwarnings('ignore')
-    startDate=20100101
+    startDate=20190101
     endDate=20190610
+
+
 
 
     #UpdateBasicData.updateDailyAll()
@@ -63,15 +67,21 @@ def main():
     #stockCodes=UpdateBasicData.updateStockCodes(startDate,endDate)
     #UpdateBasicData.updateDailyFactors(stockCodes)
     #----------------------------------------------------------------------
+    codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
+    mytick=TickTransactionDataProcess()
+    mytick.parallelizationUpdateDataByDate(codes,startDate,endDate)
     
-   
-    test=strategy1()
+    
+    '''
+    test=strategyBreak()
     codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
     data=test.multipleCodes_parallel(codes,20190506,20190508)
+    print(data)
     #stockCodes=UpdateBasicData.updateStockCodes(startDate,endDate)
     #codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
     #mydaily=dailyFactorsProcess()
     #mydaily.updateStockDailyFactorsVersion2(codes)
+    '''
     #----------------------------------------------------------------------
     '''
     ana=myAnalysisForFactorsByDate('tmp')

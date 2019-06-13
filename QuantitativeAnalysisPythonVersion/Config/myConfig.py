@@ -33,13 +33,15 @@ DAILYFACTORSNEEDTOUPDATE=[
 #使用到的tick因子
 TICKFACTORSUSED=[
     {'module': 'DataPrepare.tickFactors.statusOfTickShot.buySellForce', 'class': 'buySellForce', 'factor': 'buySellForce'},
-    {'module': 'DataPrepare.tickFactors.changeOfTickShot.midPriceChange', 'class': 'midPriceChange', 'factor': 'midPriceChange'}
+    {'module': 'DataPrepare.tickFactors.changeOfTickShot.midPriceChange', 'class': 'midPriceChange', 'factor': 'midPriceChange'},
+    {'module': 'DataPrepare.tickFactors.targetFactor.targetFactor', 'class': 'targetFactor', 'factor': 'targetFactor'}
     ]
 
 #需要计算的tick因子
 TICKFACTORSNEEDTOUPDATE=[
     {'module': 'DataPrepare.tickFactors.statusOfTickShot.buySellForce', 'class': 'buySellForce', 'factor': 'buySellForce'},
-    {'module': 'DataPrepare.tickFactors.changeOfTickShot.midPriceChange', 'class': 'midPriceChange', 'factor': 'midPriceChange'}
+    {'module': 'DataPrepare.tickFactors.changeOfTickShot.midPriceChange', 'class': 'midPriceChange', 'factor': 'midPriceChange'},
+    {'module': 'DataPrepare.tickFactors.targetFactor.targetFactor', 'class': 'targetFactor', 'factor': 'targetFactor'}
     ]
 ####################################################################
 #sql连接字符串
