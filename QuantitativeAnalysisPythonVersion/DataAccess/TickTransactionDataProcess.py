@@ -92,7 +92,8 @@ class TickTransactionDataProcess(object):
         cursor.execute(sql)
         mydata=cursor.fetchall()
         mydata = pd.DataFrame(mydata,columns=['code' ,'date','time' ,'tradeIndex','tradePrice','tradeVolume'])
-        mydata[['tradeIndex','tradePrice','tradeVolume']] = mydata[['tradeIndex','tradePrice','tradeVolume']].astype('float')
+        mydata[['tradePrice']] = mydata[['tradePrice']].astype('float')
+        mydata[['tradeIndex','tradeVolume']] = mydata[['tradeIndex','tradeVolume']].astype('int')
         mydata['mytime']=pd.to_datetime(mydata['date']+mydata['time'],format='%Y%m%d%H%M%S%f')
         mydata.set_index('mytime',inplace=True,drop=True)
         return mydata    

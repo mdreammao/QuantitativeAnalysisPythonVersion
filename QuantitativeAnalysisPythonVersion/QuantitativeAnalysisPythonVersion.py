@@ -60,16 +60,13 @@ def main():
 
 
 
-    #UpdateBasicData.updateDailyAll()
+    UpdateBasicData.updateDailyAll()
     #UpdateBasicData.updateMinuteAll()
-    #UpdateBasicData.updateTickAll(startDate)
+    UpdateBasicData.updateTickAll(startDate)
     #UpdateBasicData.updateTickFactorAll(startDate)
     #stockCodes=UpdateBasicData.updateStockCodes(startDate,endDate)
     #UpdateBasicData.updateDailyFactors(stockCodes)
     #----------------------------------------------------------------------
-    codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
-    mytick=TickTransactionDataProcess()
-    mytick.parallelizationUpdateDataByDate(codes,startDate,endDate)
     
     
     '''

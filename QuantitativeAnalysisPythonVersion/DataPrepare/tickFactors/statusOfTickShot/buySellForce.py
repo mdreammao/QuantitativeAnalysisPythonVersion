@@ -29,26 +29,47 @@ class buySellForce(factorBase):
         result=self.__computerFactor(code,date,data)
         super().updateFactor(code,date,self.factor,result)
     #----------------------------------------------------------------------
+    def __buySellWeightedVolumeRatio(self,data,n):
+        data['buyWeightedVolume'+str(n)]=0
+        data['sellWeightedVolume'+str(n)]=0
+        for i in range(n):
+            data['buyWeightedVolume'+str(n)]=data['buyWeightedVolume'+str(n)]+data['BV'+str(i)]*(mydata['midPrice']-data['B'+str(i)])
+            data['sellWeightedVolume'+str(n)]=data['sellWeightedVolume'+str(n)]+data['SV'+str(i)]*(-mydata['midPrice']+data['S'+str(i)])
+            pass
+        data['buySellWeightedVolumeRatio'+str(n)]=data['buyWeightedVolume'+str(n)]/(data['buyWeightedVolume'+str(n)]+data['sellWeightedVolume'+str(n)])
+        pass
+    #----------------------------------------------------------------------
     def __computerFactor(self,code,date,mydata):
         result=pd.DataFrame()
         if mydata.shape[0]!=0:
             #index对齐即可
             result=pd.DataFrame(index=mydata.index)
-            #bid ask 间距
+            #------------------------------------------------------------------
+            #bid ask 间距，因子值在[0,0.1]之间
+            result['buySellSpread']=0.01
             select=(mydata['S1']!=0) & (mydata['B1']!=0)
-            result.loc[select,'buySellSpread']=((mydata['B1']-mydata['S1'])/mydata['S1'])[select]
-            #对手价增长率,计算买对价和卖对价的增长率
-            select=(mydata['S1']!=0) & (mydata['B1'].shift(-20)!=0)
-            result.loc[select,'buyIncreaseNext1m']=(mydata['B1'].shift(-20)/mydata['S1']-1)[select]
-            select=(mydata['B1']!=0) & (mydata['S1'].shift(-20)!=0)
-            result.loc[select,'sellIncreaseNext1m']=(mydata['S1'].shift(-20)/mydata['B1']-1)[select]
-            #买卖盘口静态信息
+            result.loc[select,'buySellSpread']=((mydata['B1']-mydata['S1'])/mydata['midPrice'])[select]
+            #------------------------------------------------------------------
+            #买卖盘口静态信息,因子值为正整数
             result['buyVolume2']=mydata['BV1']+mydata['BV2']
             result['sellVolume2']=mydata['SV1']+mydata['SV2']
             result['buyVolume5']=(mydata['BV1']+mydata['BV2']+mydata['BV3']+mydata['BV4']+mydata['BV5'])
             result['sellVolume5']=(mydata['SV1']+mydata['SV2']+mydata['SV3']+mydata['SV4']+mydata['SV5'])
             result['buyVolume10']=(mydata['BV1']+mydata['BV2']+mydata['BV3']+mydata['BV4']+mydata['BV5']+mydata['BV6']+mydata['BV7']+mydata['BV8']+mydata['BV9']+mydata['BV10'])
             result['sellVolume10']=(mydata['SV1']+mydata['SV2']+mydata['SV3']+mydata['SV4']+mydata['SV5']+mydata['SV6']+mydata['SV7']+mydata['SV8']+mydata['SV9']+mydata['SV10'])
+            result['totalVolume10']=result['buyVolume10']+result['sellVolume10']
+            #------------------------------------------------------------------
+            #挂单量比
+            result['buySellVolumeRatio2']=(result['buyVolume2']/(result['sellVolume2']+result['buyVolume2']))
+            result['buySellVolumeRatio5']=(result['buyVolume5']/(result['sellVolume5']+result['buyVolume5']))
+            result['buySellVolumeRatio10']=(result['buyVolume10']/(result['sellVolume10']+result['buyVolume10']))
+            #------------------------------------------------------------------
+            #加权之后的多空力量对比
+            #根据价格和量计算的多空力量对比
+            self.__buySellWeightedVolumeRatio(result,2)
+            self.__buySellWeightedVolumeRatio(result,5)
+            self.__buySellWeightedVolumeRatio(result,10)
+            #------------------------------------------------------------------
             #计算盘口变动,只有买卖盘价格变化的时候才计算
             #计算买方力量和卖方力量
             S=['S1','S2','S3','S4','S5','S6','S7','S8','S9','S10']
@@ -98,34 +119,6 @@ class buySellForce(factorBase):
             select=((result['sellForceIncrease'].isna()) & (~result['buyForceIncrease'].isna()))
             result.loc[select,'sellForceIncrease']=0
             result['buySellForceChange']=result['buyForceIncrease']-result['sellForceIncrease']
-            #挂单量比
-            result['buySellVolumeRatio2']=((result['buyVolume2']/(result['sellVolume2']+result['buyVolume2']))-0.5)*2
-            result['buySellVolumeRatio5']=((result['buyVolume5']/(result['sellVolume5']+result['buyVolume5']))-0.5)*2
-            result['buySellVolumeRatio10']=((result['buyVolume10']/(result['sellVolume10']+result['buyVolume10']))-0.5)*2
-            #result.loc[result['buySellVolumeRatio10']==np.inf,['buySellVolumeRatio1','buySellVolumeRatio5','buySellVolumeRatio10']]=np.nan
-            #result.loc['buySellVolumeRatio1','buySellVolumeRatio5','buySellVolumeRatio10'].fillna(method='ffill',inplace=True)
-            #result['buySellVolumeRatio2EMA']=result['buySellVolumeRatio2'].ewm(alpha=0.9,ignore_na=False,adjust=True).mean()
-            #result['buySellVolumeRatio5EMA']=result['buySellVolumeRatio5'].ewm(alpha=0.9,ignore_na=False,adjust=True).mean()
-            #result['buySellVolumeRatio10EMA']=result['buySellVolumeRatio10'].ewm(alpha=0.9,ignore_na=False,adjust=True).mean()
-            
-            #根据价格和量计算的多空力量对比
-            result['buyPrice2']=(mydata['BV1']*mydata['B1']+mydata['BV2']*mydata['B2'])/result['buyVolume2']
-            result['sellPrice2']=(mydata['SV1']*mydata['S1']+mydata['SV2']*mydata['S2'])/result['sellVolume2']
-            result['buySellPriceRatio2']=(result['sellPrice2']-mydata['S1'])/(result['sellPrice2']-mydata['S1']+mydata['B1']-result['buyPrice2'])
-            result['buyPrice5']=(mydata['BV1']*mydata['B1']+mydata['BV2']*mydata['B2']+mydata['BV3']*mydata['BV3']+mydata['BV4']*mydata['BV4']+mydata['BV5']*mydata['BV5'])/result['buyVolume5']
-            result['sellPrice5']=(mydata['SV1']*mydata['S1']+mydata['SV2']*mydata['S2']+mydata['SV3']*mydata['SV3']+mydata['SV4']*mydata['SV4']+mydata['SV5']*mydata['SV5'])/result['sellVolume5']
-            result['buySellPriceRatio5']=(result['sellPrice5']-mydata['S1'])/(result['sellPrice5']-mydata['S1']+mydata['B1']-result['buyPrice5'])
-            #因子在前50条数据的分位数
-            result['ts_volume1']=(mydata['BV1']+mydata['SV1']).rolling(50,min_periods=20).apply((lambda x:pd.Series(x).rank().iloc[-1]/len(x)),raw=True)
-            result['ts_volume2']=(result['buyVolume2']+result['sellVolume2']).rolling(50,min_periods=20).apply((lambda x:pd.Series(x).rank().iloc[-1]/len(x)),raw=True)
-            result['ts_volume5']=(result['buyVolume5']+result['sellVolume5']).rolling(50,min_periods=20).apply((lambda x:pd.Series(x).rank().iloc[-1]/len(x)),raw=True)
-            mycolumns=['buySellVolumeRatio2','buySellVolumeRatio5','buySellVolumeRatio10','buySellPriceRatio2','buySellPriceRatio5','buyForceIncrease','sellForceIncrease','buySellForceChange']
-            for col in mycolumns:
-                result['ts_'+col]=result[col].rolling(50,min_periods=20).apply((lambda x:pd.Series(x).rank().iloc[-1]/len(x)),raw=True)
-            #result['ts_buySellVolumeRatio2']=result['buySellVolumeRatio2'].rolling(50,min_periods=20).apply((lambda x:pd.Series(x).rank().iloc[-1]/len(x)),raw=True)
-            #result['ts_buySellVolumeRatio5']=result['buySellVolumeRatio5'].rolling(50,min_periods=20).apply((lambda x:pd.Series(x).rank().iloc[-1]/len(x)),raw=True)
-            #result['ts_buySellPriceRatio2']=result['buySellPriceRatio2'].rolling(50,min_periods=20).apply((lambda x:pd.Series(x).rank().iloc[-1]/len(x)),raw=True)
-            #result['ts_buySellPriceRatio5']=result['buySellPriceRatio5'].rolling(50,min_periods=20).apply((lambda x:pd.Series(x).rank().iloc[-1]/len(x)),raw=True)
             pass
         else:
             logger.error(f'There no data of {code} in {date} to computer factor!') 
