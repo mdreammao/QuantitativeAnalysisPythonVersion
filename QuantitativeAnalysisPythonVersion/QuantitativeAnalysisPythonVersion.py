@@ -54,7 +54,8 @@ def main():
 
 
     warnings.filterwarnings('ignore')
-    startDate=20190101
+    logger.info(f'compute start!!!')
+    startDate=20190501
     endDate=20190610
 
 
@@ -63,12 +64,16 @@ def main():
     #UpdateBasicData.updateDailyAll()
     #UpdateBasicData.updateMinuteAll()
     #UpdateBasicData.updateTickAll(startDate)
-    UpdateBasicData.updateTickFactorAll(startDate)
+    #UpdateBasicData.updateTickFactorAll(startDate)
     #stockCodes=UpdateBasicData.updateStockCodes(startDate,endDate)
     #UpdateBasicData.updateDailyFactors(stockCodes)
     #----------------------------------------------------------------------
     
-    
+    #codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
+    codes=UpdateBasicData.updateStockCodes(startDate,endDate)
+    UpdateBasicData.updateMultipleStocksTickFactors(codes,startDate,endDate)
+    ana=myAnalysisForFactorsByDate('tmp')
+    ana.prepareData(codes,startDate,endDate)
     '''
     test=strategyBreak()
     codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
@@ -81,8 +86,7 @@ def main():
     '''
     #----------------------------------------------------------------------
     '''
-    ana=myAnalysisForFactorsByDate('tmp')
-    #ana.prepareData(codes,startDate,endDate)
+    
     data=ana.getDataFromLocal(startDate,endDate)
     #data['midIncreaseNext1m']=data['midIncreaseNext1m']/data['midStd60']
     #['code', 'date', 'time', 'buyIncreaseNext1m', 'sellIncreaseNext1m','midIncreaseNext1m', 'midIncreaseNext5m', 'midIncreaseNext10m','midIncreaseNext20m', 'ts_buySellVolumeRatio2','ts_buySellVolumeRatio5', 'ts_buySellVolumeRatio10','buySellVolumeRatio2', 'buySellVolumeRatio5', 'buySellVolumeRatio10',       'differenceHighLow', 'ts_buyForceIncrease', 'ts_sellForceIncrease','ts_buySellForceChange', 'buyForceIncrease', 'sellForceIncrease',       'buySellForceChange', 'midIncreasePrevious3m', 'differenceMidVwap','midStd60', 'ts_midStd60', 'increaseToday', 'closeStd20','ts_closeStd20', 'preClose', 'is300', 'is500', 'buySellSpread','midAbsIncrease1m']

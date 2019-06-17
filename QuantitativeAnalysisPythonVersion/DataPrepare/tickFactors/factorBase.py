@@ -67,7 +67,7 @@ class factorBase(object):
     def checkDataNan(self,code,date,factor,data):
         errorData=data[data.isna().sum(axis=1)>0]
         if errorData.shape[0]>0:
-            logger.error(f'{factor} of {code} in {date} has nan data!!!')
+            logger.warning(f'{factor} of {code} in {date} has nan data!!!')
             return False
         else:
             return True

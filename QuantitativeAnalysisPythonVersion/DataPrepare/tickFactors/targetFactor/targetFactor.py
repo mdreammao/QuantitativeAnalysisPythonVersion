@@ -49,6 +49,9 @@ class targetFactor(factorBase):
             #------------------------------------------------------------------
             #剔除14点57分之后，集合竞价的数据
             result=result[result['time']<'145700000']
+            mycolumns=list(set(result.columns).difference(set(mydata.columns)))
+            result=result[mycolumns]
+            #super().checkDataNan(code,date,self.factor,result)
             pass
         else:
             logger.error(f'There no data of {code} in {date} to computer factor!') 
