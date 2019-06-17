@@ -33,7 +33,8 @@ class targetFactor(factorBase):
         result=pd.DataFrame()
         if mydata.shape[0]!=0:
             #index对齐即可
-            result=pd.DataFrame(index=mydata.index)
+            result=mydata[['midPrice','time']].copy()
+            result['midPrice'].fillna(method='ffill',inplace=True)
             #mid价格的增长率 1m 2m 5m
             result['midIncreaseNext1m']=mydata['midPrice'].shift(-20)/mydata['midPrice']-1
             result['midIncreaseNext2m']=mydata['midPrice'].shift(-40)/mydata['midPrice']-1
@@ -45,6 +46,9 @@ class targetFactor(factorBase):
             result['midIncreaseMinNext2m']=mydata['midPrice'].rolling(40).min().shift(-40)/mydata['midPrice']-1
             result['midIncreaseMaxNext5m']=mydata['midPrice'].rolling(100).max().shift(-100)/mydata['midPrice']-1
             result['midIncreaseMinNext5m']=mydata['midPrice'].rolling(100).min().shift(-100)/mydata['midPrice']-1
+            #------------------------------------------------------------------
+            #剔除14点57分之后，集合竞价的数据
+            result=result[result['time']<'145700000']
             pass
         else:
             logger.error(f'There no data of {code} in {date} to computer factor!') 

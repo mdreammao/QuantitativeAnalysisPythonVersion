@@ -60,10 +60,10 @@ def main():
 
 
 
-    UpdateBasicData.updateDailyAll()
+    #UpdateBasicData.updateDailyAll()
     #UpdateBasicData.updateMinuteAll()
-    UpdateBasicData.updateTickAll(startDate)
-    #UpdateBasicData.updateTickFactorAll(startDate)
+    #UpdateBasicData.updateTickAll(startDate)
+    UpdateBasicData.updateTickFactorAll(startDate)
     #stockCodes=UpdateBasicData.updateStockCodes(startDate,endDate)
     #UpdateBasicData.updateDailyFactors(stockCodes)
     #----------------------------------------------------------------------
