@@ -128,15 +128,12 @@ class JobLibUtility(object):
             groupnum=len(stockCodes)
             pass
         stocks={i:[] for i in range(groupnum)}
-        allData=[]
         for i in range(0,len(stockCodes)):
             mygroup=i%groupnum
             stocks[mygroup].append(stockCodes[i])
         tmpAddress={}
         with parallel_backend("multiprocessing", n_jobs=JobLibUtility.myjobs):
             mydata=Parallel()(delayed(myfunction)(list(stocks[i]),startDate,endDate,parameters) for i in range(groupnum))
-        for i in range(groupnum):
-            allData.append(mydata[i])
-        allData=pd.concat(allData)
+        allData=pd.concat(mydata)
         return allData
 ########################################################################

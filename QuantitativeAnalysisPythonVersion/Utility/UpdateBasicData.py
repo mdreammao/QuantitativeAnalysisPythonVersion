@@ -21,7 +21,7 @@ class UpdateBasicData(object):
         pass
     #----------------------------------------------------------------------
     @classmethod 
-    def updateDailyAndMinuteAll(self):
+    def updateDailyAll(self):
         startDate=str(20100101)
         yesterday=(datetime.datetime.now()+datetime.timedelta(days=-1)).strftime("%Y%m%d")
         today=datetime.datetime.now().strftime("%Y%m%d")
@@ -40,6 +40,31 @@ class UpdateBasicData(object):
         UpdateBasicData.updateMultipleStocksDailyKLines(stockCodes,startDate,endDate)
         logger.info('update stock daily derivative data')
         UpdateBasicData.updateMultipleStocksDailyDerivatives(stockCodes,startDate,endDate)
+        logger.info('update index daily KLines')
+        UpdateBasicData.updateDailyIndexKLines('000016.SH',startDate,endDate)
+        UpdateBasicData.updateDailyIndexKLines('000300.SH',startDate,endDate)
+        UpdateBasicData.updateDailyIndexKLines('000905.SH',startDate,endDate)
+        logger.info('update industry info')
+        UpdateBasicData.updateIndustry()
+        logger.info('update daily factors')
+        UpdateBasicData.updateDailyFactors(stockCodes)
+    #----------------------------------------------------------------------
+    @classmethod 
+    def updateMinuteAll(self):
+        startDate=str(20100101)
+        yesterday=(datetime.datetime.now()+datetime.timedelta(days=-1)).strftime("%Y%m%d")
+        today=datetime.datetime.now().strftime("%Y%m%d")
+        logger.info('update tradedays!')
+        tradedays=TradedayDataProcess.getTradedays(startDate,yesterday)
+        endDate=tradedays.max()
+        logger.info('update index code list!')
+        UpdateBasicData.updateIndexInfo(startDate,endDate)
+        logger.info('update stock IPO Info!')
+        UpdateBasicData.updateStockIPOInfo()
+        logger.info('update stockCodes!')
+        stockCodes=UpdateBasicData.updateStockCodes(startDate,endDate)
+        logger.info('update stockList')
+        UpdateBasicData.updateStockList(startDate,endDate)
         logger.info('update stock minute KLines')
         UpdateBasicData.updateMultipleStocksMinuteKLines(stockCodes,startDate,endDate)
         logger.info('update index daily KLines')
@@ -50,11 +75,6 @@ class UpdateBasicData(object):
         UpdateBasicData.updateMinuteIndexKLines('000016.SH',startDate,endDate)
         UpdateBasicData.updateMinuteIndexKLines('000300.SH',startDate,endDate)
         UpdateBasicData.updateMinuteIndexKLines('000905.SH',startDate,endDate)
-        logger.info('update industry info')
-        UpdateBasicData.updateIndustry()
-        logger.info('update daily factors')
-        factors=['closeStd','index','marketValue','industry']
-        UpdateBasicData.updateDailyFactors(stockCodes,factors)
         pass
     #----------------------------------------------------------------------
     @classmethod 
@@ -193,9 +213,9 @@ class UpdateBasicData(object):
         pass
     #----------------------------------------------------------------------
     @classmethod 
-    def updateDailyFactors(self,codeList,factors):
+    def updateDailyFactors(self,codeList,factors=DAILYFACTORSNEEDTOUPDATE):
         dailyFactor=dailyFactorsProcess()
-        dailyFactor.parallelizationUpdateFactors(codeList,factors)
+        dailyFactor.parallelizationUpdateFactorsVersion2(codeList,factors)
         pass
     #----------------------------------------------------------------------
     @classmethod 

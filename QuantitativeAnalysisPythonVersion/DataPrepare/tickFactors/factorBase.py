@@ -57,5 +57,19 @@ class factorBase(object):
             data=store['data']
         return data
         pass
-    
+    #----------------------------------------------------------------------
+    def getTimeSeriesQuantile(self,mycolumns,data,periods=50,min_periods=20):
+        for col in mycolumns:
+            data['ts_'+col]=data[col].rolling(periods,min_periods=min_periods).apply((lambda x:pd.Series(x).rank().iloc[-1]/len(x)),raw=True)
+        pass
+    #----------------------------------------------------------------------
+    #check函数，检查因子里面是否存在nan
+    def checkDataNan(self,code,date,factor,data):
+        errorData=data[data.isna().sum(axis=1)>0]
+        if errorData.shape[0]>0:
+            logger.warning(f'{factor} of {code} in {date} has nan data!!!')
+            return False
+        else:
+            return True
+       
 ########################################################################

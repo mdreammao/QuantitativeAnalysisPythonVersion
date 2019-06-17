@@ -7,6 +7,7 @@ from DataAccess.IndustryClassification import *
 from DataAccess.IndexCode import *
 from DataAccess.StockSharesProcess import *
 from DataAccess.TickDataProcess import *
+from DataAccess.TickTransactionDataProcess import TickTransactionDataProcess
 from DataPrepare.dataPrepareByIndex import *
 from DataPrepare.dailyKLineDataPrepared import *
 from Strategy.stockReverseMovement import *
@@ -20,6 +21,8 @@ from Strategy.myAnalysisForReverseByTick import myAnalysisForReverseByTick
 from Strategy.myAnalysisForFactorsByDate import myAnalysisForFactorsByDate
 from DataPrepare.dailyFactorsProcess import *
 from DataPrepare.tickFactorsProcess import *
+from Strategy.stockIntradayByTick.reverse.strategy1 import strategy1
+from Strategy.stockIntradayByTick.momentum.strategy1 import strategyBreak
 from Utility.mytest import *
 from Utility.JobLibUtility import *
 from Utility.UpdateBasicData import *
@@ -51,25 +54,51 @@ def main():
 
 
     warnings.filterwarnings('ignore')
+    logger.info(f'compute start!!!')
     startDate=20190501
-    endDate=20190509
-    #UpdateBasicData.updateDailyAndMinuteAll()
+    endDate=20190610
+
+
+
+
+    #UpdateBasicData.updateDailyAll()
+    #UpdateBasicData.updateMinuteAll()
     #UpdateBasicData.updateTickAll(startDate)
     #UpdateBasicData.updateTickFactorAll(startDate)
-    stockCodes=UpdateBasicData.updateStockCodes(startDate,endDate)
-    codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
+    #stockCodes=UpdateBasicData.updateStockCodes(startDate,endDate)
+    #UpdateBasicData.updateDailyFactors(stockCodes)
+    #----------------------------------------------------------------------
+    
+    #codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
+    codes=UpdateBasicData.updateStockCodes(startDate,endDate)
+    UpdateBasicData.updateMultipleStocksTickFactors(codes,startDate,endDate)
     ana=myAnalysisForFactorsByDate('tmp')
-    #ana.prepareData(codes,startDate,endDate)
+    ana.prepareData(codes,startDate,endDate)
+    '''
+    test=strategyBreak()
+    codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
+    data=test.multipleCodes_parallel(codes,20190506,20190508)
+    print(data)
+    #stockCodes=UpdateBasicData.updateStockCodes(startDate,endDate)
+    #codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
+    #mydaily=dailyFactorsProcess()
+    #mydaily.updateStockDailyFactorsVersion2(codes)
+    '''
+    #----------------------------------------------------------------------
+    '''
+    
     data=ana.getDataFromLocal(startDate,endDate)
-
+    #data['midIncreaseNext1m']=data['midIncreaseNext1m']/data['midStd60']
     #['code', 'date', 'time', 'buyIncreaseNext1m', 'sellIncreaseNext1m','midIncreaseNext1m', 'midIncreaseNext5m', 'midIncreaseNext10m','midIncreaseNext20m', 'ts_buySellVolumeRatio2','ts_buySellVolumeRatio5', 'ts_buySellVolumeRatio10','buySellVolumeRatio2', 'buySellVolumeRatio5', 'buySellVolumeRatio10',       'differenceHighLow', 'ts_buyForceIncrease', 'ts_sellForceIncrease','ts_buySellForceChange', 'buyForceIncrease', 'sellForceIncrease',       'buySellForceChange', 'midIncreasePrevious3m', 'differenceMidVwap','midStd60', 'ts_midStd60', 'increaseToday', 'closeStd20','ts_closeStd20', 'preClose', 'is300', 'is500', 'buySellSpread','midAbsIncrease1m']
+    #data=data[data['is300']==1]
     data['midAbsIncrease1m']=data['midIncreaseNext1m'].abs()
     m=round(data.corr(),3)
     print(m.loc[(m['midIncreaseNext1m'].abs()>=0.03),'midIncreaseNext1m'].sort_values())
     print(m.loc[(m['midAbsIncrease1m'].abs()>=0.03),'midAbsIncrease1m'].sort_values())
+    
     #select=(data['ts_buySellForceChange']<=0.05) & (data['ts_buySellVolumeRatio5']<=0.05)& (data['ts_buySellVolumeRatio2']<=0.1) & (data['midIncreasePrevious3m']>0.5*data['closeStd20'])
     #select=(data['ts_buySellForceChange']>=0.95) & (data['ts_buySellVolumeRatio5']>=0.95)& (data['ts_buySellVolumeRatio2']>=0.95) & (data['midIncreasePrevious3m']<-0.5*data['closeStd20'])
-    #select=(data['ts_buySellForceChange']>=0.95) & (data['ts_buySellVolumeRatio5']>=0.95)& (data['ts_buySellVolumeRatio2']>=0.95) & (data['midIncreasePrevious3m'].abs()<0.001) & (data['differenceMidVwap'].abs()<0.001)
+    #select=(data['ts_buySellForceChange']>=0.95) & (data['ts_buySellVolumeRatio5']>=0.95)& (data['ts_buySellVolumeRatio2']>=0.95) & (data['midIncreasePrevious3m'].abs()<0.01*data['closeStd20'])  & (data['differenceHighLow']<0.1*data['closeStd20'])
     select=(data['ts_buySellForceChange']<=0.05) & (data['ts_buySellVolumeRatio5']<=0.05)& (data['ts_buySellVolumeRatio2']<=0.05) & (data['midIncreasePrevious3m'].abs()<0.001) & (data['differenceMidVwap'].abs()<0.001)
     x=data[select]
     print(x.shape)
@@ -79,9 +108,9 @@ def main():
     print(x['midIncreaseNext20m'].mean())
     print(x['buyIncreaseNext1m'].mean())
     print(x['sellIncreaseNext1m'].mean())
-    print(x)
-    
-
+    #print(x)
+    '''
+    #----------------------------------------------------------------------
     '''
     myReverse=stockReverseByStdOnTick()
     print(datetime.datetime.now())

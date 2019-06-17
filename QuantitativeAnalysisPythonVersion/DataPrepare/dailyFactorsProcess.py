@@ -12,6 +12,7 @@ from DataAccess.IndexComponentDataProcess import *
 import numpy as np
 import datetime 
 import traceback
+import importlib
 
 ########################################################################
 class dailyFactorsProcess(object):
@@ -33,12 +34,21 @@ class dailyFactorsProcess(object):
         pass
     #----------------------------------------------------------------------
     """获取单个股票指定因子的特征"""
-    def getSingleStockDailyFactors(self,code,factorList,startDate,endDate):
+    def getSingleStockDailyFactors(self,code,startDate,endDate,factorList=DAILYFACTORSUSED):
         startDate=str(startDate)
         endDate=str(endDate)
         tradedays=TradedayDataProcess.getTradedays(startDate,endDate)
         mydata=pd.DataFrame(tradedays,columns=['date'])
         mydata['code']=code
+        for factor in factorList:
+            mymodule = importlib.import_module(factor['module'])
+            myclass=getattr(mymodule, factor['class'])
+            myinstance=myclass()
+            factorData=myinstance.getDataFromLocalFile(code,factor['factor'])
+            factorData=factorData[(factorData['date']>=startDate) & (factorData['date']<=endDate)]
+            mydata=pd.merge(mydata,factorData,how='left',left_on='date',right_on='date')
+        return mydata
+    '''
         for factor in factorList:
             fileName=code.replace('.','_')+".h5"
             factorFilePath=os.path.join(self.localFileFolder,factor,fileName)
@@ -53,14 +63,15 @@ class dailyFactorsProcess(object):
                 mydata=pd.merge(mydata,factorData,how='left',left_on='date',right_on='date')
                 pass
         return mydata
+    '''
     #----------------------------------------------------------------------
     """获取多个股票指定因子的特征"""
-    def getMultipleStockDailyFactors(self,codeList,factorList,startDate,endDate):
+    def getMultipleStockDailyFactors(self,codeList,startDate,endDate,factorList=DAILYFACTORSUSED,):
         startDate=str(startDate)
         endDate=str(endDate)
         allData=[]
         for code in codeList:
-            mydata= self.getSingleStockDailyFactors(code,factorList,startDate,endDate)
+            mydata= self.getSingleStockDailyFactors(code,startDate,endDate,factorList)
             allData.append(mydata)
             pass
         allData=pd.concat(allData)
@@ -70,6 +81,24 @@ class dailyFactorsProcess(object):
     """并行更新股票因子的特征"""
     def parallelizationUpdateFactors(self,codeList,factorList):
         mydata=JobLibUtility.useJobLibToUpdateFacotrs(self.updateStockDailyFactors,codeList,MYGROUPS,factorList)
+        pass
+    #----------------------------------------------------------------------
+    """并行更新股票因子的特征"""
+    def parallelizationUpdateFactorsVersion2(self,codeList,factorList=DAILYFACTORSNEEDTOUPDATE):
+        mydata=JobLibUtility.useJobLibToUpdateFacotrs(self.updateStockDailyFactorsVersion2,codeList,MYGROUPS,factorList)
+        pass
+    #----------------------------------------------------------------------
+    """给定原始数据，计算指定股票指定因子的特征"""
+    def updateStockDailyFactorsVersion2(self,codeList,factorList=DAILYFACTORSNEEDTOUPDATE):
+        for code in codeList:
+            logger.info(f'{code} factor update start!')
+            for factor in factorList:
+                mymodule = importlib.import_module(factor['module'])
+                myclass=getattr(mymodule, factor['class'])
+                myinstance=myclass()
+                myinstance.updateFactor(code)
+                pass
+            pass
         pass
     #----------------------------------------------------------------------
     """给定原始数据，计算指定股票指定因子的特征"""

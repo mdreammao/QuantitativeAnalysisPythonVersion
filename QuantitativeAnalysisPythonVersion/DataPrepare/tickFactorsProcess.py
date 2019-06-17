@@ -44,9 +44,11 @@ class tickFactorsProcess(object):
         tick=TickDataProcess()
         tickData=tick.getDataByDateFromLocalFile(code,date)
         mydata=pd.merge(mydata,tickData,how='left',left_index=True,right_index=True)
-        dailyFactor=['closeStd','index','marketValue','industry']
+        if mydata.shape[0]==0:
+            return mydata
+        #dailyFactor=['closeStd','index','marketValue','industry']
         dailyRepo=dailyFactorsProcess()
-        dailyData=dailyRepo.getSingleStockDailyFactors(code,dailyFactor,date,date)
+        dailyData=dailyRepo.getSingleStockDailyFactors(code,date,date)
         for col in dailyData.columns:
             if col not in ['date','code','return']:
                 mydata[col]=dailyData[col].iloc[0]
@@ -54,6 +56,11 @@ class tickFactorsProcess(object):
         dailyKLineData=dailyKLineRepo.getDataByDate(code,date,date)
         mydata['preClose']=dailyKLineData['preClose'].iloc[0]
         mydata['increaseToday']=mydata['midPrice']/mydata['preClose']-1
+        ceiling=mydata[(mydata['increaseToday']>0.095) | (mydata['increaseToday']<-0.095)]
+        if ceiling.shape[0]>0:
+            ceilingTime=ceiling['time'].iloc[0]
+            mydata=mydata[mydata['time']<ceilingTime]
+            pass
         return mydata
     #----------------------------------------------------------------------
     def getFactorsUsedByDateFromLocalFile(self,code,date,factors=TICKFACTORSUSED):

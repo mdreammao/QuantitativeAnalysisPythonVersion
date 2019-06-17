@@ -39,9 +39,9 @@ class stockReverseByTickInfo(object):
         totalCash=parameters[1]
         std1=parameters[2]
         days=list(TradedayDataProcess().getTradedays(startDate,endDate))
-        factors=['closeStd','index','marketValue','industry']
+        #factors=['closeStd','index','marketValue','industry']
         dailyRepo=dailyFactorsProcess()
-        dailyFactor=dailyRepo.getSingleStockDailyFactors(code,factors,startDate,endDate)
+        dailyFactor=dailyRepo.getSingleStockDailyFactors(code,startDate,endDate)
         dailyKLine=KLineDataProcess('daily')
         dailyData=dailyKLine.getDataByDate(code,startDate,endDate)
         if dailyData.empty==True:

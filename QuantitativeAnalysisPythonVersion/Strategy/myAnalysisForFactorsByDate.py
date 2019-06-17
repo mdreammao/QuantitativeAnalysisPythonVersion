@@ -21,9 +21,24 @@ class myAnalysisForFactorsByDate(object):
         HDF5Utility.pathCreate(self.path)
         pass
 #----------------------------------------------------------------------
+    def getDataFromLocalDaily(self,today):
+        fileName=os.path.join(self.path,str(today)+'.h5')
+        data=pd.DataFrame()
+        try:
+            with pd.HDFStore(fileName,'r',complib='blosc:zstd',append=True,complevel=9) as store:
+                data=store['data']
+        except Exception as excp:
+            logger.error(f'{fileName} error! {excp}')
+            pass
+        return data
+#----------------------------------------------------------------------
     def getDataFromLocal(self,startDate,endDate):
-        all=[]
         tradedays=TradedayDataProcess.getTradedays(startDate,endDate)
+        tradedays=list(tradedays)
+        with parallel_backend("multiprocessing", n_jobs=JobLibUtility.myjobs):
+            mydata=Parallel()(delayed(self.getDataFromLocalDaily)(tradedays[i]) for i in range(len(tradedays)))
+        all=pd.concat(mydata)
+        '''
         for day in tradedays:
             fileName=os.path.join(self.path,str(day)+'.h5')
             try:
@@ -34,6 +49,7 @@ class myAnalysisForFactorsByDate(object):
                 logger.error(f'{fileName} error! {excp}')
                 pass
         all=pd.concat(all)
+        '''
         return all
         pass
 #----------------------------------------------------------------------
@@ -43,12 +59,13 @@ class myAnalysisForFactorsByDate(object):
         for day in tradedays:
             data=myfactor.parallelizationGetDataByDate(codeList,day)
             data=data[(data['time']>='093500000') & (data['time']<='145000000')]
-            data=data[(data['SV1']>0) & (data['BV1']>0)]
-            mycolumns=[ 'code', 'date', 'time','buyIncreaseNext1m','sellIncreaseNext1m','midIncreaseNext1m', 'midIncreaseNext5m','midIncreaseNext10m','midIncreaseNext20m','ts_buySellVolumeRatio2','ts_buySellVolumeRatio5','ts_buySellVolumeRatio10','buySellVolumeRatio2','buySellVolumeRatio5','buySellVolumeRatio10','differenceHighLow','ts_buyForceIncrease','ts_sellForceIncrease','ts_buySellForceChange','buyForceIncrease','sellForceIncrease','buySellForceChange','midIncreasePrevious3m','differenceMidVwap','midStd60','ts_midStd60','increaseToday','closeStd20','ts_closeStd20','preClose','is300','is500','buySellSpread']
-            features=[ 'ts_buySellVolumeRatio2','ts_buySellVolumeRatio5','ts_buySellVolumeRatio10','buySellVolumeRatio2','buySellVolumeRatio5','buySellVolumeRatio10','differenceHighLow','ts_buyForceIncrease','ts_sellForceIncrease','ts_buySellForceChange','buyForceIncrease','sellForceIncrease','buySellForceChange','midIncreasePrevious3m','differenceMidVwap','midStd60','ts_midStd60','increaseToday','closeStd20','ts_closeStd20','preClose','buySellSpread']
+            #tickColumns=[ 'code', 'date', 'time', 'lastPrice', 'S1', 'S2','S3', 'S4', 'S5', 'S6', 'S7','S8', 'S9', 'S10', 'B1', 'B2', 'B3', 'B4','B5', 'B6', 'B7', 'B8', 'B9', 'B10', 'SV1', 'SV2', 'SV3', 'SV4', 'SV5','SV6', 'SV7', 'SV8', 'SV9', 'SV10', 'BV1', 'BV2', 'BV3', 'BV4', 'BV5','BV6', 'BV7', 'BV8', 'BV9', 'BV10', 'volume', 'amount','volumeIncrease', 'amountIncrease', 'midPrice']
+            #dailyColumns=['increaseToday','closeStd20','ts_closeStd20','preClose','is300','is500']
+            mycolumns=['code','date','time','buyForce','buySellVolumeRatio5','buySellWeightedVolumeRatio10','buySellVolumeRatio10','sellForce','buyWeightedVolume5','buySellVolumeRatio2', 'buySellSpread','buySellWeightedVolumeRatio2','buySellForceChange','buySellWeightedVolumeRatio5', 'midToVwap', 'midToVwap3m','midPrice3mIncrease','midIncreaseToBV3m', 'midPriceBV3m', 'midInPrevious3m', 'midStd60','increaseToday','closeStd20','ts_closeStd20','preClose','is300','is500','midPriceIncrease','differenceHighLow3m', 'midIncreaseNext2m', 'midIncreaseMaxNext2m','midIncreaseMaxNext5m','midIncreaseMinNext1m', 'midIncreaseMaxNext1m','midIncreaseMinNext2m', 'midIncreaseNext5m','midIncreaseNext1m','midIncreaseMinNext5m']
             data=data[mycolumns]
-            data=data[data[features].isna().sum(axis=1)==0]
-            print(data.shape)
+            #print(data.shape)
+            if data[data[mycolumns].isna().sum(axis=1)>0].shape[0]>0:
+                logger.warning(f'factorData of date {day} has Nan!!!')
             #逐日存储数据
             fileName=os.path.join(self.path,str(day)+'.h5')
             exists=os.path.exists(fileName)
