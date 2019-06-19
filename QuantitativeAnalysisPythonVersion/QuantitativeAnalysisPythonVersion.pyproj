@@ -130,6 +130,21 @@
     <Compile Include="DataPrepare\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="MachineLearning\machineLeariningBase.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MachineLearning\RNN\RNN001.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MachineLearning\RNN\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MachineLearning\XGBoost\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MachineLearning\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Monitor\monitorForReverseByStd.py">
       <SubType>Code</SubType>
     </Compile>
@@ -137,6 +152,18 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="QuantitativeAnalysisPythonVersion.py" />
+    <Compile Include="Strategy\baseStrategy\baseStrategy.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Strategy\baseStrategy\grade\gradeStrategy1.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Strategy\baseStrategy\grade\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Strategy\baseStrategy\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Strategy\myAnalysisForFactorsByDate.py">
       <SubType>Code</SubType>
     </Compile>
@@ -229,8 +256,13 @@
     <Folder Include="DataPrepare\tickFactors\changeOfTickShot\" />
     <Folder Include="DataPrepare\tickFactors\targetFactor\" />
     <Folder Include="DataPrepare\tickFactors\statusOfTickShot\" />
+    <Folder Include="MachineLearning\RNN\" />
+    <Folder Include="MachineLearning\XGBoost\" />
     <Folder Include="Monitor\" />
+    <Folder Include="MachineLearning\" />
     <Folder Include="Strategy\" />
+    <Folder Include="Strategy\baseStrategy\" />
+    <Folder Include="Strategy\baseStrategy\grade\" />
     <Folder Include="Strategy\stockIntradayByTick\" />
     <Folder Include="Strategy\stockIntradayByTick\momentum\" />
     <Folder Include="Strategy\stockIntradayByTick\reverse\" />

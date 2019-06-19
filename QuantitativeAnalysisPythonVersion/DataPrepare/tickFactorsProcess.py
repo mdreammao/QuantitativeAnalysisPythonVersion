@@ -10,7 +10,7 @@ from DataAccess.StockIPOInfoProcess import *
 from DataAccess.IndustryClassification import *
 from DataAccess.IndexComponentDataProcess import *
 from DataPrepare.dailyFactorsProcess import dailyFactorsProcess
-from DataAccess.TickDataProcess import *
+from DataAccess.TickDataProcess import TickDataProcess
 from DataPrepare.tickFactors.factorBase import factorBase
 import importlib
 import numpy as np
@@ -27,7 +27,20 @@ class tickFactorsProcess(object):
         for date in tradedays:
             self.updateAllFactorsByCodeAndDate(code,date)
         pass
-    
+    #----------------------------------------------------------------------
+    def getTickFactorsOnlyByDateFromLocalFile(self,code,date,factors=TICKFACTORSUSED):
+        myfactor=factorBase()
+        mydata=pd.DataFrame()
+        for item in factors:
+            factor=item['factor']
+            data=myfactor.getDataFromLocalFile(code,date,factor)
+            if mydata.shape[0]==0: #如果还没有取出来数据
+                mydata=data.copy()
+                pass
+            elif data.shape[0]!=0:
+                mydata=pd.merge(mydata,data,how='left',left_index=True,right_index=True)
+                pass
+        return mydata
     #----------------------------------------------------------------------
     def getTickDataAndFactorsByDateFromLocalFile(self,code,date,factors=TICKFACTORSUSED):
         myfactor=factorBase()
@@ -56,7 +69,7 @@ class tickFactorsProcess(object):
         dailyKLineData=dailyKLineRepo.getDataByDate(code,date,date)
         mydata['preClose']=dailyKLineData['preClose'].iloc[0]
         mydata['increaseToday']=mydata['midPrice']/mydata['preClose']-1
-        ceiling=mydata[(mydata['increaseToday']>0.095) | (mydata['increaseToday']<-0.095)]
+        ceiling=mydata[(mydata['increaseToday']>0.095) | (mydata['increaseToday']<-0.095) | (mydata['B1']==0) | (mydata['S1']==0)]
         if ceiling.shape[0]>0:
             ceilingTime=ceiling['time'].iloc[0]
             mydata=mydata[mydata['time']<ceilingTime]

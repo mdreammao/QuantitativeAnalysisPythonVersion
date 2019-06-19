@@ -23,6 +23,8 @@ from DataPrepare.dailyFactorsProcess import *
 from DataPrepare.tickFactorsProcess import *
 from Strategy.stockIntradayByTick.reverse.strategy1 import strategy1
 from Strategy.stockIntradayByTick.momentum.strategy1 import strategyBreak
+from MachineLearning.RNN.RNN001 import RNN001
+from Strategy.baseStrategy.grade.gradeStrategy1 import gradeStrategy1
 from Utility.mytest import *
 from Utility.JobLibUtility import *
 from Utility.UpdateBasicData import *
@@ -57,6 +59,7 @@ def main():
     logger.info(f'compute start!!!')
     startDate=20190501
     endDate=20190610
+    testStart=20190601
 
 
 
@@ -70,11 +73,21 @@ def main():
     #----------------------------------------------------------------------
     
     #codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
+    
+    s=gradeStrategy1()
+    s.singleCode('000001.SZ',startDate,endDate)
+
+    '''
+    #rnn=RNN001()
+    #rnn.myRNN(startDate,endDate,testStart,'tmp')
+    
     codes=UpdateBasicData.updateStockCodes(startDate,endDate)
+    #codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
     UpdateBasicData.updateMultipleStocksTickFactors(codes,startDate,endDate)
     ana=myAnalysisForFactorsByDate('tmp')
     ana.prepareData(codes,startDate,endDate)
-    '''
+
+    
     test=strategyBreak()
     codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
     data=test.multipleCodes_parallel(codes,20190506,20190508)
