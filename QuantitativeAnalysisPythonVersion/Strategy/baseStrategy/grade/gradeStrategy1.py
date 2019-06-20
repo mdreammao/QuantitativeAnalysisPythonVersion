@@ -96,6 +96,10 @@ class gradeStrategy1(baseStrategy):
             data['minPredict']=mymin
             #m=data[['midIncreaseMinNext5m','midIncreaseMaxNext5m','maxPredict','minPredict']]
             #print(m.corr())
+            long=data[(data['maxPredict']>0.01)]['midIncreaseMaxNext5m'].mean()-data['midIncreaseMaxNext5m'].mean()
+            short=data[(data['minPredict']<-0.01)]['midIncreaseMinNext5m'].mean()-data['midIncreaseMinNext5m'].mean()
+            print(long)
+            print(short)
             mycolumns=list(tickData.columns)
             mycolumns.append('maxPredict')
             mycolumns.append('minPredict')

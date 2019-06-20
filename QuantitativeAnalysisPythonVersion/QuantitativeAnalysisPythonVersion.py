@@ -24,6 +24,7 @@ from DataPrepare.tickFactorsProcess import *
 from Strategy.stockIntradayByTick.reverse.strategy1 import strategy1
 from Strategy.stockIntradayByTick.momentum.strategy1 import strategyBreak
 from MachineLearning.RNN.RNN001 import RNN001
+from MachineLearning.XGBoost.xgboost001 import xgboost001
 from Strategy.baseStrategy.grade.gradeStrategy1 import gradeStrategy1
 from Utility.mytest import *
 from Utility.JobLibUtility import *
@@ -58,9 +59,9 @@ def main():
     warnings.filterwarnings('ignore')
     logger.info(f'compute start!!!')
     startDate=20190501
-    endDate=20190610
-    testStart=20190601
-
+    endDate=20190605
+    testStart=20190605
+    testEnd=20190615
 
 
 
@@ -74,8 +75,12 @@ def main():
     
     #codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
     
-    s=gradeStrategy1()
-    s.singleCode('000001.SZ',startDate,endDate)
+    #s=gradeStrategy1()
+    #s.singleCode('000001.SZ',startDate,endDate)
+    xgb=xgboost001('tmp')
+    xgb.mytrain(startDate,endDate,testStart,testEnd)
+
+
 
     '''
     #rnn=RNN001()
@@ -98,8 +103,10 @@ def main():
     #mydaily.updateStockDailyFactorsVersion2(codes)
     '''
     #----------------------------------------------------------------------
-    '''
     
+    
+    
+    '''
     data=ana.getDataFromLocal(startDate,endDate)
     #data['midIncreaseNext1m']=data['midIncreaseNext1m']/data['midStd60']
     #['code', 'date', 'time', 'buyIncreaseNext1m', 'sellIncreaseNext1m','midIncreaseNext1m', 'midIncreaseNext5m', 'midIncreaseNext10m','midIncreaseNext20m', 'ts_buySellVolumeRatio2','ts_buySellVolumeRatio5', 'ts_buySellVolumeRatio10','buySellVolumeRatio2', 'buySellVolumeRatio5', 'buySellVolumeRatio10',       'differenceHighLow', 'ts_buyForceIncrease', 'ts_sellForceIncrease','ts_buySellForceChange', 'buyForceIncrease', 'sellForceIncrease',       'buySellForceChange', 'midIncreasePrevious3m', 'differenceMidVwap','midStd60', 'ts_midStd60', 'increaseToday', 'closeStd20','ts_closeStd20', 'preClose', 'is300', 'is500', 'buySellSpread','midAbsIncrease1m']

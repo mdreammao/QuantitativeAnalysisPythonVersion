@@ -139,6 +139,9 @@
     <Compile Include="MachineLearning\RNN\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="MachineLearning\XGBoost\xgboost001.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="MachineLearning\XGBoost\__init__.py">
       <SubType>Code</SubType>
     </Compile>
