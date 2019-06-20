@@ -1,4 +1,5 @@
 from MachineLearning.machineLeariningBase import machineLeariningBase
+
 import xgboost as xgb
 from xgboost import plot_importance
 from matplotlib import pyplot as plt
@@ -35,7 +36,6 @@ class xgboost001(machineLeariningBase):
             'subsample':0.7,
             'colsample_bytree':0.7,
             'min_child_weight':3,
-            'slient':0,
             'eta':0.1,
             'seed':1000,
         }
@@ -57,7 +57,8 @@ class xgboost001(machineLeariningBase):
             plot_importance(model)
             plt.show()
             #记录model模型
-            savePath=os.path.join(self.path,'xgb001.model')
+            modelName='xgb001_'+str(target)+'.model'
+            savePath=os.path.join(self.path,modelName)
             model.save_model(savePath)
             pass
                
