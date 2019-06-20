@@ -73,12 +73,14 @@ def main():
     #UpdateBasicData.updateDailyFactors(stockCodes)
     #----------------------------------------------------------------------
     
-    #codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
+    codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
     
-    #s=gradeStrategy1()
+    s=gradeStrategy1()
     #s.singleCode('000001.SZ',startDate,endDate)
-    xgb=xgboost001('tmp')
-    xgb.mytrain(startDate,endDate,testStart,testEnd)
+    #data=s.multipleCodes_parallel(codes,startDate,endDate)
+    print(data['cashChange'].sum())
+    #xgb=xgboost001('tmp')
+    #xgb.mytrain(startDate,endDate,testStart,testEnd)
 
 
 

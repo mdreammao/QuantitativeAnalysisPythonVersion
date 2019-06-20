@@ -52,6 +52,20 @@ class myAnalysisForFactorsByDate(object):
         '''
         return all
         pass
+    #----------------------------------------------------------------------
+    def dataSelect(self,data,c):
+        pd.set_option('mode.use_inf_as_na', True) 
+        data=data[data.isna().sum(axis=1)==0]
+        select=data['buyForce']>c
+        data.loc[select,'buyForce']=c
+        select=data['sellForce']>c
+        data.loc[select,'sellForce']=c
+        select=data['buySellForceChange']>c
+        data.loc[select,'buySellForceChange']=c
+        select=data['buySellForceChange']<-c
+        data.loc[select,'buySellForceChange']=-c
+        return data
+        pass
 #----------------------------------------------------------------------
     def prepareData(self,codeList,startDate,endDate):
         tradedays=TradedayDataProcess.getTradedays(startDate,endDate)
@@ -66,6 +80,8 @@ class myAnalysisForFactorsByDate(object):
             #print(data.shape)
             if data[data[mycolumns].isna().sum(axis=1)>0].shape[0]>0:
                 logger.warning(f'factorData of date {day} has Nan!!!')
+            #对部分因子进行去极值操作
+            data=self.dataSelect(data,0.2)
             #逐日存储数据
             fileName=os.path.join(self.path,str(day)+'.h5')
             exists=os.path.exists(fileName)

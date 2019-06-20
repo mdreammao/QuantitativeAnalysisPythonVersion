@@ -9,6 +9,7 @@ from typing import List as type_list
 from Strategy.baseStrategy.baseStrategy import baseStrategy
 import pandas as pd
 import numpy as np
+import math
 from DataAccess.TickDataProcess import TickDataProcess
 ########################################################################
 class gradeStrategy1(baseStrategy):
@@ -96,35 +97,49 @@ class gradeStrategy1(baseStrategy):
             data['minPredict']=mymin
             #m=data[['midIncreaseMinNext5m','midIncreaseMaxNext5m','maxPredict','minPredict']]
             #print(m.corr())
-            long=data[(data['maxPredict']>0.01)]['midIncreaseMaxNext5m'].mean()-data['midIncreaseMaxNext5m'].mean()
-            short=data[(data['minPredict']<-0.01)]['midIncreaseMinNext5m'].mean()-data['midIncreaseMinNext5m'].mean()
-            print(long)
-            print(short)
+            #long=data[(data['maxPredict']>0.01)]['midIncreaseMaxNext5m'].mean()-data['midIncreaseMaxNext5m'].mean()
+            #short=data[(data['minPredict']<-0.01)]['midIncreaseMinNext5m'].mean()-data['midIncreaseMinNext5m'].mean()
+            #print(long)
+            #print(short)
             mycolumns=list(tickData.columns)
             mycolumns.append('maxPredict')
             mycolumns.append('minPredict')
             data=data[mycolumns]
-            parameters={'maxPosition':maxPosition,'longOpen':0.01,'shortOpen':-0.01,'longClose':0.005,'shortClose':-0.005}
+            parameters={'maxPosition':maxPosition,'longOpen':0.015,'shortOpen':-0.015,'longClose':0.01,'shortClose':-0.01,'transactionRatio':0.5}
             trade0=self.strategy(data,parameters)
             trade.append(trade0)
             pass
+       
         if trade==[]:
             trade=pd.DataFrame()
         else:
             trade=pd.concat(trade)
+            trade['code']=code
+            trade['fee']=trade['price']*0.0001
+            selectBuy=trade['direction']=='buy'
+            selectSell=trade['direction']=='sell'
+            trade.loc[selectSell,'fee']=(trade['fee']+trade['price']*0.001)[selectSell]
+            trade.loc[selectBuy,'cashChange']=((-trade['price']-trade['fee'])*trade['volume'])[selectBuy]
+            trade.loc[selectSell,'cashChange']=((trade['price']-trade['fee'])*trade['volume'])[selectSell]
+        
         return trade
         pass
 
     #----------------------------------------------------------------------
     def strategy(self,data:pd.DataFrame,parameters):
         maxPosition=parameters['maxPosition']
-        mydata=data.copy()
+        longOpen=parameters['longOpen']
+        longClose=parameters['longClose']
+        shortOpen=parameters['shortOpen']
+        shortClose=parameters['shortClose']
+        transactionRatio=parameters['transactionRatio']
+        unusedPosition=maxPosition
+        todayPosition=0
         myindex={}
         select=list(data.columns)
-        for item in mydata.columns:
+        for item in data.columns:
             myindex.update({item:select.index(item)})
-        mydata=mydata.values
-        position=0
+        mydata=data.values
         startIndex=0
         trade=[]
         dict={}
@@ -138,7 +153,53 @@ class gradeStrategy1(baseStrategy):
            BV1=tick[myindex['BV1']]
            time=tick[myindex['time']]
            date=tick[myindex['date']]
-           pass
-        trade=pd.DataFrame(data=trade)      
+           if (unusedPosition>0) &  (time<'145000000'):#仍然可以开仓
+               if (maxPredict>longOpen) & (abs(maxPredict/minPredict)>1) & (SV1>=100/transactionRatio):
+                   transactionVolume=min(round(transactionRatio*SV1,-2),unusedPosition)
+                   unusedPosition=unusedPosition-transactionVolume
+                   todayPosition=todayPosition+transactionVolume
+                   transactionPrice=S1
+                   transactionTime=time
+                   transactionDate=date
+                   dict={'date':transactionDate,'time':transactionTime,'direction':'buy','volume':transactionVolume,'price':transactionPrice}
+                   trade.append(dict)
+                   pass
+               elif (minPredict<shortOpen) & (abs(minPredict/maxPredict)>1) & (BV1>=100/transactionRatio):
+                   transactionVolume=min(round(transactionRatio*BV1,-2),unusedPosition)
+                   unusedPosition=unusedPosition-transactionVolume
+                   todayPosition=todayPosition-transactionVolume
+                   transactionPrice=B1
+                   transactionTime=time
+                   transactionDate=date
+                   dict={'date':transactionDate,'time':transactionTime,'direction':'sell','volume':transactionVolume,'price':transactionPrice}
+                   trade.append(dict)
+                   pass
+           if todayPosition!=0:
+               if todayPosition>0:#持有多仓
+                   if (maxPredict<longClose) |(minPredict<shortOpen)| (time>='145500000'):
+                       [averagePrice,sellPosition]=super().sellByTickShotData(tick,myindex,abs(todayPosition),0.05)
+                       transactionVolume=sellPosition
+                       todayPosition=todayPosition-transactionVolume
+                       transactionPrice=averagePrice
+                       transactionTime=time
+                       transactionDate=date
+                       dict={'date':transactionDate,'time':transactionTime,'direction':'sell','volume':transactionVolume,'price':transactionPrice}
+                       trade.append(dict)
+                       pass
+                   pass
+               elif todayPosition<0:#持有空仓
+                   if (minPredict>shortClose) |(maxPredict>longOpen) |(time>='145500000'):
+                       [averagePrice,buyPosition]=super().buyByTickShotData(tick,myindex,abs(todayPosition),0.05)
+                       transactionVolume=buyPosition
+                       todayPosition=todayPosition+transactionVolume
+                       transactionPrice=averagePrice
+                       transactionTime=time
+                       transactionDate=date
+                       dict={'date':transactionDate,'time':transactionTime,'direction':'buy','volume':transactionVolume,'price':transactionPrice}
+                       trade.append(dict)
+                       pass
+                   pass
+        trade=pd.DataFrame(data=trade)    
+        print(trade)
         return trade
 ########################################################################
