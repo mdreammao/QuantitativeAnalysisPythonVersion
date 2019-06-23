@@ -161,6 +161,10 @@
     <Compile Include="Strategy\baseStrategy\grade\gradeStrategy1.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Strategy\baseStrategy\grade\gradeStrategyDNN.py" />
+    <Compile Include="Strategy\baseStrategy\grade\gradeStrategyXgboost.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Strategy\baseStrategy\grade\__init__.py">
       <SubType>Code</SubType>
     </Compile>

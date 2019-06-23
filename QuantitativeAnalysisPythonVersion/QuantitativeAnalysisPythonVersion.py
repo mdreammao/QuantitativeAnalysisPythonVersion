@@ -26,6 +26,7 @@ from Strategy.stockIntradayByTick.momentum.strategy1 import strategyBreak
 from MachineLearning.RNN.RNN001 import RNN001
 from MachineLearning.XGBoost.xgboost001 import xgboost001
 from Strategy.baseStrategy.grade.gradeStrategy1 import gradeStrategy1
+from Strategy.baseStrategy.grade.gradeStrategyXgboost import gradeStrategyXgboost
 from Utility.mytest import *
 from Utility.JobLibUtility import *
 from Utility.UpdateBasicData import *
@@ -74,11 +75,15 @@ def main():
     #----------------------------------------------------------------------
     
     codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
-    
-    s=gradeStrategy1()
-    #s.singleCode('000001.SZ',startDate,endDate)
-    #data=s.multipleCodes_parallel(codes,startDate,endDate)
+    myindex=IndexComponentDataProcess()
+    index300=myindex.getHS300DataByDate(startDate,endDate)
+    stockCodes=index300['code'].drop_duplicates()
+    s=gradeStrategyXgboost()
+    #data=s.singleCode('000001.SZ',startDate,endDate)
+    data=s.multipleCodes_parallel(codes,startDate,endDate)
     print(data['cashChange'].sum())
+    print(data['amount'].sum())
+    #print(data)
     #xgb=xgboost001('tmp')
     #xgb.mytrain(startDate,endDate,testStart,testEnd)
 
