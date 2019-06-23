@@ -11,6 +11,7 @@ import pandas as pd
 import numpy as np
 import math
 import xgboost as xgb
+from tensorflow import keras
 import warnings
 from DataAccess.TickDataProcess import TickDataProcess
 ########################################################################
@@ -56,6 +57,7 @@ class gradeStrategyDNN(baseStrategy):
         tick=TickDataProcess()
         daily=dailyFactorsProcess()
         dailyKLine=KLineDataProcess('daily')
+        file=os.path.join(LocalFileAddress,'tmp','dnn001_midIncreaseNext5m.h5')
         trade=[]
         for day in days:
             tickData=tick.getDataByDateFromLocalFile(code,day)
@@ -81,16 +83,13 @@ class gradeStrategyDNN(baseStrategy):
                  'buySellVolumeRatio10','buySellWeightedVolumeRatio10'
                ]
             A=data[features]
-            #A=self.dataSelect(A,0.2)
+            A=self.dataSelect(A,0.2)
             A=A.values
             warnings.filterwarnings('ignore')
-            factors=xgb.DMatrix(A)
-            file=os.path.join(LocalFileAddress,'tmp','xgb001_midIncreaseMaxNext5m.model')
-            model=xgb.Booster(model_file=file)
-            mymax=model.predict(factors)
-            file=os.path.join(LocalFileAddress,'tmp','xgb001_midIncreaseMinNext5m.model')
-            model=xgb.Booster(model_file=file)
-            mymin=model.predict(factors)
+            model = keras.models.load_model(file)
+            predictArray=model.predict(A,verbose=1)
+            mymin=predictArray[:,0]
+            mymax=predictArray[:,1]
             data['maxPredict']=mymax
             data['minPredict']=mymin
             data['maxPredict']=data['maxPredict'].ewm(span=2,ignore_na=True, adjust= True).mean()

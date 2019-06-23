@@ -27,6 +27,7 @@ from MachineLearning.RNN.RNN001 import RNN001
 from MachineLearning.XGBoost.xgboost001 import xgboost001
 from Strategy.baseStrategy.grade.gradeStrategy1 import gradeStrategy1
 from Strategy.baseStrategy.grade.gradeStrategyXgboost import gradeStrategyXgboost
+from Strategy.baseStrategy.grade.gradeStrategyDNN import gradeStrategyDNN
 from Utility.mytest import *
 from Utility.JobLibUtility import *
 from Utility.UpdateBasicData import *
@@ -60,9 +61,9 @@ def main():
     warnings.filterwarnings('ignore')
     logger.info(f'compute start!!!')
     startDate=20190501
-    endDate=20190605
+    endDate=20190610
     testStart=20190605
-    testEnd=20190615
+    testEnd=20190610
 
 
 
@@ -78,7 +79,7 @@ def main():
     myindex=IndexComponentDataProcess()
     index300=myindex.getHS300DataByDate(startDate,endDate)
     stockCodes=index300['code'].drop_duplicates()
-    s=gradeStrategyXgboost()
+    s=gradeStrategyDNN()
     #data=s.singleCode('000001.SZ',startDate,endDate)
     data=s.multipleCodes_parallel(codes,startDate,endDate)
     print(data['cashChange'].sum())
