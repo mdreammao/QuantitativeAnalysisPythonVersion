@@ -85,7 +85,8 @@ class KLineDataProcess(object):
             if endDate>=delistDate:
                 endDate=TradedayDataProcess.getPreviousTradeday(delistDate)
         if startDate<=endDate:
-            logger.info(f'get data of {code} from {startDate} to {endDate} start!')
+            #logger.info(f'get data of {code} from {startDate} to {endDate} start!')
+            pass
         else:
             logger.warning(f'There is no data of {code} from {startDate} to {endDate}')
             mydata=pd.DataFrame()

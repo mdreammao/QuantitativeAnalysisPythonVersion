@@ -61,7 +61,7 @@ def main():
     warnings.filterwarnings('ignore')
     logger.info(f'compute start!!!')
     startDate=20190501
-    endDate=20190610
+    endDate=20190520
     testStart=20190605
     testEnd=20190610
 
@@ -80,8 +80,8 @@ def main():
     index300=myindex.getHS300DataByDate(startDate,endDate)
     stockCodes=index300['code'].drop_duplicates()
     s=gradeStrategyDNN()
-    #data=s.singleCode('000001.SZ',startDate,endDate)
-    data=s.multipleCodes_parallel(codes,startDate,endDate)
+    data=s.singleCode('000001.SZ',startDate,endDate)
+    #data=s.multipleCodes_parallel(codes,startDate,endDate)
     print(data['cashChange'].sum())
     print(data['amount'].sum())
     #print(data)

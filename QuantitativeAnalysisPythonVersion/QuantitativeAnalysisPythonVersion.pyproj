@@ -109,6 +109,12 @@
     <Compile Include="DataPrepare\tickFactors\changeOfTickShot\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DataPrepare\tickFactors\changeOfVolume\MAVolumeDistance.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataPrepare\tickFactors\changeOfVolume\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DataPrepare\tickFactors\factorBase.py">
       <SubType>Code</SubType>
     </Compile>
@@ -261,6 +267,7 @@
     <Folder Include="DataPrepare\dailyFactors\volatility\" />
     <Folder Include="DataPrepare\tickFactors\" />
     <Folder Include="DataPrepare\tickFactors\changeOfTickShot\" />
+    <Folder Include="DataPrepare\tickFactors\changeOfVolume\" />
     <Folder Include="DataPrepare\tickFactors\targetFactor\" />
     <Folder Include="DataPrepare\tickFactors\statusOfTickShot\" />
     <Folder Include="MachineLearning\RNN\" />

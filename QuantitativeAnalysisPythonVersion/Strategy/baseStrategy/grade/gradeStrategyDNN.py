@@ -39,7 +39,8 @@ class gradeStrategyDNN(baseStrategy):
     #----------------------------------------------------------------------
     def dataSelect(self,data,c):
         pd.set_option('mode.use_inf_as_na', True) 
-        data=data[data.isna().sum(axis=1)==0]
+        #data=data[data.isna().sum(axis=1)==0]
+        data=data.fillna(0)
         select=data['buyForce']>c
         data.loc[select,'buyForce']=c
         select=data['sellForce']>c
@@ -87,7 +88,7 @@ class gradeStrategyDNN(baseStrategy):
             A=A.values
             warnings.filterwarnings('ignore')
             model = keras.models.load_model(file)
-            predictArray=model.predict(A,verbose=1)
+            predictArray=model.predict(A,verbose=0)
             mymin=predictArray[:,0]
             mymax=predictArray[:,1]
             data['maxPredict']=mymax
@@ -107,6 +108,7 @@ class gradeStrategyDNN(baseStrategy):
             mycolumns.append('minPredict')
             mycolumns.append('midPredict')
             mycolumns.append('increaseToday')
+            mycolumns.append('midInPrevious3m')
             data=data[mycolumns]
             parameters={'maxPosition':maxPosition,'longOpen':0.015,'shortOpen':-0.015,'longClose':0.01,'shortClose':-0.01,'transactionRatio':0.1}
             trade0=self.strategy(data,parameters)
@@ -145,7 +147,10 @@ class gradeStrategyDNN(baseStrategy):
             myindex.update({item:select.index(item)})
         mydata=data.values
         openPrice=0
+        maxPrice=0
+        minPrice=0
         stop=False
+        maxDownDraw=0
         trade=[]
         dict={}
         for i in range(len(mydata)):
@@ -160,33 +165,46 @@ class gradeStrategyDNN(baseStrategy):
            time=tick[myindex['time']]
            date=tick[myindex['date']]
            increaseToday=tick[myindex['increaseToday']]
+           midInPrevious3m=tick[myindex['midInPrevious3m']]
+           #遇上涨跌停直接不做
+           if (abs(increaseToday)>=0.095) & (todayPosition==0):
+               break
            #止盈止损
            if todayPosition>0:
-               if (B1-openPrice)/openPrice<=-0.01:
+               if B1>maxPrice:
+                   maxPrice=B1
+               maxDownDraw=min(0,(B1-maxPrice)/openPrice)
+               if (B1-maxPrice)/openPrice<=-0.01:
                    stop=True
                #if (B1-openPrice)/openPrice>=0.005:
                #    stop=True
                pass
            elif todayPosition<0:
-               if (openPrice-S1)/openPrice<=-0.01:
+               if S1<minPrice:
+                   minPrice=S1
+               maxDownDraw=min(0,(minPrice-S1)/openPrice)
+               if (minPrice-S1)/openPrice<=-0.01:
                    stop=True
                #if (openPrice-S1)/openPrice>=0.005:
                #   stop=True
                pass
            if (unusedPosition>0) &  (time<'145000000'):#仍然可以开仓
-               if (midPredict>0.0015) &(maxPredict>0.003) &  (SV1>=100/transactionRatio) & (increaseToday>-0.09):
+               if (maxPredict>0.005) & (midPredict>0.0015)& (midInPrevious3m<0.1)&(SV1>=100/transactionRatio) & (increaseToday>-0.09):
                    transactionVolume=min(round(transactionRatio*SV1,-2),unusedPosition)
                    unusedPosition=unusedPosition-transactionVolume
                    todayPosition=todayPosition+transactionVolume
                    transactionPrice=S1
                    transactionTime=time
                    transactionDate=date
+                   
                    dict={'date':transactionDate,'time':transactionTime,'direction':'buy','volume':transactionVolume,'price':transactionPrice}
                    trade.append(dict)
                    if openPrice==0:
                        openPrice=transactionPrice
+                       maxPrice=openPrice
+                       maxDownDraw=0
                    pass
-               elif (midPredict<-0.0015) & (minPredict<-0.003)&(minPredict<-1*maxPredict) & (BV1>=100/transactionRatio)& (increaseToday<0.09):
+               elif (midPredict<-0.005) & (midPredict<-0.0015)&(midInPrevious3m>0.9)&(minPredict<-1*maxPredict) & (BV1>=100/transactionRatio)& (increaseToday<0.09):
                    transactionVolume=min(round(transactionRatio*BV1,-2),unusedPosition)
                    unusedPosition=unusedPosition-transactionVolume
                    todayPosition=todayPosition-transactionVolume
@@ -197,10 +215,12 @@ class gradeStrategyDNN(baseStrategy):
                    trade.append(dict)
                    if openPrice==0:
                        openPrice=transactionPrice
+                       minPrice=openPrice
+                       maxDownDraw=0
                    pass
            if todayPosition!=0:
                if todayPosition>0:#持有多仓
-                   if (stop==True) |(midPredict<-0.0004)| (time>='145500000') | (increaseToday<-0.095):
+                   if (stop==True) |((maxDownDraw<=-0.005) & (midPredict<0.0015))| (time>='145500000') | (increaseToday<-0.095):
                        [averagePrice,sellPosition]=super().sellByTickShotData(tick,myindex,abs(todayPosition),0.05)
                        transactionVolume=sellPosition
                        todayPosition=todayPosition-transactionVolume
@@ -211,11 +231,13 @@ class gradeStrategyDNN(baseStrategy):
                        trade.append(dict)
                        if todayPosition==0:
                            openPrice==0
+                           maxPrice=0
+                           minPrice=0
                            stop=False
                        pass
                    pass
                elif todayPosition<0:#持有空仓
-                   if (stop==True)|(midPredict>0.0004)|(time>='145500000')| (increaseToday>0.095):
+                   if (stop==True)|((maxDownDraw<=-0.005)&(midPredict>-0.0015))|(time>='145500000')| (increaseToday>0.095):
                        [averagePrice,buyPosition]=super().buyByTickShotData(tick,myindex,abs(todayPosition),0.05)
                        transactionVolume=buyPosition
                        todayPosition=todayPosition+transactionVolume
@@ -226,6 +248,8 @@ class gradeStrategyDNN(baseStrategy):
                        trade.append(dict)
                        if todayPosition==0:
                            openPrice==0
+                           maxPrice=0
+                           minPrice=0
                            stop=False
                        pass
                    pass
