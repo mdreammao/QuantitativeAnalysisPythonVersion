@@ -51,28 +51,32 @@ class midPriceChange(factorBase):
         pass
     #----------------------------------------------------------------------
     def __midSpeed(self,data,span,period):
-        result=data['midPrice'].copy()
-        result['EMAMidPrice']=super().EMA(data,'midPrice',span)
+        result=data[['time','midPrice']].copy()
+        result['EMAMidPrice']=super().EMA(data['midPrice'],span)
         result['speed']=(result['EMAMidPrice']/result['EMAMidPrice'].shift(period)-1)/(period/20)
-        result.loc[result['speed'].isna(),'speed']=0
+        select=result['speed'].isna()
+        result.loc[select,'speed']=0
+        return result['speed']
         pass
     #----------------------------------------------------------------------
     def __midMomentum(self,data,span,period):
-        result=data[['midPrice','amount']].copy()
-        result['EMAMidPrice']=super().EMA(data,'midPrice',span)
+        result=data[['midPrice','amountIncrease']].copy()
+        result['EMAMidPrice']=super().EMA(data['midPrice'],span)
         result['speed']=(result['EMAMidPrice']/result['EMAMidPrice'].shift(period)-1)/(period/20)
         result.loc[result['speed'].isna(),'speed']=0
-        result['momentum']=result['speed']*(result['amount']-result['amount'].shift(period))
+        result['amountTotal']=result['amountIncrease'].rolling(period,min_periods=1).sum()
+        result['momentum']=result['speed']*result['amountTotal']
+        return result['momentum']
         pass
     #-----------------------------------------------------------------------
     def __CrossPoint(self,data,fast,low):
-        result=data['midPrice'].copy()
-        result['midEMAFast']=super().EMA(result,'midPrice',fast)
-        result['midEMALow']=super().EMA(result,'midPrice',low)
+        result=data[['time','midPrice']].copy()
+        result['midEMAFast']=super().EMA(result['midPrice'],fast)
+        result['midEMALow']=super().EMA(result['midPrice'],low)
         result['cross']=0
-        select=(result['midEMAFast']>result['midEMALow']) & (result['midEMAFast'].shift(1)<=result['midEMALow'].shift(1)) 
+        select=(result['midEMAFast']>result['midEMALow']) & (result['midEMAFast'].shift(1)<=result['midEMALow'].shift(1)) & (result['time']>='09301500000')
         result.loc[select,'cross']=1
-        select=(result['midEMAFast']<result['midEMALow']) & (result['midEMAFast'].shift(1)>=result['midEMALow'].shift(1)) 
+        select=(result['midEMAFast']<result['midEMALow']) & (result['midEMAFast'].shift(1)>=result['midEMALow'].shift(1))& (result['time']>='09301500000')
         result.loc[select,'cross']=-1
         cross=result['cross'].values
         mid=result['midPrice'].values
@@ -83,7 +87,7 @@ class midPriceChange(factorBase):
         crossBasis=[]
         crossBasisPos=[]
         crossAmplitude=[]
-        crossAmplitudeMa=[]
+        crossAmplitudeEMA=[]
         for i in range(len(cross)):
             if i==0:
                 crossPos.append(i)
@@ -91,39 +95,42 @@ class midPriceChange(factorBase):
                 crossPos.append(i)
         for i in range(len(crossPos)):
             if i==0:
-                corssBasis.append(mid[crossPos[i]])
+                crossBasis.append(mid[crossPos[i]])
                 crossBasisPos.append(crossPos[i])
                 pass
             else:
                 if (cross[crossPos[i]]==1):#上穿
-                    crossBasis.append(mid[crossPos[i-1]-1:crossPos[i]].min())
-                    crossBasisPos.append(mid[crossPos[i-1]-1:crossPos[i]].argmin())
+                    crossBasis.append(mid[crossPos[i-1]:crossPos[i]].min())
+                    crossBasisPos.append(mid[crossPos[i-1]:crossPos[i]].argmin())
                     pass
                 if (cross[crossPos[i]]==-1):#下穿
-                    crossBasis.append(mid[crossPos[i-1]-1:crossPos[i]].max())
-                    crossBasisPos.append(mid[crossPos[i-1]-1:crossPos[i]].argmax())
+                    crossBasis.append(mid[crossPos[i-1]:crossPos[i]].max())
+                    crossBasisPos.append(mid[crossPos[i-1]:crossPos[i]].argmax())
                     pass
-        for i in range(1,len(corssBasis)):
+        for i in range(1,len(crossBasis)):
             crossAmplitude.append(abs(1000*(crossBasis[i]/crossBasis[i-1]-1)))
+
         for i in range(len(crossAmplitude)):
-            temp=crossAmplitude[0:i+1].mean()
+            temp=np.mean(crossAmplitude[0:i+1])
             if i==0:
                 ematemp=temp
             else:
                 ematemp=temp*(2/3)+(1/3)*crossAmplitudeEMA[i-1]
             crossAmplitudeEMA.append(ematemp)
+        crossAmplitudeEMA=[0]+crossAmplitudeEMA#开头插入振幅0
         j=0
         for i in range(len(mid)):
-            if ((j<len(crossPos)-1) & crossPos[j+1]<=i):
-                j=j+1
+            if j<len(crossPos)-1:
+               if crossPos[j+1]<=i:
+                   j=j+1
             pos=crossPos[j]
             basis=crossBasis[j]
             basisPos=crossBasisPos[j]
-            ratio.append(mid[i]/basis)-1
+            ratio.append(mid[i]/basis-1)
             if i==basisPos:
                 speed.append(0)
             else:
-                speed.append(ratio/(i-basisPos))
+                speed.append((mid[i]/basis-1)/(i-basisPos))
             amplitude.append(crossAmplitudeEMA[j])
         result['ratio']=ratio
         result['speed']=speed
@@ -133,7 +140,7 @@ class midPriceChange(factorBase):
     def __computerFactor(self,code,date,mydata):
         result=pd.DataFrame()
         if mydata.shape[0]!=0:
-            result=mydata[['midPrice','amount','volume','time']].copy()
+            result=mydata[['midPrice','amount','volume','time','amountIncrease']].copy()
             result['midPrice'].fillna(method='ffill',inplace=True)
             #----------------------------------------------------------------------
             #计算mid价格的涨跌

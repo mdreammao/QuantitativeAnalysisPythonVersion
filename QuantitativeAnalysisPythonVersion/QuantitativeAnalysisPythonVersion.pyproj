@@ -112,9 +112,6 @@
     <Compile Include="DataPrepare\tickFactors\changeOfVolume\MAVolumeDistance.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="DataPrepare\tickFactors\changeOfVolume\__init__.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="DataPrepare\tickFactors\factorBase.py">
       <SubType>Code</SubType>
     </Compile>

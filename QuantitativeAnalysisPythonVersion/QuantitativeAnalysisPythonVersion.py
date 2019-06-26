@@ -60,7 +60,7 @@ def main():
 
     warnings.filterwarnings('ignore')
     logger.info(f'compute start!!!')
-    startDate=20190501
+    startDate=20190508
     endDate=20190520
     testStart=20190605
     testEnd=20190610
@@ -75,18 +75,8 @@ def main():
     #UpdateBasicData.updateDailyFactors(stockCodes)
     #----------------------------------------------------------------------
     
-    codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
-    myindex=IndexComponentDataProcess()
-    index300=myindex.getHS300DataByDate(startDate,endDate)
-    stockCodes=index300['code'].drop_duplicates()
-    s=gradeStrategyDNN()
-    data=s.singleCode('000001.SZ',startDate,endDate)
-    #data=s.multipleCodes_parallel(codes,startDate,endDate)
-    print(data['cashChange'].sum())
-    print(data['amount'].sum())
-    #print(data)
-    #xgb=xgboost001('tmp')
-    #xgb.mytrain(startDate,endDate,testStart,testEnd)
+    factor=tickFactorsProcess()
+    factor.updateAllFactorsByCodeAndDate('000001.SZ',startDate)
 
 
 
@@ -94,13 +84,12 @@ def main():
     #rnn=RNN001()
     #rnn.myRNN(startDate,endDate,testStart,'tmp')
     
-    codes=UpdateBasicData.updateStockCodes(startDate,endDate)
-    #codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
+    #codes=UpdateBasicData.updateStockCodes(startDate,endDate)
+    codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
     UpdateBasicData.updateMultipleStocksTickFactors(codes,startDate,endDate)
     ana=myAnalysisForFactorsByDate('tmp')
     ana.prepareData(codes,startDate,endDate)
 
-    
     test=strategyBreak()
     codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
     data=test.multipleCodes_parallel(codes,20190506,20190508)

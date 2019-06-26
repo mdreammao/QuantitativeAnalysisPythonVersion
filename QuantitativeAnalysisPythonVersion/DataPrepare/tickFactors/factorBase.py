@@ -82,18 +82,18 @@ class factorBase(object):
         return result['mylog']
         pass 
     #----------------------------------------------------------------------
-    def EMA(self,data,col,span):
-        result['ema']=pd.Series.ewm(data[col], span=span).mean()
-        return result['ema']
+    def EMA(self,series,span):
+        return pd.Series.ewm(series, span=span).mean()
         pass
     #----------------------------------------------------------------------
-    def MA(self,data,col,span):
-        result['ma']=data[col].rolling(span,min_periods=1).mean()
-        return result['ma']
+    def MA(self,series,span):
+        return series.rolling(span,min_periods=1).mean()
         pass
     #----------------------------------------------------------------------
     def getLastTradedayTickData(self,code,date):
-        days=list(TradedayDataProcess.getPreviousTradeday(date,250)).reverse()
+        previousday=TradedayDataProcess.getPreviousTradeday(date,250)
+        days=list(TradedayDataProcess.getTradedays(previousday,date))
+        days.reverse()
         data=pd.DataFrame()
         for day in days:
             if day<date:

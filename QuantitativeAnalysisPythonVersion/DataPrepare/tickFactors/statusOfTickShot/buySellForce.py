@@ -31,7 +31,7 @@ class buySellForce(factorBase):
         super().updateFactor(code,date,self.factor,result)
     #----------------------------------------------------------------------
     def __logBetweenTwoColumns(self,data,col1,col2):
-        return super().logBetweenTwoColumns(self,data,col1,col2)
+        return super().logBetweenTwoColumns(data,col1,col2)
     #----------------------------------------------------------------------
     def __logBetweenTwoColumnsWithBound(self,data,col1,col2,bound):
         result=data[[col1,col2]].copy()
@@ -81,6 +81,7 @@ class buySellForce(factorBase):
         select=(result['buyAverageAmountWeighted']>0)&(result['sellAverageAmountWeighted']>0)
         result['buySellAmountWeightedPressure']=0
         result.loc[select,'buySellAmountWeightedPressure']=(result['buyAverageAmountWeighted']-result['sellAverageAmountWeighted'])/(result['buyAverageAmountWeighted']+result['sellAverageAmountWeighted'])
+        return result['buySellAmountWeightedPressure']
         pass
     #----------------------------------------------------------------------
     def __averageAmountWeighted(self,data,amountStart,amountEnd,decay):
@@ -116,7 +117,7 @@ class buySellForce(factorBase):
         lastData=lastData[lastData['time']<'145700000']
         last=lastData[['date','volumeIncrease']].copy()
         total=pd.concat([last,result])
-        total['volumeIncreaseMean']=total.rolling(span).mean()
+        total['volumeIncreaseMean']=total['volumeIncrease'].rolling(span,min_periods=1).mean()
         select=total['date']==date
         return total[select]['volumeIncreaseMean']
         pass
@@ -156,16 +157,16 @@ class buySellForce(factorBase):
         for i in range(1,11):
             select=(result['B1']<result['B'+str(i)].shift(1)) & select0
             result.loc[select,'sellForce']=(result['sellForce']+result['BV'+str(i)].shift(1)*result['B'+str(i)].shift(1)/(1+np.exp(1000*(result['B'+str(i)].shift(1)/result['midPrice'].shift(1)-1))))[select]
-            select=(mydata['B1']==mydata['B'+str(i)].shift(1)) & (result['BV'+str(i)].shift(1)>result['BV1']) & select0
+            select=(result['B1']==result['B'+str(i)].shift(1)) & (result['BV'+str(i)].shift(1)>result['BV1']) & select0
             result.loc[select,'sellForce']=(result['sellForce']+(result['BV'+str(i)].shift(1)-result['BV1'])*result['B'+str(i)].shift(1)/(1+np.exp(1000*(result['B'+str(i)].shift(1)/result['midPrice'].shift(1)-1))))[select]
             pass
         return result[['buyForce','sellForce']]
         pass
     #----------------------------------------------------------------------
     def __volumeMagnification(self,data,fast,slow):
-        result=data['volumeIncrease'].copy()
-        result['fast']=super().EMA(result,'volumeIncease',fast)
-        result['slow']=super().EMA(result,'volumeIncease',slow)
+        result=data.copy()
+        result['fast']=super().EMA(result['volumeIncrease'],fast)
+        result['slow']=super().EMA(result['volumeIncrease'],slow)
         result['magnification']=0
         select=result['slow']>0
         result.loc[select,'magnification']=result['fast']/result['slow']
@@ -184,11 +185,11 @@ class buySellForce(factorBase):
             result.loc[select,'buySellSpread']=((mydata['S1']-mydata['B1'])/mydata['midPrice'])[select]
             #------------------------------------------------------------------
             #计算成交量得MA
-            result['volumeIncreaseMA3']=super().MA(data,'volumeIncrease',3)
-            result['volumeIncreaseMA20']=super().MA(data,'volumeIncrease',20)
-            result['volumeIncreaseMA40']=super().MA(data,'volumeIncrease',40)
-            result['volumeIncreaseMA100']=super().MA(data,'volumeIncrease',100)
-            result['volumeIncreaseMA200']=super().MA(data,'volumeIncrease',200)
+            result['volumeIncreaseMA3']=super().MA(result['volumeIncrease'],3)
+            result['volumeIncreaseMA20']=super().MA(result['volumeIncrease'],20)
+            result['volumeIncreaseMA40']=super().MA(result['volumeIncrease'],40)
+            result['volumeIncreaseMA100']=super().MA(result['volumeIncrease'],100)
+            result['volumeIncreaseMA200']=super().MA(result['volumeIncrease'],200)
             result['volumeIncreaseMean']=self.__longTermVolumeIncreaeMean(result,code,date,4741)
             select=result['volumeIncreaseMean']==0
             result['volumeIncreaseMA3ToMean']=result['volumeIncreaseMA3']/result['volumeIncreaseMean']
@@ -227,17 +228,17 @@ class buySellForce(factorBase):
             result[['buyAverageVolume1_10','sellAverageVolume1_10']]=self.__averageVolumeWeighted(result,1,10,1)
             result[['buyAverageAmountWeighted1_10_0.8','sellAverageAmountWeighted1_10_0.8']]=self.__averageAmountWeighted(result,1,10,0.8)
             result['buySellVolumeWeightedPressure1_10_0.8']=self.__buySellVolumeWeightedPressure(result,1,10,0.8)
-            result['EMABuySellVolumeWeightedPressure1_10_0.8']=super().EMA(result,'buySellVolumeWeightedPressure1_10_0.8',5)
+            result['EMABuySellVolumeWeightedPressure1_10_0.8']=super().EMA(result['buySellVolumeWeightedPressure1_10_0.8'],5)
             result['buySellAmountWeightedPressure1_10_0.8']=self.__buySellAmountWeightedPressure(result,1,10,0.8)
-            result['EMABuySellAmountWeightedPressure1_10_0.8']=super().EMA(result,'buySellAmountWeightedPressure1_10_0.8',5)
+            result['EMABuySellAmountWeightedPressure1_10_0.8']=super().EMA(result['buySellAmountWeightedPressure1_10_0.8'],5)
             result['buySellPress1_10']=self.__buySellPressure(result,1,10)
-            result['EMABuySellPress1_10']=super().EMA(result,'buySellPress1_10',10)
+            result['EMABuySellPress1_10']=super().EMA(result['buySellPress1_10'],10)
 
             #------------------------------------------------------------------
             #主动买和主动卖，因子值大小在[0,+∞)
             result[['buyForce','sellForce']]=self.__buySellAmountForce(result)
-            result['EMABuyForce15']=super().EMA(result,'buyForce',15)
-            result['EMASellForce15']=super().EMA(result,'sellForce',15)
+            result['EMABuyForce15']=super().EMA(result['buyForce'],15)
+            result['EMASellForce15']=super().EMA(result['sellForce'],15)
             result['buySellForceChange']=self.__logBetweenTwoColumnsWithBound(result,'EMABuyForce15','EMASellForce15',10)
             result['volumeIncreaseMean']=self.__longTermVolumeIncreaeMean(result,code,date,4741)
             select=result['volumeIncreaseMean']==0
