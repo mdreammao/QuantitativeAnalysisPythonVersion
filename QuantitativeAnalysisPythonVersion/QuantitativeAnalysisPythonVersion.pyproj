@@ -124,6 +124,9 @@
     <Compile Include="DataPrepare\tickFactors\targetFactor\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DataPrepare\tickFactors\tickDataPrepared.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DataPrepare\tickFactors\__init__.py">
       <SubType>Code</SubType>
     </Compile>

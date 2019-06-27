@@ -28,6 +28,7 @@ from MachineLearning.XGBoost.xgboost001 import xgboost001
 from Strategy.baseStrategy.grade.gradeStrategy1 import gradeStrategy1
 from Strategy.baseStrategy.grade.gradeStrategyXgboost import gradeStrategyXgboost
 from Strategy.baseStrategy.grade.gradeStrategyDNN import gradeStrategyDNN
+from DataPrepare.tickFactors.tickDataPrepared import tickDataPrepared
 from Utility.mytest import *
 from Utility.JobLibUtility import *
 from Utility.UpdateBasicData import *
@@ -60,28 +61,32 @@ def main():
 
     warnings.filterwarnings('ignore')
     logger.info(f'compute start!!!')
-    startDate=20190506
-    endDate=20190510
+    startDate=20180401
+    endDate=20190610
     testStart=20190605
     testEnd=20190610
 
 
-
-    #UpdateBasicData.updateDailyAll()
+    UpdateBasicData.updateDailyAll()
     #UpdateBasicData.updateMinuteAll()
-    #UpdateBasicData.updateTickAll(startDate)
+    UpdateBasicData.updateTickAll(startDate)
     #UpdateBasicData.updateTickFactorAll(startDate)
     #stockCodes=UpdateBasicData.updateStockCodes(startDate,endDate)
     #UpdateBasicData.updateDailyFactors(stockCodes)
     #----------------------------------------------------------------------
-    
-    #factor=tickFactorsProcess()
-    #factor.updateAllFactorsByCodeAndDate('000001.SZ',startDate)
+    '''
+    code='000025.SZ'
+    date=20190516
+    factor=tickDataPrepared('tmp2')
+    factor.updateAllFactorsByCodeAndDate(code,date)
+    factor.saveAllFactorsByCodeAndDate(code,date)
     codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
-    #UpdateBasicData.updateMultipleStocksTickFactors(codes,startDate,endDate)
-    ana=myAnalysisForFactorsByDate('tmp2')
-    ana.prepareData(codes,startDate,endDate)
-
+    factor.parallelizationUpdateDataByDate(codes,startDate,endDate)
+    factor.parallelizationSaveDataByDate(codes,startDate,endDate)
+    factor.saveDataByCodeList(codes,date,date)
+    #ana=myAnalysisForFactorsByDate('tmp2')
+    #ana.prepareData(codes,startDate,endDate)
+    '''
 
 
     '''

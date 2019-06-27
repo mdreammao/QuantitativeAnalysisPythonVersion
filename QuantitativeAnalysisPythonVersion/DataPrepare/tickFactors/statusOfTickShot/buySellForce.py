@@ -101,14 +101,15 @@ class buySellForce(factorBase):
         data['buyWeightedVolume'+str(n)]=0
         data['sellWeightedVolume'+str(n)]=0
         for i in range(1,n+1):
-            select=data['B'+str(i)]>0
+            select=(data['B'+str(i)]>0) & (data['S'+str(i)]>0)
             data.loc[select,'buyWeightedVolume'+str(n)]=data['buyWeightedVolume'+str(n)]+data['BV'+str(i)]*(data['buySellSpread']*data['midPrice']/(data['midPrice']-data['B'+str(i)]))[select]
-            select=data['S'+str(i)]>0
             data.loc[select,'sellWeightedVolume'+str(n)]=data['sellWeightedVolume'+str(n)]+data['SV'+str(i)]*(data['buySellSpread']*data['midPrice']/(-data['midPrice']+data['S'+str(i)]))[select]
             pass
-        select=data['B1']==data['S1']
         data['buySellWeightedVolumeRatio'+str(n)]=data['buyWeightedVolume'+str(n)]/(data['buyWeightedVolume'+str(n)]+data['sellWeightedVolume'+str(n)])
+        select=data['B1']==data['S1']
         data.loc[select,'buySellWeightedVolumeRatio'+str(n)]=(data['BV1']/(data['BV1']+data['SV1']))[select]
+        select=(data['B'+str(i)]==0) | (data['S'+str(i)]==0)
+        data.loc[select,'buySellWeightedVolumeRatio'+str(n)]=0
         pass
     #----------------------------------------------------------------------
     def __longTermVolumeIncreaeMean(self,data,code,date,span):
@@ -180,7 +181,7 @@ class buySellForce(factorBase):
             result=mydata.copy()
             #------------------------------------------------------------------
             #bid ask 间距，因子值在[0,0.1]之间
-            result['buySellSpread']=0.01
+            result['buySellSpread']=0
             select=(mydata['S1']!=0) & (mydata['B1']!=0)
             result.loc[select,'buySellSpread']=((mydata['S1']-mydata['B1'])/mydata['midPrice'])[select]
             #------------------------------------------------------------------
@@ -214,10 +215,13 @@ class buySellForce(factorBase):
             result['totalVolume10']=result['buyVolume10']+result['sellVolume10']
             #------------------------------------------------------------------
             #挂单量信息
+            select=(result['sellVolume10']+result['buyVolume10'])==0
             result['buySellVolumeRatio2']=(result['buyVolume2']/(result['sellVolume2']+result['buyVolume2']))
             result['buySellVolumeRatio5']=(result['buyVolume5']/(result['sellVolume5']+result['buyVolume5']))
             result['buySellVolumeRatio10']=(result['buyVolume10']/(result['sellVolume10']+result['buyVolume10']))
-            
+            result.loc[select,'buySellVolumeRatio2']=0
+            result.loc[select,'buySellVolumeRatio5']=0
+            result.loc[select,'buySellVolumeRatio10']=0
             #------------------------------------------------------------------
             #加权之后的多空力量对比
             #根据价格和量计算的多空力量对比因子值在[0,1]之间
@@ -251,6 +255,7 @@ class buySellForce(factorBase):
             #剔除14点57分之后，集合竞价的数据
             result=result[result['time']<'145700000']
             mycolumns=list(set(result.columns).difference(set(mydata.columns)))
+            mycolumns.sort()
             result=result[mycolumns]
             super().checkDataNan(code,date,self.factor,result)
             pass

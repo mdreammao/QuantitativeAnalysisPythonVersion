@@ -66,7 +66,7 @@ class myAnalysisForFactorsByDate(object):
         data.loc[select,'buySellForceChange']=-c
         return data
         pass
-#----------------------------------------------------------------------
+    #----------------------------------------------------------------------
     def prepareData(self,codeList,startDate,endDate):
         tradedays=TradedayDataProcess.getTradedays(startDate,endDate)
         myfactor=tickFactorsProcess()
