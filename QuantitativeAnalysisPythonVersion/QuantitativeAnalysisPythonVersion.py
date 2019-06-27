@@ -60,8 +60,8 @@ def main():
 
     warnings.filterwarnings('ignore')
     logger.info(f'compute start!!!')
-    startDate=20190508
-    endDate=20190520
+    startDate=20190506
+    endDate=20190510
     testStart=20190605
     testEnd=20190610
 
@@ -75,8 +75,12 @@ def main():
     #UpdateBasicData.updateDailyFactors(stockCodes)
     #----------------------------------------------------------------------
     
-    factor=tickFactorsProcess()
-    factor.updateAllFactorsByCodeAndDate('000001.SZ',startDate)
+    #factor=tickFactorsProcess()
+    #factor.updateAllFactorsByCodeAndDate('000001.SZ',startDate)
+    codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
+    #UpdateBasicData.updateMultipleStocksTickFactors(codes,startDate,endDate)
+    ana=myAnalysisForFactorsByDate('tmp2')
+    ana.prepareData(codes,startDate,endDate)
 
 
 
