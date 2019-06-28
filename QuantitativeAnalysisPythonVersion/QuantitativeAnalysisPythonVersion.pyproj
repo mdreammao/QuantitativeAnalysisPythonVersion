@@ -218,6 +218,15 @@
     <Compile Include="Strategy\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Unitest\testFactor\testBuySellForce.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Unitest\testFactor\__int__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Unitest\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Utility\ComputeUtility.py">
       <SubType>Code</SubType>
     </Compile>
@@ -263,12 +272,14 @@
     <Folder Include="MachineLearning\XGBoost\" />
     <Folder Include="Monitor\" />
     <Folder Include="MachineLearning\" />
+    <Folder Include="Unitest\" />
     <Folder Include="Strategy\" />
     <Folder Include="Strategy\baseStrategy\" />
     <Folder Include="Strategy\baseStrategy\grade\" />
     <Folder Include="Strategy\stockIntradayByTick\" />
     <Folder Include="Strategy\stockIntradayByTick\momentum\" />
     <Folder Include="Strategy\stockIntradayByTick\reverse\" />
+    <Folder Include="Unitest\testFactor\" />
     <Folder Include="Utility\" />
   </ItemGroup>
   <ItemGroup>
