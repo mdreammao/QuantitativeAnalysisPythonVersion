@@ -77,15 +77,25 @@ class TickDataProcess(object):
             logger.error(f'There is no tick data of {code} in {date} from source!!')
             return pd.DataFrame()
             pass
+        #计算mid价格
+        select=(mydata['BV1']>0) & (mydata['SV1']>0)
+        mydata.loc[select,'midPrice']=((mydata['B1']+mydata['S1'])/2)[select]
+        select=(mydata['BV1']>0) & (mydata['SV1']==0)
+        mydata.loc[select,'midPrice']=mydata['B1'][select]
+        select=(mydata['BV1']==0) & (mydata['SV1']>0)
+        mydata.loc[select,'midPrice']=mydata['S1'][select]
+        #按3S重采样
+        mydata['realData']=1
         mydata=mydata.resample('3s',label='right',closed='right').last()
-        mydata.fillna(method='ffill',inplace=True)
-        #成交量增量及mid价格
+        mycolumns=list(mydata.columns)
+        mycolumns.remove('realData')
+        mydata[mycolumns]=mydata[mycolumns].fillna(method='ffill')
+        select=mydata['realData'].isna()
+        mydata.loc[select,'realData']=0
+        #成交量增量
         mydata['volumeIncrease']=mydata['volume']-mydata['volume'].shift(1)
         mydata['amountIncrease']=mydata['amount']-mydata['amount'].shift(1)
-        mydata.loc[(mydata['BV1']>0) & (mydata['SV1']>0),'midPrice']=(mydata['B1']+mydata['S1'])/2
-        mydata.loc[(mydata['BV1']>0) & (mydata['SV1']==0),'midPrice']=mydata['B1']
-        mydata.loc[(mydata['BV1']==0) & (mydata['SV1']>0),'midPrice']=mydata['S1']
-        mydata['midPrice'].fillna(method='ffill',inplace=True)
+        #仅保留连续竞价时间
         mydata=mydata[((mydata.index.time>=datetime.time(9,30)) & (mydata.index.time<=datetime.time(11,30))) | ((mydata.index.time>=datetime.time(13,00)) & (mydata.index.time<=datetime.time(15,00)))]
         return mydata
         pass
@@ -97,11 +107,11 @@ class TickDataProcess(object):
         table='MarketData_'+code.replace('.','_')
         connect=pymssql.connect( self.address,self.user,self.password,database,charset='utf8')
         cursor = connect.cursor()
-        sql="select [stkcd],rtrim([tdate]),left(rtrim(ttime),6)+'000' as [ttime],[cp],[S1],[S2],[S3],[S4],[S5],[S6],[S7],[S8],[S9],[S10],[B1],[B2],[B3],[B4],[B5],[B6],[B7],[B8],[B9],[B10],[SV1],[SV2],[SV3],[SV4],[SV5],[SV6],[SV7],[SV8],[SV9],[SV10],[BV1],[BV2],[BV3],[BV4],[BV5],[BV6],[BV7],[BV8],[BV9],[BV10],[ts],[tt] FROM [{0}].[dbo].[{1}] where [tdate]={2} and ((left(rtrim(ttime),6)>=92500 and left(rtrim(ttime),6)<=113000) or (left(rtrim(ttime),6)>=130000 and left(rtrim(ttime),6)<=150000)) order by ttime".format(database,table,date)
+        sql="select [stkcd],rtrim([tdate]),left(rtrim(ttime),6)+'000' as [ttime],[cp],[S1],[S2],[S3],[S4],[S5],[S6],[S7],[S8],[S9],[S10],[B1],[B2],[B3],[B4],[B5],[B6],[B7],[B8],[B9],[B10],[SV1],[SV2],[SV3],[SV4],[SV5],[SV6],[SV7],[SV8],[SV9],[SV10],[BV1],[BV2],[BV3],[BV4],[BV5],[BV6],[BV7],[BV8],[BV9],[BV10],[ts],[tt],[HighLimit],[LowLimit],[OPNPRC],[PRECLOSE],[transactions_count],[weightedAvgBidPRC],[weightedAvgAskPRC],[total_bid_size],[total_ask_size],[LocalRecTime],[TradeStatus] FROM [{0}].[dbo].[{1}] where [tdate]={2} and ((left(rtrim(ttime),6)>=92500 and left(rtrim(ttime),6)<=113000) or (left(rtrim(ttime),6)>=130000 and left(rtrim(ttime),6)<=150000)) order by ttime".format(database,table,date)
         cursor.execute(sql)
         mydata=cursor.fetchall()
-        mydata = pd.DataFrame(mydata,columns=['code' ,'date','time' ,'lastPrice','S1','S2','S3','S4','S5','S6','S7','S8','S9','S10','B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','SV1','SV2','SV3','SV4','SV5','SV6','SV7','SV8','SV9','SV10','BV1','BV2','BV3','BV4','BV5','BV6','BV7','BV8','BV9','BV10','volume' ,'amount'])
-        mydata[['lastPrice','S1','S2','S3','S4','S5','S6','S7','S8','S9','S10','B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','SV1','SV2','SV3','SV4','SV5','SV6','SV7','SV8','SV9','SV10','BV1','BV2','BV3','BV4','BV5','BV6','BV7','BV8','BV9','BV10','volume' ,'amount']] = mydata[['lastPrice','S1','S2','S3','S4','S5','S6','S7','S8','S9','S10','B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','SV1','SV2','SV3','SV4','SV5','SV6','SV7','SV8','SV9','SV10','BV1','BV2','BV3','BV4','BV5','BV6','BV7','BV8','BV9','BV10','volume' ,'amount']].astype('float')
+        mydata = pd.DataFrame(mydata,columns=['code' ,'date','time' ,'lastPrice','S1','S2','S3','S4','S5','S6','S7','S8','S9','S10','B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','SV1','SV2','SV3','SV4','SV5','SV6','SV7','SV8','SV9','SV10','BV1','BV2','BV3','BV4','BV5','BV6','BV7','BV8','BV9','BV10','volume' ,'amount','highLimit','lowLimit','dailyOpen','dailyPreClose','transactions_count','weightedAvgBid','weightedAvgAsk','total_bid_size','total_ask_size','localRecordTime','tradeStatus'])
+        mydata[['lastPrice','S1','S2','S3','S4','S5','S6','S7','S8','S9','S10','B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','SV1','SV2','SV3','SV4','SV5','SV6','SV7','SV8','SV9','SV10','BV1','BV2','BV3','BV4','BV5','BV6','BV7','BV8','BV9','BV10','volume' ,'amount','highLimit','lowLimit','dailyOpen','dailyPreClose','transactions_count','weightedAvgBid','weightedAvgAsk','total_bid_size','total_ask_size','tradeStatus']] = mydata[['lastPrice','S1','S2','S3','S4','S5','S6','S7','S8','S9','S10','B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','SV1','SV2','SV3','SV4','SV5','SV6','SV7','SV8','SV9','SV10','BV1','BV2','BV3','BV4','BV5','BV6','BV7','BV8','BV9','BV10','volume' ,'amount','highLimit','lowLimit','dailyOpen','dailyPreClose','transactions_count','weightedAvgBid','weightedAvgAsk','total_bid_size','total_ask_size','tradeStatus']].astype('float')
         mydata['mytime']=pd.to_datetime(mydata['date']+mydata['time'],format='%Y%m%d%H%M%S%f')
         mydata.set_index('mytime',inplace=True,drop=True)
         return mydata    

@@ -58,12 +58,10 @@ OracleServer={
 
 #本地文件存储地址
 LocalFileAddress=r'D:/BTP/LocalDataBase'
-TempLocalFileAddress=r'D:/BTP/LocalDataBase/temp'
-
+#LocalFileAddress=r'/home/public/mao/BTP/LocalDataBase'
 #ROOT_PATH = '/home/orientsec38/QuantitativeAnalysisPythonVersion/QuantitativeAnalysisPythonVersion/BTP'
 
 #LocalFileAddress=os.path.join(ROOT_PATH, 'LocalDataBase')
-#TempLocalFileAddress=os.path.join(LocalFileAddress, 'temp')
 
 
 ####################################################################

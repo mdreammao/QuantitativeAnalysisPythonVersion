@@ -124,6 +124,9 @@
     <Compile Include="DataPrepare\tickFactors\targetFactor\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DataPrepare\tickFactors\tickDataPrepared.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DataPrepare\tickFactors\__init__.py">
       <SubType>Code</SubType>
     </Compile>
@@ -159,6 +162,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Strategy\baseStrategy\grade\gradeStrategy1.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Strategy\baseStrategy\grade\gradeStrategyDNN.py" />
+    <Compile Include="Strategy\baseStrategy\grade\gradeStrategyXgboost.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Strategy\baseStrategy\grade\__init__.py">

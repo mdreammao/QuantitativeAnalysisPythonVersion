@@ -10,9 +10,12 @@ from Strategy.baseStrategy.baseStrategy import baseStrategy
 import pandas as pd
 import numpy as np
 import math
+import xgboost as xgb
+from tensorflow import keras
+import warnings
 from DataAccess.TickDataProcess import TickDataProcess
 ########################################################################
-class gradeStrategy1(baseStrategy):
+class gradeStrategyDNN(baseStrategy):
     """按照打分交易"""
     #----------------------------------------------------------------------
     def __init__(self):
@@ -36,7 +39,8 @@ class gradeStrategy1(baseStrategy):
     #----------------------------------------------------------------------
     def dataSelect(self,data,c):
         pd.set_option('mode.use_inf_as_na', True) 
-        data=data[data.isna().sum(axis=1)==0]
+        #data=data[data.isna().sum(axis=1)==0]
+        data=data.fillna(0)
         select=data['buyForce']>c
         data.loc[select,'buyForce']=c
         select=data['sellForce']>c
@@ -54,6 +58,7 @@ class gradeStrategy1(baseStrategy):
         tick=TickDataProcess()
         daily=dailyFactorsProcess()
         dailyKLine=KLineDataProcess('daily')
+        file=os.path.join(LocalFileAddress,'tmp','dnn001_midIncreaseNext5m.h5')
         trade=[]
         for day in days:
             tickData=tick.getDataByDateFromLocalFile(code,day)
@@ -81,41 +86,40 @@ class gradeStrategy1(baseStrategy):
             A=data[features]
             A=self.dataSelect(A,0.2)
             A=A.values
-            maxWeight=np.array([ 0.03218688, -0.0121024 , -0.00970715,  0.48172206,  0.42610642,
-        0.10048948, -0.05574053,  0.08212702, -0.12357012, -0.00123216,
-        0.09529259,  0.00509518,  0.14970625, -0.00291313,  0.00402094,
-       -0.00452788,  0.00286216,  0.0020172 , -0.00235546])
-            minWeight=np.array([-0.00385887, -0.01163938,  0.0043455 , -0.01114819, -0.34286923,
-        0.08314041,  0.00154458,  0.12249813, -0.02194375, -0.00038749,
-       -0.02217015,  0.00610296, -0.09264385, -0.0020065 ,  0.00249547,
-       -0.00324293,  0.00501176,  0.00389697, -0.00294958])
-            maxIntercept=0.00079871
-            minIntercept=-0.00155935
-            mymax=A.dot(maxWeight)+maxIntercept
-            mymin=A.dot(minWeight)+minIntercept
+            warnings.filterwarnings('ignore')
+            model = keras.models.load_model(file)
+            predictArray=model.predict(A,verbose=0)
+            mymin=predictArray[:,0]
+            mymax=predictArray[:,1]
             data['maxPredict']=mymax
             data['minPredict']=mymin
             data['maxPredict']=data['maxPredict'].ewm(span=2,ignore_na=True, adjust= True).mean()
             data['minPredict']=data['minPredict'].ewm(span=2,ignore_na=True, adjust= True).mean()
             data['midPredict']=(data['maxPredict']+data['minPredict'])/2
             m=data[['midIncreaseMinNext5m','midIncreaseMaxNext5m','maxPredict','minPredict','midPredict']]
-            print(m.corr())
-            #long=data[(data['maxPredict']>0.01)]['midIncreaseMaxNext5m'].mean()-data['midIncreaseMaxNext5m'].mean()
-            #short=data[(data['minPredict']<-0.01)]['midIncreaseMinNext5m'].mean()-data['midIncreaseMinNext5m'].mean()
+            pd.set_option('display.max_rows',None)
+            #print(m.corr())
+            #long=data[(data['maxPredict']>0.003)]['midIncreaseMaxNext5m'].mean()-data['midIncreaseMaxNext5m'].mean()
+            #short=data[(data['minPredict']<-0.003)]['midIncreaseMinNext5m'].mean()-data['midIncreaseMinNext5m'].mean()
             #print(long)
             #print(short)
             mycolumns=list(tickData.columns)
             mycolumns.append('maxPredict')
             mycolumns.append('minPredict')
+            mycolumns.append('midPredict')
+            mycolumns.append('increaseToday')
+            mycolumns.append('midInPrevious3m')
             data=data[mycolumns]
-            parameters={'maxPosition':maxPosition,'longOpen':0.015,'shortOpen':-0.015,'longClose':0.01,'shortClose':-0.01,'transactionRatio':0.2}
-            #trade0=self.strategy(data,parameters)
-            #trade.append(trade0)
+            parameters={'maxPosition':maxPosition,'longOpen':0.015,'shortOpen':-0.015,'longClose':0.01,'shortClose':-0.01,'transactionRatio':0.1}
+            trade0=self.strategy(data,parameters)
+            trade.append(trade0)
             pass
         if len(trade)==0:
             trade=pd.DataFrame()
         else:
             trade=pd.concat(trade)
+            if trade.shape[0]==0:
+                return pd.DataFrame()
             trade['code']=code
             trade['fee']=trade['price']*0.0001
             selectBuy=trade['direction']=='buy'
@@ -142,31 +146,65 @@ class gradeStrategy1(baseStrategy):
         for item in data.columns:
             myindex.update({item:select.index(item)})
         mydata=data.values
-        
+        openPrice=0
+        maxPrice=0
+        minPrice=0
+        stop=False
+        maxDownDraw=0
         trade=[]
         dict={}
         for i in range(len(mydata)):
            tick=mydata[i] 
            maxPredict=tick[myindex['maxPredict']]
            minPredict=tick[myindex['minPredict']]
+           midPredict=tick[myindex['midPredict']]
            S1=tick[myindex['S1']]
            B1=tick[myindex['B1']]
            SV1=tick[myindex['SV1']]
            BV1=tick[myindex['BV1']]
            time=tick[myindex['time']]
            date=tick[myindex['date']]
+           increaseToday=tick[myindex['increaseToday']]
+           midInPrevious3m=tick[myindex['midInPrevious3m']]
+           #遇上涨跌停直接不做
+           if (abs(increaseToday)>=0.095) & (todayPosition==0):
+               break
+           #止盈止损
+           if todayPosition>0:
+               if B1>maxPrice:
+                   maxPrice=B1
+               maxDownDraw=min(0,(B1-maxPrice)/openPrice)
+               if (B1-maxPrice)/openPrice<=-0.01:
+                   stop=True
+               #if (B1-openPrice)/openPrice>=0.005:
+               #    stop=True
+               pass
+           elif todayPosition<0:
+               if S1<minPrice:
+                   minPrice=S1
+               maxDownDraw=min(0,(minPrice-S1)/openPrice)
+               if (minPrice-S1)/openPrice<=-0.01:
+                   stop=True
+               #if (openPrice-S1)/openPrice>=0.005:
+               #   stop=True
+               pass
            if (unusedPosition>0) &  (time<'145000000'):#仍然可以开仓
-               if (maxPredict>0.01) & (minPredict>-0.005) & (SV1>=100/transactionRatio):
+               if (maxPredict>0.005) & (midPredict>0.0015)& (midInPrevious3m<0.1)&(SV1>=100/transactionRatio) & (increaseToday>-0.09):
                    transactionVolume=min(round(transactionRatio*SV1,-2),unusedPosition)
                    unusedPosition=unusedPosition-transactionVolume
                    todayPosition=todayPosition+transactionVolume
                    transactionPrice=S1
                    transactionTime=time
                    transactionDate=date
+                   
                    dict={'date':transactionDate,'time':transactionTime,'direction':'buy','volume':transactionVolume,'price':transactionPrice}
                    trade.append(dict)
+                   if openPrice==0:
+                       openPrice=transactionPrice
+                       maxPrice=openPrice
+                       maxDownDraw=0
                    pass
-               elif (maxPredict<0.004) & (minPredict<-0.008) & (BV1>=100/transactionRatio):
+               elif (midPredict<-0.005) & (midPredict<-0.0015)&(midInPrevious3m>0.9)&(minPredict<-1*maxPredict) & (BV1>=100/transactionRatio)& (increaseToday<0.09):
                    transactionVolume=min(round(transactionRatio*BV1,-2),unusedPosition)
                    unusedPosition=unusedPosition-transactionVolume
                    todayPosition=todayPosition-transactionVolume
@@ -175,10 +213,14 @@ class gradeStrategy1(baseStrategy):
                    transactionDate=date
                    dict={'date':transactionDate,'time':transactionTime,'direction':'sell','volume':transactionVolume,'price':transactionPrice}
                    trade.append(dict)
+                   if openPrice==0:
+                       openPrice=transactionPrice
+                       minPrice=openPrice
+                       maxDownDraw=0
                    pass
            if todayPosition!=0:
                if todayPosition>0:#持有多仓
-                   if (maxPredict<0.005) | (time>='145500000'):
+                   if (stop==True) |((maxDownDraw<=-0.005) & (midPredict<0.0015))| (time>='145500000') | (increaseToday<-0.095):
                        [averagePrice,sellPosition]=super().sellByTickShotData(tick,myindex,abs(todayPosition),0.05)
                        transactionVolume=sellPosition
                        todayPosition=todayPosition-transactionVolume
@@ -187,10 +229,15 @@ class gradeStrategy1(baseStrategy):
                        transactionDate=date
                        dict={'date':transactionDate,'time':transactionTime,'direction':'sell','volume':transactionVolume,'price':transactionPrice}
                        trade.append(dict)
+                       if todayPosition==0:
+                           openPrice==0
+                           maxPrice=0
+                           minPrice=0
+                           stop=False
                        pass
                    pass
                elif todayPosition<0:#持有空仓
-                   if (minPredict>-0.005)|(time>='145500000'):
+                   if (stop==True)|((maxDownDraw<=-0.005)&(midPredict>-0.0015))|(time>='145500000')| (increaseToday>0.095):
                        [averagePrice,buyPosition]=super().buyByTickShotData(tick,myindex,abs(todayPosition),0.05)
                        transactionVolume=buyPosition
                        todayPosition=todayPosition+transactionVolume
@@ -199,6 +246,11 @@ class gradeStrategy1(baseStrategy):
                        transactionDate=date
                        dict={'date':transactionDate,'time':transactionTime,'direction':'buy','volume':transactionVolume,'price':transactionPrice}
                        trade.append(dict)
+                       if todayPosition==0:
+                           openPrice==0
+                           maxPrice=0
+                           minPrice=0
+                           stop=False
                        pass
                    pass
         trade=pd.DataFrame(data=trade)    

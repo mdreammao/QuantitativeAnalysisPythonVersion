@@ -69,11 +69,12 @@ class tickFactorsProcess(object):
         dailyKLineData=dailyKLineRepo.getDataByDate(code,date,date)
         mydata['preClose']=dailyKLineData['preClose'].iloc[0]
         mydata['increaseToday']=mydata['midPrice']/mydata['preClose']-1
-        ceiling=mydata[(mydata['increaseToday']>0.095) | (mydata['increaseToday']<-0.095) | (mydata['B1']==0) | (mydata['S1']==0)]
+        ceiling=mydata[(mydata['B1']==0) | (mydata['S1']==0)]
         if ceiling.shape[0]>0:
             ceilingTime=ceiling['time'].iloc[0]
             mydata=mydata[mydata['time']<ceilingTime]
             pass
+        
         return mydata
     #----------------------------------------------------------------------
     def getFactorsUsedByDateFromLocalFile(self,code,date,factors=TICKFACTORSUSED):

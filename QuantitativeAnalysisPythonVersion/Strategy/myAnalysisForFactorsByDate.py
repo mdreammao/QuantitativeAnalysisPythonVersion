@@ -66,22 +66,24 @@ class myAnalysisForFactorsByDate(object):
         data.loc[select,'buySellForceChange']=-c
         return data
         pass
-#----------------------------------------------------------------------
+    #----------------------------------------------------------------------
     def prepareData(self,codeList,startDate,endDate):
         tradedays=TradedayDataProcess.getTradedays(startDate,endDate)
         myfactor=tickFactorsProcess()
         for day in tradedays:
             data=myfactor.parallelizationGetDataByDate(codeList,day)
-            data=data[(data['time']>='093500000') & (data['time']<='145000000')]
-            #tickColumns=[ 'code', 'date', 'time', 'lastPrice', 'S1', 'S2','S3', 'S4', 'S5', 'S6', 'S7','S8', 'S9', 'S10', 'B1', 'B2', 'B3', 'B4','B5', 'B6', 'B7', 'B8', 'B9', 'B10', 'SV1', 'SV2', 'SV3', 'SV4', 'SV5','SV6', 'SV7', 'SV8', 'SV9', 'SV10', 'BV1', 'BV2', 'BV3', 'BV4', 'BV5','BV6', 'BV7', 'BV8', 'BV9', 'BV10', 'volume', 'amount','volumeIncrease', 'amountIncrease', 'midPrice']
+            data=data[(data['time']>='093000000') & (data['time']<'145700000')]
+            tickColumns=[ 'code', 'date', 'time', 'lastPrice', 'S1', 'S2','S3', 'S4', 'S5', 'S6', 'S7','S8', 'S9', 'S10', 'B1', 'B2', 'B3', 'B4','B5', 'B6', 'B7', 'B8', 'B9', 'B10', 'SV1', 'SV2', 'SV3', 'SV4', 'SV5','SV6', 'SV7', 'SV8', 'SV9', 'SV10', 'BV1', 'BV2', 'BV3', 'BV4', 'BV5','BV6', 'BV7', 'BV8', 'BV9', 'BV10', 'volume', 'amount','volumeIncrease', 'amountIncrease', 'midPrice']
             #dailyColumns=['increaseToday','closeStd20','ts_closeStd20','preClose','is300','is500']
-            mycolumns=['code','date','time','buyForce','buySellVolumeRatio5','buySellWeightedVolumeRatio10','buySellVolumeRatio10','sellForce','buySellVolumeRatio2', 'buySellSpread','buySellWeightedVolumeRatio2','buySellForceChange','buySellWeightedVolumeRatio5', 'midToVwap', 'midToVwap3m','midPrice3mIncrease','midIncreaseToBV3m', 'midPriceBV3m', 'midInPrevious3m', 'midStd60','increaseToday','closeStd20','ts_closeStd20','preClose','is300','is500','midPriceIncrease','differenceHighLow3m', 'midIncreaseNext2m', 'midIncreaseMaxNext2m','midIncreaseMaxNext5m','midIncreaseMinNext1m', 'midIncreaseMaxNext1m','midIncreaseMinNext2m', 'midIncreaseNext5m','midIncreaseNext1m','midIncreaseMinNext5m']
+            mycolumns=list(set(data.columns).difference(set(tickColumns)))
+            mycolumns=mycolumns+['code', 'date', 'time']
             data=data[mycolumns]
             #print(data.shape)
-            if data[data[mycolumns].isna().sum(axis=1)>0].shape[0]>0:
+            errorData=data[data[mycolumns].isna().sum(axis=1)>0]
+            if errorData.shape[0]>0:
                 logger.warning(f'factorData of date {day} has Nan!!!')
             #对部分因子进行去极值操作
-            data=self.dataSelect(data,0.2)
+            #data=self.dataSelect(data,0.2)
             #逐日存储数据
             fileName=os.path.join(self.path,str(day)+'.h5')
             exists=os.path.exists(fileName)

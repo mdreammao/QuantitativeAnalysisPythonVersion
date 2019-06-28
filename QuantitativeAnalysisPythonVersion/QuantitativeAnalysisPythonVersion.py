@@ -26,6 +26,9 @@ from Strategy.stockIntradayByTick.momentum.strategy1 import strategyBreak
 from MachineLearning.RNN.RNN001 import RNN001
 from MachineLearning.XGBoost.xgboost001 import xgboost001
 from Strategy.baseStrategy.grade.gradeStrategy1 import gradeStrategy1
+from Strategy.baseStrategy.grade.gradeStrategyXgboost import gradeStrategyXgboost
+from Strategy.baseStrategy.grade.gradeStrategyDNN import gradeStrategyDNN
+from DataPrepare.tickFactors.tickDataPrepared import tickDataPrepared
 from Utility.mytest import *
 from Utility.JobLibUtility import *
 from Utility.UpdateBasicData import *
@@ -58,43 +61,44 @@ def main():
 
     warnings.filterwarnings('ignore')
     logger.info(f'compute start!!!')
-    startDate=20190501
-    endDate=20190605
+    startDate=20180401
+    endDate=20190610
     testStart=20190605
-    testEnd=20190615
+    testEnd=20190610
 
 
-
-    #UpdateBasicData.updateDailyAll()
+    UpdateBasicData.updateDailyAll()
     #UpdateBasicData.updateMinuteAll()
-    #UpdateBasicData.updateTickAll(startDate)
+    UpdateBasicData.updateTickAll(startDate)
     #UpdateBasicData.updateTickFactorAll(startDate)
     #stockCodes=UpdateBasicData.updateStockCodes(startDate,endDate)
     #UpdateBasicData.updateDailyFactors(stockCodes)
     #----------------------------------------------------------------------
-    
+    '''
+    code='000025.SZ'
+    date=20190516
+    factor=tickDataPrepared('tmp2')
+    factor.updateAllFactorsByCodeAndDate(code,date)
+    factor.saveAllFactorsByCodeAndDate(code,date)
     codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
-    
-    s=gradeStrategy1()
-    #s.singleCode('000001.SZ',startDate,endDate)
-    #data=s.multipleCodes_parallel(codes,startDate,endDate)
-    print(data['cashChange'].sum())
-    #xgb=xgboost001('tmp')
-    #xgb.mytrain(startDate,endDate,testStart,testEnd)
-
+    factor.parallelizationUpdateDataByDate(codes,startDate,endDate)
+    factor.parallelizationSaveDataByDate(codes,startDate,endDate)
+    factor.saveDataByCodeList(codes,date,date)
+    #ana=myAnalysisForFactorsByDate('tmp2')
+    #ana.prepareData(codes,startDate,endDate)
+    '''
 
 
     '''
     #rnn=RNN001()
     #rnn.myRNN(startDate,endDate,testStart,'tmp')
     
-    codes=UpdateBasicData.updateStockCodes(startDate,endDate)
-    #codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
+    #codes=UpdateBasicData.updateStockCodes(startDate,endDate)
+    codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
     UpdateBasicData.updateMultipleStocksTickFactors(codes,startDate,endDate)
     ana=myAnalysisForFactorsByDate('tmp')
     ana.prepareData(codes,startDate,endDate)
 
-    
     test=strategyBreak()
     codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
     data=test.multipleCodes_parallel(codes,20190506,20190508)

@@ -1,6 +1,8 @@
 import pandas as pd
 import os
 from Config.myConfig import *
+from DataAccess.TradedayDataProcess import TradedayDataProcess
+from joblib import Parallel, delayed,parallel_backend
 ########################################################################
 class machineLeariningBase(object):
     """机器学习基类"""

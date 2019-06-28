@@ -1,4 +1,5 @@
 from MachineLearning.machineLeariningBase import machineLeariningBase
+
 import xgboost as xgb
 from xgboost import plot_importance
 from matplotlib import pyplot as plt
@@ -35,7 +36,6 @@ class xgboost001(machineLeariningBase):
             'subsample':0.7,
             'colsample_bytree':0.7,
             'min_child_weight':3,
-            'slient':0,
             'eta':0.1,
             'seed':1000,
         }
@@ -52,16 +52,23 @@ class xgboost001(machineLeariningBase):
             plst = params.items()
             model = xgb.train(plst,dtrain,num_rounds)
             # 对测试集进行预测
-            print(np.corrcoef(model.predict(xgb.DMatrix(Xtest)),ytest))
+            #计算r2等统计指标
+            ypredict=model.predict(xgb.DMatrix(Xtest))
+            print(np.corrcoef(ypredict,ytest))
+            mse=mean_squared_error(ypredict, ytest)
+            yvar=np.var(ytest)
+            r2=1-mse/yvar
+            print(f'mse: {mse}')
+            print(f'yvar: {yvar}')
+            print(f'R2: {r2}')
             # 显示重要特征
-            plot_importance(model)
-            plt.show()
+            #plot_importance(model)
+            #plt.show()
             #记录model模型
-            savePath=os.path.join(self.path,'xgb001.model')
+            modelName='xgb001_'+str(target)+'.model'
+            savePath=os.path.join(self.path,modelName)
             model.save_model(savePath)
             pass
-               
-
         pass
 
     #----------------------------------------------------------------------

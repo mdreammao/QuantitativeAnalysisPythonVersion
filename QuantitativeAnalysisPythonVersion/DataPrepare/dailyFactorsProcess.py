@@ -66,7 +66,7 @@ class dailyFactorsProcess(object):
     '''
     #----------------------------------------------------------------------
     """获取多个股票指定因子的特征"""
-    def getMultipleStockDailyFactors(self,codeList,startDate,endDate,factorList=DAILYFACTORSUSED,):
+    def getMultipleStockDailyFactors(self,codeList,startDate,endDate,factorList=DAILYFACTORSUSED):
         startDate=str(startDate)
         endDate=str(endDate)
         allData=[]

@@ -2,6 +2,8 @@ import os
 from Config.myConstant import *
 from Config.myConfig import *
 from Utility.HDF5Utility import HDF5Utility
+from DataAccess.TickDataProcess import TickDataProcess
+from DataAccess.TradedayDataProcess import TradedayDataProcess
 import pandas as pd
 
 ########################################################################
@@ -71,5 +73,35 @@ class factorBase(object):
             return False
         else:
             return True
-       
+    #----------------------------------------------------------------------
+    def logBetweenTwoColumns(self,data,col1,col2):
+        result=data[[col1,col2]].copy()
+        result['mylog']=0
+        select=(result[col1]>0) & (result[col2]>0)
+        result.loc[select,'mylog']=(np.log(result[col1])-np.log(result[col2]))[select]
+        return result['mylog']
+        pass 
+    #----------------------------------------------------------------------
+    def EMA(self,series,span):
+        return pd.Series.ewm(series, span=span).mean()
+        pass
+    #----------------------------------------------------------------------
+    def MA(self,series,span):
+        return series.rolling(span,min_periods=1).mean()
+        pass
+    #----------------------------------------------------------------------
+    def getLastTradedayTickData(self,code,date):
+        previousday=TradedayDataProcess.getPreviousTradeday(date,250)
+        days=list(TradedayDataProcess.getTradedays(previousday,date))
+        days.reverse()
+        data=pd.DataFrame()
+        for day in days:
+            if day<date:
+                data=TickDataProcess().getDataByDateFromLocalFile(code,day)
+                if data.shape[0]>0:
+                    return data
+                    pass
+                pass
+            pass
+        pass
 ########################################################################

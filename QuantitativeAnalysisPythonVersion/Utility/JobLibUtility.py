@@ -6,6 +6,7 @@ import warnings
 from Config.myConstant import *
 from Config.myConfig import *
 from joblib import Parallel, delayed,parallel_backend
+import os 
 #from Utility.HDF5Utility import *
 
 ########################################################################
@@ -28,7 +29,7 @@ class JobLibUtility(object):
             stocks[mygroup].append(stockCodes[i])
         tmpAddress={}
         for i in range(groupnum):
-            tmpAddress[i]=TempLocalFileAddress+"\\tmp{0}.h5".format(str(i))
+            tmpAddress[i]=os.path.join(LocalFileAddress,'tmp','tmp{0}.h5'.format(str(i)))
             HDF5Utility.fileClear(tmpAddress[i])
         Parallel(n_jobs=JobLibUtility.myjobs)(delayed(myfunction)(list(stocks[i]),startDate,endDate,tmpAddress[i]) for i in range(groupnum))
         for i in range(groupnum):
@@ -47,7 +48,7 @@ class JobLibUtility(object):
             stocks[mygroup].append(stockCodes[i])
         tmpAddress={}
         for i in range(groupnum):
-            tmpAddress[i]=TempLocalFileAddress+"\\tmp{0}.h5".format(str(i))
+            tmpAddress[i]=os.path.join(LocalFileAddress,'tmp','tmp{0}.h5'.format(str(i)))
             HDF5Utility.fileClear(tmpAddress[i])
         Parallel(n_jobs=JobLibUtility.myjobs)(delayed(myfunction)(list(stocks[i]),startDate,endDate,tmpAddress[i]) for i in range(groupnum))
         for i in range(groupnum):

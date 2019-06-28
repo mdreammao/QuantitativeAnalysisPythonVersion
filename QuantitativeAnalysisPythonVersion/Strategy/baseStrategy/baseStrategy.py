@@ -28,6 +28,8 @@ class baseStrategy(object):
     #----------------------------------------------------------------------
     def buyByTickShotData(self,tick,myindex,targetPosition,priceDeviation=0):
         ceilPrice=tick[myindex['S1']]*(1+priceDeviation)
+        if ceilPrice==0:
+            ceilPrice=tick[myindex['B1']]*(1+priceDeviation)
         buyPosition=0
         buyAmount=0
         for i in range(1,11):
@@ -41,12 +43,16 @@ class baseStrategy(object):
                 pass
             pass
         pass
+        if buyPosition==0:
+            return [ceilPrice,targetPosition]
         averagePrice=buyAmount/buyPosition
         buyPosition=math.floor(buyPosition*0.01)*100
         return [averagePrice,buyPosition]
     #----------------------------------------------------------------------
     def sellByTickShotData(self,tick,myindex,targetPosition,priceDeviation=0):
         floorPrice=tick[myindex['B1']]*(1-priceDeviation)
+        if floorPrice==0:
+            floorPrice=tick[myindex['S1']]*(1-priceDeviation)
         sellPosition=0
         sellAmount=0
         for i in range(1,11):
@@ -60,6 +66,8 @@ class baseStrategy(object):
                 pass
             pass
         pass
+        if sellPosition==0:
+            return [floorPrice,targetPosition]
         averagePrice=sellAmount/sellPosition
         sellPosition=math.floor(sellPosition*0.01)*100
         return [averagePrice,sellPosition]
