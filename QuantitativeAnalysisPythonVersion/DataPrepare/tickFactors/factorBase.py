@@ -103,5 +103,6 @@ class factorBase(object):
                     pass
                 pass
             pass
+        return data
         pass
 ########################################################################

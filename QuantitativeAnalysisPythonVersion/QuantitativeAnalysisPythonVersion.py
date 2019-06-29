@@ -61,26 +61,38 @@ def main():
 
     warnings.filterwarnings('ignore')
     logger.info(f'compute start!!!')
-    startDate=20180401
+    startDate=20190501
     endDate=20190610
     testStart=20190605
     testEnd=20190610
 
 
-    UpdateBasicData.updateDailyAll()
+    #UpdateBasicData.updateDailyAll()
     #UpdateBasicData.updateMinuteAll()
-    UpdateBasicData.updateTickAll(startDate)
-    #UpdateBasicData.updateTickFactorAll(startDate)
+    #UpdateBasicData.updateTickAll(startDate)
+    UpdateBasicData.updateTickFactorAll(startDate)
     #stockCodes=UpdateBasicData.updateStockCodes(startDate,endDate)
     #UpdateBasicData.updateDailyFactors(stockCodes)
     #----------------------------------------------------------------------
     '''
+    from functools import partial
+    import schedule
+    cache_func = partial(UpdateBasicData.updateTickAll, startDate)
+
+
+
+    schedule.every().day.at("16:18").do(cache_func)
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+    
+    
     code='000025.SZ'
     date=20190516
-    factor=tickDataPrepared('tmp2')
-    factor.updateAllFactorsByCodeAndDate(code,date)
-    factor.saveAllFactorsByCodeAndDate(code,date)
-    codes=list(['000001.SZ','000002.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000021.SZ','000025.SZ'])
+    factor=tickDataPrepared('case')
+    codes=list(['000001.SZ','000002.SZ','000005.SZ','000006.SZ','000008.SZ','000009.SZ','000012.SZ','000016.SZ','600926.SH'])
     factor.parallelizationUpdateDataByDate(codes,startDate,endDate)
     factor.parallelizationSaveDataByDate(codes,startDate,endDate)
     factor.saveDataByCodeList(codes,date,date)
