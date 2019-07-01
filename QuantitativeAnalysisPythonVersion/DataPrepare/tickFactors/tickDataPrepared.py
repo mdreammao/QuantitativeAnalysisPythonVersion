@@ -122,16 +122,14 @@ class tickDataPrepared(object):
         tickData=tick.getDataByDateFromLocalFile(code,date)
         mydata=pd.merge(mydata,tickData,how='left',left_index=True,right_index=True)
         if mydata.shape[0]==0:
-            return mydata
+            return 
         #获取日线数据
-        
         dailyRepo=dailyFactorsProcess()
         dailyData=dailyRepo.getSingleStockDailyFactors(code,date,date)
         dailyKLineRepo=KLineDataProcess('daily')
         dailyKLineData=dailyKLineRepo.getDataByDate(code,date,date)
         mydata['preClose']=dailyKLineData['preClose'].iloc[0]
         mydata['increaseToday']=mydata['midPrice']/mydata['preClose']-1
-        
         mydata=mydata[mydata['time']<'145700000']
         #删去涨跌停之后的数据
         ceiling=mydata[(mydata['B1']==0) | (mydata['S1']==0)]
@@ -143,6 +141,8 @@ class tickDataPrepared(object):
         mycolumns=list(set(mydata.columns).difference(set(list(tickData.columns)+excludedColumns)))
         mycolumns.sort()
         mydata=mydata[mycolumns]
+        if mydata.shape[0]==0:
+            return
         try:
             logger.info(f'Recording factors of {code} in {date}!')
             with pd.HDFStore(fileName,'a',complib='blosc:zstd',append=True,complevel=9) as store:
