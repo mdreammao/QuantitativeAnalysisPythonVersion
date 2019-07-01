@@ -76,15 +76,14 @@ def main():
     #stockCodes=UpdateBasicData.updateStockCodes(startDate,endDate)
     #UpdateBasicData.updateDailyFactors(stockCodes)
     #----------------------------------------------------------------------
+    '''
     tick=TickDataProcess(InfluxdbSource=InfluxdbServerInternet)
     print(datetime.datetime.now())
     tick.getResampleTickShotDataFromInfluxdbServer('000001.SZ',20180110)
     print(datetime.datetime.now())
-    
-    
     '''
     code='000025.SZ'
-    date=20190516
+    date=20190517
     factor=tickDataPrepared('tmp2')
     factor.updateAllFactorsByCodeAndDate(code,date)
     factor.saveAllFactorsByCodeAndDate(code,date)
@@ -94,7 +93,7 @@ def main():
     factor.saveDataByCodeList(codes,date,date)
     #ana=myAnalysisForFactorsByDate('tmp2')
     #ana.prepareData(codes,startDate,endDate)
-    '''
+    
 
 
     '''

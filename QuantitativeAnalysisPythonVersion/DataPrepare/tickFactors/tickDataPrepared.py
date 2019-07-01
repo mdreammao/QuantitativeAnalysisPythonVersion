@@ -116,6 +116,7 @@ class tickDataPrepared(object):
         factors=self.factorsUsed
         #获取tick因子数据
         mydata=self.getFactorsUsedByDateFromLocalFile(code,date,factors)
+        
         #获取tick行情数据
         tick=TickDataProcess()
         tickData=tick.getDataByDateFromLocalFile(code,date)
@@ -123,15 +124,14 @@ class tickDataPrepared(object):
         if mydata.shape[0]==0:
             return mydata
         #获取日线数据
+        
         dailyRepo=dailyFactorsProcess()
         dailyData=dailyRepo.getSingleStockDailyFactors(code,date,date)
         dailyKLineRepo=KLineDataProcess('daily')
         dailyKLineData=dailyKLineRepo.getDataByDate(code,date,date)
         mydata['preClose']=dailyKLineData['preClose'].iloc[0]
         mydata['increaseToday']=mydata['midPrice']/mydata['preClose']-1
-        mycolumns=list(mydata.columns)
-        mycolumns.sort()
-        mydata=mydata[mycolumns]
+        
         mydata=mydata[mydata['time']<'145700000']
         #删去涨跌停之后的数据
         ceiling=mydata[(mydata['B1']==0) | (mydata['S1']==0)]
@@ -139,6 +139,10 @@ class tickDataPrepared(object):
             ceilingTime=ceiling['time'].iloc[0]
             mydata=mydata[mydata['time']<ceilingTime]
             pass
+        excludedColumns=['preClose','buyVolume2','buyVolume5','buyVolume10','sellVolume2','sellVolume5','sellVolume10']
+        mycolumns=list(set(mydata.columns).difference(set(list(tickData.columns)+excludedColumns)))
+        mycolumns.sort()
+        mydata=mydata[mycolumns]
         try:
             logger.info(f'Recording factors of {code} in {date}!')
             with pd.HDFStore(fileName,'a',complib='blosc:zstd',append=True,complevel=9) as store:
