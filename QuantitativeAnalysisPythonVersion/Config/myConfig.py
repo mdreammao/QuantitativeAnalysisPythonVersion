@@ -56,6 +56,23 @@ OracleServer={
     'default':'yspread/Y*iaciej123456@172.17.21.3:1521/WDZX',
     }
 
+#infludexdb连接字符串
+InfluxdbServer={
+    'host':'172.17.58.71',
+    'port':8086,
+    'username':'root', 
+    'password':'root',
+    'database':'MarketSnapshotDB'
+    }
+
+InfluxdbServerInternet={
+    'host':'192.168.58.71',
+    'port':8086,
+    'username':'root', 
+    'password':'root',
+    'database':'MarketSnapshotDB'
+    }
+
 #本地文件存储地址
 LocalFileAddress=r'D:/BTP/LocalDataBase'
 #LocalFileAddress=r'/home/public/mao/BTP/LocalDataBase'

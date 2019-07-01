@@ -12,18 +12,32 @@ from DataAccess.KLineDataProcess import *
 from Utility.JobLibUtility import *
 from Utility.HDF5Utility import *
 import pymssql
+import influxdb
+import dateutil.parser as dtparser
 
 ########################################################################
 class TickDataProcess(object):
     """从170数据库获取TICK数据"""
     #----------------------------------------------------------------------
-    def __init__(self,SqlSource=SqlServer['server170']):
+    def __init__(self,SqlSource=SqlServer['server170'],InfluxdbSource=InfluxdbServer):
         """Constructor"""
         strArry=SqlSource.split(';')
         self.address=strArry[0].split('=')[1]
         self.user=strArry[1].split('=')[1]
         self.password=strArry[2].split('=')[1]
         self.filePath=os.path.join(LocalFileAddress,'TickShots')
+        self.influxdb=self.__connectInfluxdb(InfluxdbSource)
+    #----------------------------------------------------------------------
+    def __connectInfluxdb(self,InfluxdbSource):
+        host=InfluxdbSource['host']
+        port=InfluxdbSource['port']
+        username=InfluxdbSource['username']
+        password=InfluxdbSource['password']
+        database=InfluxdbSource['database']
+        client = influxdb.InfluxDBClient(host=host, port=port, username=username, password=password, database=database)
+        return client
+        pass
+
     #----------------------------------------------------------------------
     def getDataByDateFromLocalFile(self,code,date):
         date=str(date)
@@ -116,6 +130,45 @@ class TickDataProcess(object):
         mydata.set_index('mytime',inplace=True,drop=True)
         return mydata    
 
+        pass
+    #----------------------------------------------------------------------
+    def getResampleTickShotDataFromInfluxdbServer(self,code,date):
+        measurement=code+'_snapshot'
+        begin=dtparser.parse(str(date))
+        end=dtparser.parse(str(date))+datetime.timedelta(hours=23)
+        query = f""" select * from "MarketSnapshotDB"."autogen"."{measurement}" where time >= {int(begin.timestamp() * 1000 * 1000 * 1000)} and time < {int(end.timestamp() * 1000 * 1000* 1000)} """
+        result=self.influxdb.query(query)
+        data=result[measurement]
+        data=pd.DataFrame(data)
+        renameDict={'HighLimit':'highLimit', 'LowLimit':'lowLimit', 'OPNPRC':'dailyOpen', 'PRECLOSE':'dailyPreClose', 'TradeStatus':'tradeStatus', 'cp':'lastPrice', 'stkcd':'code', 'tdate':'date','time':'influxdbTime', 'ts':'volume', 'tt':'amount',
+       'ttime':'time', 'turnover':'amountIncrease', 'volume':'volumeIncrease', 'weightedAvgAskPRC':'weightedAvgAsk',
+       'weightedAvgBidPRC':'weightedAvgBid'}
+        mydata=data.rename(columns=renameDict)
+        mydata=mydata[['code' ,'date','time' ,'lastPrice','S1','S2','S3','S4','S5','S6','S7','S8','S9','S10','B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','SV1','SV2','SV3','SV4','SV5','SV6','SV7','SV8','SV9','SV10','BV1','BV2','BV3','BV4','BV5','BV6','BV7','BV8','BV9','BV10','volume','amount','highLimit','lowLimit','dailyOpen','dailyPreClose','transactions_count','weightedAvgBid','weightedAvgAsk','total_bid_size','total_ask_size','tradeStatus']]
+        mydata=mydata[((mydata['time']>='092500000') & (mydata['time']<='113000000'))| ((mydata['time']>='130000000')&(mydata['time']<='150000000'))]
+        mydata['mytime']=pd.to_datetime(mydata['date']+mydata['time'],format='%Y%m%d%H%M%S%f')
+        mydata.set_index('mytime',inplace=True,drop=True)
+        #计算mid价格
+        select=(mydata['BV1']>0) & (mydata['SV1']>0)
+        mydata.loc[select,'midPrice']=((mydata['B1']+mydata['S1'])/2)[select]
+        select=(mydata['BV1']>0) & (mydata['SV1']==0)
+        mydata.loc[select,'midPrice']=mydata['B1'][select]
+        select=(mydata['BV1']==0) & (mydata['SV1']>0)
+        mydata.loc[select,'midPrice']=mydata['S1'][select]
+        #按3S重采样
+        mydata['realData']=1
+        mydata=mydata.resample('3s',label='right',closed='right').last()
+        mycolumns=list(mydata.columns)
+        mycolumns.remove('realData')
+        mydata[mycolumns]=mydata[mycolumns].fillna(method='ffill')
+        select=mydata['realData'].isna()
+        mydata.loc[select,'realData']=0
+        #成交量增量
+        mydata['volumeIncrease']=mydata['volume']-mydata['volume'].shift(1)
+        mydata['amountIncrease']=mydata['amount']-mydata['amount'].shift(1)
+        #仅保留连续竞价时间
+        mydata=mydata[((mydata.index.time>=datetime.time(9,30)) & (mydata.index.time<=datetime.time(11,30))) | ((mydata.index.time>=datetime.time(13,00)) & (mydata.index.time<=datetime.time(15,00)))]
+        return mydata
         pass
     #----------------------------------------------------------------------
     #输入code=600000.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
