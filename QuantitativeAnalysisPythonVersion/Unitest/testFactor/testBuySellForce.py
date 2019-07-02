@@ -2,28 +2,25 @@ import unittest
 import os
 from Config.myConfig import *
 from DataPrepare.tickFactors.statusOfTickShot.buySellForce import buySellForce
-from Unitest.testFactor.mytry import myfun
+from Unitest.testFactor.tickFactorFunction import *
 
 class testBuySellForce(unittest.TestCase):
     """buySellForce因子的测试函数"""
-    def test_buySellForce(self):
+    def test_volume(self):
         for i in range(1000):
-            fileName=os.path.join(LocalFileAddress,'test','buySellForce','case'+str(i)+'.h5')
-            exists=os.path.isfile(fileName)
-            myinstance=buySellForce()
-            code='600000.SH'
-            date=20181231
+            inputFile=os.path.join(LocalFileAddress,'test','volume','input'+str(i)+'.csv')
+            outputFile=os.path.join(LocalFileAddress,'test','volume','output'+str(i)+'.csv')
+            exists=os.path.isfile(inputFile)
             if exists==True:
-                with pd.HDFStore(inputFile,'r',complib='blosc:zstd',append=True,complevel=9) as store:
-                    inputData=store['input']
-                    outputData=store['ouput']
-                    self.assertEqual(myinstance._buySellForce__computerFactor(code,date,inputData),outputData)
+                input=pd.read_csv(inputFile,encoding='gbk')  
+                outputTrue=pd.read_csv(outputFile,encoding='gbk')
+                myoutput=buySellVolume(input)
+                columns=list(outputTrue.columns)
+                print(columns)
+                for col in columns:
+                    self.assertListEqual((myoutput[col]),(outputTrue[col]))
                 pass
             pass
         pass
     pass
 
-class testMyfun(unittest.TestCase):
-    def test_myfun(self):
-        self.assertEqual(myfun(2),4)
-        pass

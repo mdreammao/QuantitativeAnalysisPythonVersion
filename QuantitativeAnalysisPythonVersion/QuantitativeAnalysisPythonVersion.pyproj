@@ -231,10 +231,10 @@
     <Compile Include="Strategy\__init__.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Unitest\testFactor\mytry.py">
+    <Compile Include="Unitest\testFactor\testBuySellForce.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Unitest\testFactor\testBuySellForce.py">
+    <Compile Include="Unitest\testFactor\tickFactorFunction.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Unitest\testFactor\__int__.py">
