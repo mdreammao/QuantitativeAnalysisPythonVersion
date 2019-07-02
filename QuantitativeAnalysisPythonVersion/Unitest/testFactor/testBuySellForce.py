@@ -2,6 +2,7 @@ import unittest
 import os
 from Config.myConfig import *
 from DataPrepare.tickFactors.statusOfTickShot.buySellForce import buySellForce
+from Unitest.testFactor.mytry import myfun
 
 class testBuySellForce(unittest.TestCase):
     """buySellForce因子的测试函数"""
@@ -22,4 +23,7 @@ class testBuySellForce(unittest.TestCase):
         pass
     pass
 
-
+class testMyfun(unittest.TestCase):
+    def test_myfun(self):
+        self.assertEqual(myfun(2),4)
+        pass

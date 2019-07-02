@@ -100,6 +100,12 @@
     <Compile Include="DataPrepare\dataPrepareByIndex.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="DataPrepare\tickFactorsAnalysis\tickFactorsAnalysis.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DataPrepare\tickFactorsAnalysis\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="DataPrepare\tickFactorsProcess.py">
       <SubType>Code</SubType>
     </Compile>
@@ -225,6 +231,9 @@
     <Compile Include="Strategy\__init__.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Unitest\testFactor\mytry.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Unitest\testFactor\testBuySellForce.py">
       <SubType>Code</SubType>
     </Compile>
@@ -238,6 +247,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Utility\HDF5Utility.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Utility\InfluxdbUtility.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Utility\JobLibUtility.py">
@@ -271,6 +283,7 @@
     <Folder Include="DataPrepare\dailyFactors\industry\" />
     <Folder Include="DataPrepare\dailyFactors\marketValue\" />
     <Folder Include="DataPrepare\dailyFactors\volatility\" />
+    <Folder Include="DataPrepare\tickFactorsAnalysis\" />
     <Folder Include="DataPrepare\tickFactors\" />
     <Folder Include="DataPrepare\tickFactors\changeOfTickShot\" />
     <Folder Include="DataPrepare\tickFactors\targetFactor\" />

@@ -62,7 +62,7 @@ InfluxdbServer={
     'port':8086,
     'username':'root', 
     'password':'root',
-    'database':'MarketSnapshotDB'
+    'database':''
     }
 
 InfluxdbServerInternet={
@@ -70,7 +70,7 @@ InfluxdbServerInternet={
     'port':8086,
     'username':'root', 
     'password':'root',
-    'database':'MarketSnapshotDB'
+    'database':''
     }
 
 #本地文件存储地址

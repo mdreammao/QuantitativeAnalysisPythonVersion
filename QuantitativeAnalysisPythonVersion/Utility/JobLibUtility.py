@@ -88,6 +88,7 @@ class JobLibUtility(object):
             mydata=Parallel()(delayed(myfunction)(list(stocks[i]),date,factors) for i in range(groupnum))
         mydata=pd.concat(mydata)
         return mydata
+    
     #----------------------------------------------------------------------
     @classmethod 
     def useJobLibToUpdateData(self,myfunction,stockCodes,groupnum,startDate,endDate):

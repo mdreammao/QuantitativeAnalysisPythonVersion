@@ -12,6 +12,7 @@ from DataAccess.IndexComponentDataProcess import *
 from DataPrepare.dailyFactorsProcess import dailyFactorsProcess
 from DataAccess.TickDataProcess import TickDataProcess
 from DataPrepare.tickFactors.factorBase import factorBase
+from Utility.InfluxdbUtility import InfluxdbUtility
 import importlib
 import numpy as np
 import datetime 
@@ -28,6 +29,12 @@ class tickDataPrepared(object):
         tradedays=TradedayDataProcess.getTradedays(startDate,endDate)
         for date in tradedays:
             self.saveAllFactorsByCodeAndDate(code,date)
+        pass
+    #----------------------------------------------------------------------
+    def saveAllFactorsToInfluxdbByCodeAndDays(self,code,startDate,endDate):
+        tradedays=TradedayDataProcess.getTradedays(startDate,endDate)
+        for date in tradedays:
+            self.saveAllFactorsToInfluxdbByCodeAndDay(code,date)
         pass
     #----------------------------------------------------------------------
     def updateAllFactorsByCodeAndDays(self,code,startDate,endDate):
@@ -103,6 +110,51 @@ class tickDataPrepared(object):
         myfactor=factorBase()
         mydata=myfactor.getDataFromLocalFile(code,date,factor)
         return mydata
+    #----------------------------------------------------------------------
+    def saveAllFactorsToInfluxdbByCodeAndDay(self,code,date):
+        database=INFLUXDBTICKFACTORDATABASE
+        measurement=str(code)+str(date)
+        tag={}
+        exists=False
+        if exists==True:#如果文件已将存在，直接返回
+            return 
+        myfactor=factorBase()
+        mydata=pd.DataFrame()
+        factors=self.factorsUsed
+        #获取tick因子数据
+        try:
+            mydata=self.getFactorsUsedByDateFromLocalFile(code,date,factors)
+        except Exception as excp:
+            logger.error(f'tickFactors of {code} in {date} error! {excp}')
+            return 
+        #获取tick行情数据
+        tick=TickDataProcess()
+        tickData=tick.getDataByDateFromLocalFile(code,date)
+        mydata=pd.merge(mydata,tickData,how='left',left_index=True,right_index=True)
+        if mydata.shape[0]==0:
+            return 
+        #获取日线数据
+        dailyRepo=dailyFactorsProcess()
+        dailyData=dailyRepo.getSingleStockDailyFactors(code,date,date)
+        dailyKLineRepo=KLineDataProcess('daily')
+        dailyKLineData=dailyKLineRepo.getDataByDate(code,date,date)
+        mydata['preClose']=dailyKLineData['preClose'].iloc[0]
+        mydata['increaseToday']=mydata['midPrice']/mydata['preClose']-1
+        mydata=mydata[mydata['time']<'145700000']
+        #删去涨跌停之后的数据
+        ceiling=mydata[(mydata['B1']==0) | (mydata['S1']==0)]
+        if ceiling.shape[0]>0:
+            ceilingTime=ceiling['time'].iloc[0]
+            mydata=mydata[mydata['time']<ceilingTime]
+            pass
+        if mydata.shape[0]==0:
+            return
+        try:
+            #logger.info(f'Recording factors to influxdb of {code} in {date}!')
+            InfluxdbUtility.saveDataFrameDataToInfluxdb(mydata,database,measurement,tag)
+        except Exception as excp:
+            logger.error(f'{fileName} error! {excp}')
+        pass
     #----------------------------------------------------------------------
     def saveAllFactorsByCodeAndDate(self,code,date):
         mypath=os.path.join(self.path,str(code).replace('.','_'))
@@ -202,35 +254,6 @@ class tickDataPrepared(object):
             pass
         pass
     #----------------------------------------------------------------------
-    '''
-    def prepareDataByCodeList(self,codeList,startDate,endDate):
-        tradedays=TradedayDataProcess.getTradedays(startDate,endDate)
-        for day in tradedays:
-            data=self.parallelizationGetDataByDate(codeList,day)
-            data=data[(data['time']>='093000000') & (data['time']<'145700000')]
-            tickColumns=[ 'code', 'date', 'time', 'lastPrice', 'S1', 'S2','S3', 'S4', 'S5', 'S6', 'S7','S8', 'S9', 'S10', 'B1', 'B2', 'B3', 'B4','B5', 'B6', 'B7', 'B8', 'B9', 'B10', 'SV1', 'SV2', 'SV3', 'SV4', 'SV5','SV6', 'SV7', 'SV8', 'SV9', 'SV10', 'BV1', 'BV2', 'BV3', 'BV4', 'BV5','BV6', 'BV7', 'BV8', 'BV9', 'BV10', 'volume', 'amount','volumeIncrease', 'amountIncrease', 'midPrice']
-            #dailyColumns=['increaseToday','closeStd20','ts_closeStd20','preClose','is300','is500']
-            mycolumns=list(set(data.columns).difference(set(tickColumns)))
-            mycolumns=mycolumns+['code', 'date', 'time']
-            data=data[mycolumns]
-            #print(data.shape)
-            errorData=data[data[mycolumns].isna().sum(axis=1)>0]
-            if errorData.shape[0]>0:
-                logger.warning(f'factorData of date {day} has Nan!!!')
-            #逐日存储数据
-            fileName=os.path.join(self.path,str(day)+'.h5')
-            exists=os.path.exists(fileName)
-            if exists==True:
-                os.remove(fileName)
-            try:
-                with pd.HDFStore(fileName,'a',complib='blosc:zstd',append=True,complevel=9) as store:
-                    store.append('data',data,append=True,format="table",data_columns=data.columns)
-            except Exception as excp:
-                logger.error(f'{fileName} error! {excp}')
-            pass
-        pass
-    '''       
-    #----------------------------------------------------------------------
     #输入日期和股票列表，获取当日全部股票列表的因子
     def getLotsDataByDate(self,StockCodes,date,factors=TICKFACTORSUSED):
         all=[]
@@ -256,7 +279,6 @@ class tickDataPrepared(object):
         JobLibUtility.useJobLibToUpdateData(self.updateLotsDataByDate,stockCodes,MYGROUPS,startDate,endDate)
         pass
     #----------------------------------------------------------------------
-    #输入code=600000.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
     def saveLotsDataByDate(self,StockCodes,startDate,endDate):
         for i in range(len(StockCodes)):
             code=StockCodes[i]
@@ -264,5 +286,14 @@ class tickDataPrepared(object):
     #----------------------------------------------------------------------
     def parallelizationSaveDataByDate(self,stockCodes,startDate,endDate):
         JobLibUtility.useJobLibToUpdateData(self.saveLotsDataByDate,stockCodes,MYGROUPS,startDate,endDate)
+        pass
+    #----------------------------------------------------------------------
+    def saveLotsDataToInfluxdbByDate(self,StockCodes,startDate,endDate):
+        for i in range(len(StockCodes)):
+            code=StockCodes[i]
+            self.saveAllFactorsToInfluxdbByCodeAndDays(code,str(startDate),str(endDate))
+    #----------------------------------------------------------------------
+    def parallelizationSaveDataToInfluxdbByDate(self,stockCodes,startDate,endDate):
+        JobLibUtility.useJobLibToUpdateData(self.saveLotsDataToInfluxdbByDate,stockCodes,MYGROUPS,startDate,endDate)
         pass
 ########################################################################

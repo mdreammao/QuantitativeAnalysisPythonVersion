@@ -1,5 +1,8 @@
 # encoding: UTF-8
 
+#Influxdb tick因子名称
+INFLUXDBTICKFACTORDATABASE='maoTickFactors'
+
 #开始日期
 FIRSTDATE='20070101'
 
