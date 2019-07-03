@@ -1,8 +1,10 @@
 import unittest
 import os
+import numpy as np
 from Config.myConfig import *
 from DataPrepare.tickFactors.statusOfTickShot.buySellForce import buySellForce
 from Unitest.testFactor.tickFactorFunction import *
+
 
 class testBuySellForce(unittest.TestCase):
     """buySellForce因子的测试函数"""
@@ -18,9 +20,11 @@ class testBuySellForce(unittest.TestCase):
                 columns=list(outputTrue.columns)
                 print(columns)
                 for col in columns:
-                    self.assertListEqual((myoutput[col]),(outputTrue[col]))
+                    self.assertEqual(list(np.round(myoutput[col],8)),list(np.round(outputTrue[col],8)))
                 pass
             pass
         pass
     pass
+
+
 
