@@ -27,7 +27,7 @@ class buySellForce(factorBase):
             pass
         if data.shape[0]==0:
              data=TickDataProcess().getDataByDateFromLocalFile(code,date)
-        result=self.__computerFactor(code,date,data)
+        result=self.computerFactor(code,date,data)
         super().updateFactor(code,date,self.factor,result)
     #----------------------------------------------------------------------
     def __logBetweenTwoColumns(self,data,col1,col2):
@@ -100,15 +100,17 @@ class buySellForce(factorBase):
     def __buySellWeightedVolumeRatio(self,data,n):
         data['buyWeightedVolume'+str(n)]=0
         data['sellWeightedVolume'+str(n)]=0
+        select0=(data['B1']>0) & (data['S1']>0)
         for i in range(1,n+1):
-            select=(data['B'+str(i)]>0) & (data['S'+str(i)]>0)
+            select=(data['B'+str(i)]>0) & select0
             data.loc[select,'buyWeightedVolume'+str(n)]=data['buyWeightedVolume'+str(n)]+data['BV'+str(i)]*(data['buySellSpread']*data['midPrice']/(data['midPrice']-data['B'+str(i)]))[select]
+            select=(data['S'+str(i)]>0) & select0
             data.loc[select,'sellWeightedVolume'+str(n)]=data['sellWeightedVolume'+str(n)]+data['SV'+str(i)]*(data['buySellSpread']*data['midPrice']/(-data['midPrice']+data['S'+str(i)]))[select]
             pass
         data['buySellWeightedVolumeRatio'+str(n)]=data['buyWeightedVolume'+str(n)]/(data['buyWeightedVolume'+str(n)]+data['sellWeightedVolume'+str(n)])
         select=data['B1']==data['S1']
         data.loc[select,'buySellWeightedVolumeRatio'+str(n)]=(data['BV1']/(data['BV1']+data['SV1']))[select]
-        select=(data['B'+str(i)]==0) | (data['S'+str(i)]==0)
+        select=(data['B1']==0) | (data['S1']==0)
         data.loc[select,'buySellWeightedVolumeRatio'+str(n)]=0
         pass
     #----------------------------------------------------------------------
@@ -149,7 +151,7 @@ class buySellForce(factorBase):
     #----------------------------------------------------------------------
     def __buySellAmountForce(self,data):
         result=data.copy()
-        select0=result['S1']!=result['B1']
+        select0=(result['S1']>result['B1']) & (result['B1']>0) & (result['S1'].shift(1)>result['B1'].shift(1)) & (result['B1'].shift(1)>0)#bid ask 价格不相同并且没有涨跌停
         result['buyForce']=0
         for i in range(1,11):
             select=(result['S1']>result['S'+str(i)].shift(1)) & select0
@@ -177,7 +179,7 @@ class buySellForce(factorBase):
         return result['magnification']
         pass
     #----------------------------------------------------------------------
-    def __computerFactor(self,code,date,mydata):
+    def computerFactor(self,code,date,mydata):
         result=pd.DataFrame()
         if mydata.shape[0]!=0:
             #index对齐即可

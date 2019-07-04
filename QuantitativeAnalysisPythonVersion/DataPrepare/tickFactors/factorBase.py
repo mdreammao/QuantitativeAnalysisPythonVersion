@@ -4,6 +4,7 @@ from Config.myConfig import *
 from Utility.HDF5Utility import HDF5Utility
 from DataAccess.TickDataProcess import TickDataProcess
 from DataAccess.TradedayDataProcess import TradedayDataProcess
+import influxdb
 import pandas as pd
 
 ########################################################################
@@ -104,5 +105,32 @@ class factorBase(object):
                 pass
             pass
         return data
+        pass
+    #----------------------------------------------------------------------
+    def updateFactorToInfluxdb(self,code,date,factor,data):
+        result=data
+        if result.shape[0]==0:
+            logger.warning(f'There no data of {code} in {date} of factor:{factor}!')
+            pass
+        else:
+            self.saveToInfluxdb(code,date,factor,result)
+        pass
+    #----------------------------------------------------------------------
+    def saveToInfluxdb(self,code,date,factor,data):
+        host=InfluxdbServer['host']
+        port=InfluxdbServer['port']
+        username=InfluxdbServer['username']
+        password=InfluxdbServer['password']
+        database='MaoTickFactors'
+        client = influxdb.DataFrameClient(host=host, port=port, username=username, password=password, database=database)
+        dbs = client.get_list_database()
+        if ({'name':database} in dbs)==False:
+            client.create_database(database)
+        client.write_points(dataframe=data,
+                    database=database,
+                    measurement=code,
+                    tags={},
+                    field_columns=list(data.columns),
+                    protocol='line')
         pass
 ########################################################################

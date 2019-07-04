@@ -112,34 +112,42 @@ class tickDataPrepared(object):
         return mydata
     #----------------------------------------------------------------------
     def saveAllFactorsToInfluxdbByCodeAndDay(self,code,date):
+        code=str(code)
+        date=str(date)
         database=INFLUXDBTICKFACTORDATABASE
-        measurement=str(code)+str(date)
+        measurement=str(code)
         tag={}
-        exists=False
-        if exists==True:#如果文件已将存在，直接返回
-            return 
         myfactor=factorBase()
         mydata=pd.DataFrame()
-        factors=self.factorsUsed
-        #获取tick因子数据
-        try:
-            mydata=self.getFactorsUsedByDateFromLocalFile(code,date,factors)
-        except Exception as excp:
-            logger.error(f'tickFactors of {code} in {date} error! {excp}')
-            return 
-        #获取tick行情数据
-        tick=TickDataProcess()
-        tickData=tick.getDataByDateFromLocalFile(code,date)
-        mydata=pd.merge(mydata,tickData,how='left',left_index=True,right_index=True)
+        data=pd.DataFrame()
+        factorList=TICKFACTORSNEEDTOUPDATE
+        for factor in factorList:
+            mymodule = importlib.import_module(factor['module'])
+            myclass=getattr(mymodule, factor['class'])
+            myinstance=myclass()
+            if data.shape[0]==0:
+                tick=TickDataProcess()
+                data=tick.getDataByDateFromLocalFile(code,date)
+                if data.shape[0]==0:
+                    #logger.warning(f'There is no tickShots of {code} in {date}')
+                    return
+                highLimit=data.iloc[0]['highLimit']
+                preClose=data.iloc[0]['dailyPreClose']
+                if (highLimit/preClose-1)<0.06:
+                    #logger.warning(f'The stock {code} is ST in {date}')
+                    return
+                pass
+            factorData=myinstance.computerFactor(code,date,data)
+            if factorData.shape[0]>0:
+                if mydata.shape[0]==0:
+                    mydata=factorData
+                else:
+                    mydata=pd.merge(mydata,factorData,how='left',left_index=True,right_index=True)
+        #合并tick行情数据
+        mydata=pd.merge(mydata,data[['code','date','time','midPrice','realData','dailyPreClose','dailyOpen','B1','S1','BV1','SV1']],how='left',left_index=True,right_index=True)
         if mydata.shape[0]==0:
             return 
-        #获取日线数据
-        dailyRepo=dailyFactorsProcess()
-        dailyData=dailyRepo.getSingleStockDailyFactors(code,date,date)
-        dailyKLineRepo=KLineDataProcess('daily')
-        dailyKLineData=dailyKLineRepo.getDataByDate(code,date,date)
-        mydata['preClose']=dailyKLineData['preClose'].iloc[0]
-        mydata['increaseToday']=mydata['midPrice']/mydata['preClose']-1
+        mydata['increaseToday']=mydata['midPrice']/mydata['dailyPreClose']-1
         mydata=mydata[mydata['time']<'145700000']
         #删去涨跌停之后的数据
         ceiling=mydata[(mydata['B1']==0) | (mydata['S1']==0)]
@@ -150,7 +158,7 @@ class tickDataPrepared(object):
         if mydata.shape[0]==0:
             return
         try:
-            #logger.info(f'Recording factors to influxdb of {code} in {date}!')
+            logger.info(f'Recording factors to influxdb of {code} in {date}!')
             InfluxdbUtility.saveDataFrameDataToInfluxdb(mydata,database,measurement,tag)
         except Exception as excp:
             logger.error(f'{fileName} error! {excp}')
@@ -222,6 +230,7 @@ class tickDataPrepared(object):
                         return
                     pass
                 myinstance.updateFactor(code,date,data)
+                #myinstance.updateFactorToInfluxdb(code,date,data)
                 pass
             
     #----------------------------------------------------------------------

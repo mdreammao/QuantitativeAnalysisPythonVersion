@@ -26,10 +26,10 @@ class targetFactor(factorBase):
             pass
         if data.shape[0]==0:
              data=TickDataProcess().getDataByDateFromLocalFile(code,date)
-        result=self.__computerFactor(code,date,data)
+        result=self.computerFactor(code,date,data)
         super().updateFactor(code,date,self.factor,result)
     #----------------------------------------------------------------------
-    def __computerFactor(self,code,date,mydata):
+    def computerFactor(self,code,date,mydata):
         result=pd.DataFrame()
         if mydata.shape[0]!=0:
             #index对齐即可

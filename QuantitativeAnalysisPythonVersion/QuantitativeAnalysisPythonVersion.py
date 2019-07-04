@@ -77,7 +77,7 @@ def main():
     #UpdateBasicData.updateDailyFactors(stockCodes)
     #----------------------------------------------------------------------
     tick=tickDataPrepared()
-    tick.saveAllFactorsToInfluxdbByCodeAndDays('000001.SZ',20190105)
+    tick.saveAllFactorsToInfluxdbByCodeAndDay('000001.SZ',20190105)
     pass
 
 if __name__ == '__main__':
