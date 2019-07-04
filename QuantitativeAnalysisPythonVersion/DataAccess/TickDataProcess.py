@@ -46,7 +46,7 @@ class TickDataProcess(object):
         HDF5Utility.pathCreate(path)
         exists=os.path.isfile(file)
         if exists==False:
-            logger.warning(f'There is no tickshot data of {code} in {date} from local file!')
+            #logger.warning(f'There is no tickshot data of {code} in {date} from local file!')
             mydata=pd.DataFrame()
         else:
             #logger.info(f'get tickshot data of {code} in {date} from local file!')

@@ -16,6 +16,7 @@ from Utility.InfluxdbUtility import InfluxdbUtility
 import importlib
 import numpy as np
 import datetime 
+from tqdm import tqdm 
 ########################################################################
 class tickDataPrepared(object):
     """计算tick因子"""
@@ -32,7 +33,7 @@ class tickDataPrepared(object):
         pass
     #----------------------------------------------------------------------
     def saveAllFactorsToInfluxdbByCodeAndDays(self,code,startDate,endDate):
-        tradedays=TradedayDataProcess.getTradedays(startDate,endDate)
+        tradedays=list(TradedayDataProcess.getTradedays(startDate,endDate))
         for date in tradedays:
             self.saveAllFactorsToInfluxdbByCodeAndDay(code,date)
         pass
@@ -158,10 +159,11 @@ class tickDataPrepared(object):
         if mydata.shape[0]==0:
             return
         try:
-            logger.info(f'Recording factors to influxdb of {code} in {date}!')
+            #logger.info(f'Recording factors to influxdb of {code} in {date}!')
             InfluxdbUtility.saveDataFrameDataToInfluxdb(mydata,database,measurement,tag)
         except Exception as excp:
-            logger.error(f'{fileName} error! {excp}')
+            pass
+            #logger.error(f'{fileName} error! {excp}')
         pass
     #----------------------------------------------------------------------
     def saveAllFactorsByCodeAndDate(self,code,date):
@@ -305,4 +307,16 @@ class tickDataPrepared(object):
     def parallelizationSaveDataToInfluxdbByDate(self,stockCodes,startDate,endDate):
         JobLibUtility.useJobLibToUpdateData(self.saveLotsDataToInfluxdbByDate,stockCodes,MYGROUPS,startDate,endDate)
         pass
+    #----------------------------------------------------------------------
+    def parallelizationSaveDataToInfluxdbByDate2(self,stockCodes,startDate,endDate):
+        tradedays=list(TradedayDataProcess.getTradedays(startDate,endDate))
+        for i in tqdm(range(len(tradedays))):
+            date=tradedays[i]
+            JobLibUtility.useJobLibToUpdateData(self.saveLotsDataToInfluxdbByDate2,stockCodes,MYGROUPS,date,date)
+        pass
+    #----------------------------------------------------------------------
+    def saveLotsDataToInfluxdbByDate2(self,StockCodes,startDate,endDate):
+        for i in range(len(StockCodes)):
+            code=StockCodes[i]
+            self.saveAllFactorsToInfluxdbByCodeAndDay(code,startDate)
 ########################################################################

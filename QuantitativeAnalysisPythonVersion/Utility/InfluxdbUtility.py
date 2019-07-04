@@ -19,6 +19,7 @@ class InfluxdbUtility(object):
                     field_columns=list(data.columns),
                     protocol='line')
         except Exception as excp:
-            logger.error(f'save data to influxdb {measurement} in {tag} error! {excp}')
+            pass
+            #logger.error(f'save data to influxdb {measurement} in {tag} error! {excp}')
         pass
 ########################################################################
