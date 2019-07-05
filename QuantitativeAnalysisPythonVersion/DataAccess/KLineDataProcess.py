@@ -88,7 +88,7 @@ class KLineDataProcess(object):
             #logger.info(f'get data of {code} from {startDate} to {endDate} start!')
             pass
         else:
-            logger.warning(f'There is no data of {code} from {startDate} to {endDate}')
+            #logger.warning(f'There is no data of {code} from {startDate} to {endDate}')
             mydata=pd.DataFrame()
             return mydata
         if self.update==True:

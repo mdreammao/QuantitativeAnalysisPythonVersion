@@ -61,8 +61,8 @@ def main():
 
     warnings.filterwarnings('ignore')
     logger.info(f'compute start!!!')
-    startDate=20160101
-    endDate=20160110
+    startDate=20160110
+    endDate=20160131
 
 
 
@@ -75,8 +75,8 @@ def main():
     #UpdateBasicData.updateDailyFactors(stockCodes)
     #----------------------------------------------------------------------
     stockCodes=['000001.SZ']
-    UpdateBasicData.updateMultipleStocksTickShots(stockCodes,startDate,endDate)
-    #UpdateBasicData.updateMultipleStocksTickFactors(stockCodes,startDate,endDate)
+    #UpdateBasicData.updateMultipleStocksTickShots(stockCodes,startDate,endDate)
+    UpdateBasicData.updateMultipleStocksTickFactors(stockCodes,startDate,endDate)
     #tick=tickDataPrepared()
     #tick.saveAllFactorsToInfluxdbByCodeAndDay('000001.SZ',20190105)
     pass
