@@ -68,7 +68,7 @@ class TickDataProcess(object):
         daily=KLineDataProcess('daily')
         dailyData=daily.getDataByDate(code,startDate,endDate)
         if dailyData.empty==True:
-            logger.warning(f'There no daily data of {code} from {startDate} to {endDate}!')
+            #logger.warning(f'There no daily data of {code} from {startDate} to {endDate}!')
             return 
         dailyData=dailyData[dailyData['status']!='停牌']
         tradedays=list(dailyData['date'])
