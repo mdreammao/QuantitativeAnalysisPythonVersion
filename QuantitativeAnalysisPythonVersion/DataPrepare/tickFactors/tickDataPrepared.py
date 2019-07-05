@@ -128,7 +128,8 @@ class tickDataPrepared(object):
             myinstance=myclass()
             if data.shape[0]==0:
                 tick=TickDataProcess()
-                data=tick.getDataByDateFromLocalFile(code,date)
+                #data=tick.getDataByDateFromLocalFile(code,date)
+                data=tick.getTickShotDataFromInfluxdbServer(code,date)
                 if data.shape[0]==0:
                     #logger.warning(f'There is no tickShots of {code} in {date}')
                     return
@@ -159,7 +160,7 @@ class tickDataPrepared(object):
         if mydata.shape[0]==0:
             return
         try:
-            #logger.info(f'Recording factors to influxdb of {code} in {date}!')
+            logger.info(f'Recording factors to influxdb of {code} in {date}!')
             InfluxdbUtility.saveDataFrameDataToInfluxdb(mydata,database,measurement,tag)
         except Exception as excp:
             pass

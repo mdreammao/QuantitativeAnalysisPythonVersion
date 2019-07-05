@@ -79,7 +79,8 @@ class myAnalysisForReverseByTick(object):
             myStatus['preClose']=todayKLine['preClose'].iloc[0]
             positionNow=positionYesterday
             if (todayInfo.empty==False) & (todayKLine['status'].iloc[0]!='停牌'):
-                tickData=tick.getDataByDateFromLocalFile(code,today)
+                #tickData=tick.getDataByDateFromLocalFile(code,today)
+                tickData=tick.getTickShotDataFromInfluxdbServer(code,today)
                 #factors=tickfactor.getDataByDateFromLocalFile(code,today,'buySellForce')
                 factors=tickfactor.getFactorsUsedByDateFromLocalFile(code,today)
                 all=pd.merge(tickData,factors,how='left',left_index=True,right_index=True)

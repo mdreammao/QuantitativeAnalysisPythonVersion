@@ -98,7 +98,8 @@ class factorBase(object):
         data=pd.DataFrame()
         for day in days:
             if day<date:
-                data=TickDataProcess().getDataByDateFromLocalFile(code,day)
+                #data=TickDataProcess().getDataByDateFromLocalFile(code,day)
+                data=TickDataProcess().getTickShotDataFromInfluxdbServer(code,day)
                 if data.shape[0]>0:
                     return data
                     pass

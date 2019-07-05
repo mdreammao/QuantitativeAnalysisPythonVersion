@@ -11,6 +11,7 @@ from DataAccess.StockIPOInfoProcess import *
 from DataAccess.KLineDataProcess import *
 from Utility.JobLibUtility import *
 from Utility.HDF5Utility import *
+from Utility.InfluxdbUtility import InfluxdbUtility
 import pymssql
 import influxdb
 import dateutil.parser as dtparser
@@ -34,7 +35,7 @@ class TickDataProcess(object):
         username=InfluxdbSource['username']
         password=InfluxdbSource['password']
         database=InfluxdbSource['database']
-        client = influxdb.InfluxDBClient(host=host, port=port, username=username, password=password, database=database)
+        client = influxdb.DataFrameClient(host=host, port=port, username=username, password=password, database=database)
         return client
         pass
 
@@ -50,12 +51,32 @@ class TickDataProcess(object):
             mydata=pd.DataFrame()
         else:
             #logger.info(f'get tickshot data of {code} in {date} from local file!')
-            with pd.HDFStore(file,'r',complib='blosc:zstd',append=True,complevel=9) as store:
-                #store = pd.HDFStore(file,'r',complib='blosc:zstd',append=True,complevel=9)
-                mydata=store['data']
-                #store.close()
+            mydata=pd.DataFrame()
+            try:
+                with pd.HDFStore(file,'r',complib='blosc:zstd',append=True,complevel=9) as store:
+                    #store = pd.HDFStore(file,'r',complib='blosc:zstd',append=True,complevel=9)
+                    mydata=store['data']
+                    #store.close()
+            except:
+                pass
             pass
         return mydata
+     #----------------------------------------------------------------------
+    def recordResampleTickShotDataToInfluxdbFromSqlServer(self,code,startDate,endDate):
+        #获取股票日线数据，筛选出非停牌的日期
+        daily=KLineDataProcess('daily')
+        dailyData=daily.getDataByDate(code,startDate,endDate)
+        if dailyData.empty==True:
+            logger.warning(f'There no daily data of {code} from {startDate} to {endDate}!')
+            return 
+        dailyData=dailyData[dailyData['status']!='停牌']
+        tradedays=list(dailyData['date'])
+        for date in tradedays:
+            logger.info(f'get tickshot data of {code} in {date} from source!')
+            mydata=self.__getResampleTickShotDataFromSqlServer(code,date)
+            if mydata.shape[0]>0:
+                InfluxdbUtility.saveDataFrameDataToInfluxdb(mydata,INFLUXDBTICKTICKDATABASE,code,{})
+        pass
     #----------------------------------------------------------------------
     def recordResampleTickShotDataFromSqlServer(self,code,startDate,endDate):
         #获取股票日线数据，筛选出非停牌的日期
@@ -119,19 +140,39 @@ class TickDataProcess(object):
         month=date[0:6]
         database='WindFullMarket'+month
         table='MarketData_'+code.replace('.','_')
-        connect=pymssql.connect( self.address,self.user,self.password,database,charset='utf8')
+        for i in range(35):
+            try:
+                connect=pymssql.connect( self.address,self.user,self.password,database,charset='utf8')
+                break
+            except pymssql.DatabaseError as err:
+                time.sleep(60)
         cursor = connect.cursor()
         sql="select [stkcd],rtrim([tdate]),left(rtrim(ttime),6)+'000' as [ttime],[cp],[S1],[S2],[S3],[S4],[S5],[S6],[S7],[S8],[S9],[S10],[B1],[B2],[B3],[B4],[B5],[B6],[B7],[B8],[B9],[B10],[SV1],[SV2],[SV3],[SV4],[SV5],[SV6],[SV7],[SV8],[SV9],[SV10],[BV1],[BV2],[BV3],[BV4],[BV5],[BV6],[BV7],[BV8],[BV9],[BV10],[ts],[tt],[HighLimit],[LowLimit],[OPNPRC],[PRECLOSE],[transactions_count],[weightedAvgBidPRC],[weightedAvgAskPRC],[total_bid_size],[total_ask_size],[LocalRecTime],[TradeStatus] FROM [{0}].[dbo].[{1}] where [tdate]={2} and ((left(rtrim(ttime),6)>=92500 and left(rtrim(ttime),6)<=113000) or (left(rtrim(ttime),6)>=130000 and left(rtrim(ttime),6)<=150000)) order by ttime".format(database,table,date)
         cursor.execute(sql)
         mydata=cursor.fetchall()
-        mydata = pd.DataFrame(mydata,columns=['code' ,'date','time' ,'lastPrice','S1','S2','S3','S4','S5','S6','S7','S8','S9','S10','B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','SV1','SV2','SV3','SV4','SV5','SV6','SV7','SV8','SV9','SV10','BV1','BV2','BV3','BV4','BV5','BV6','BV7','BV8','BV9','BV10','volume' ,'amount','highLimit','lowLimit','dailyOpen','dailyPreClose','transactions_count','weightedAvgBid','weightedAvgAsk','total_bid_size','total_ask_size','localRecordTime','tradeStatus'])
+        mydata = pd.DataFrame(mydata,columns=['code' ,'date','tick' ,'lastPrice','S1','S2','S3','S4','S5','S6','S7','S8','S9','S10','B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','SV1','SV2','SV3','SV4','SV5','SV6','SV7','SV8','SV9','SV10','BV1','BV2','BV3','BV4','BV5','BV6','BV7','BV8','BV9','BV10','volume' ,'amount','highLimit','lowLimit','dailyOpen','dailyPreClose','transactions_count','weightedAvgBid','weightedAvgAsk','total_bid_size','total_ask_size','localRecordTime','tradeStatus'])
         mydata[['lastPrice','S1','S2','S3','S4','S5','S6','S7','S8','S9','S10','B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','SV1','SV2','SV3','SV4','SV5','SV6','SV7','SV8','SV9','SV10','BV1','BV2','BV3','BV4','BV5','BV6','BV7','BV8','BV9','BV10','volume' ,'amount','highLimit','lowLimit','dailyOpen','dailyPreClose','transactions_count','weightedAvgBid','weightedAvgAsk','total_bid_size','total_ask_size','tradeStatus']] = mydata[['lastPrice','S1','S2','S3','S4','S5','S6','S7','S8','S9','S10','B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','SV1','SV2','SV3','SV4','SV5','SV6','SV7','SV8','SV9','SV10','BV1','BV2','BV3','BV4','BV5','BV6','BV7','BV8','BV9','BV10','volume' ,'amount','highLimit','lowLimit','dailyOpen','dailyPreClose','transactions_count','weightedAvgBid','weightedAvgAsk','total_bid_size','total_ask_size','tradeStatus']].astype('float')
-        mydata['mytime']=pd.to_datetime(mydata['date']+mydata['time'],format='%Y%m%d%H%M%S%f')
+        mydata['mytime']=pd.to_datetime(mydata['date']+mydata['tick'],format='%Y%m%d%H%M%S%f')
         mydata.set_index('mytime',inplace=True,drop=True)
         return mydata    
 
         pass
     #----------------------------------------------------------------------
+    def getTickShotDataFromInfluxdbServer(self,code,date,database=INFLUXDBTICKTICKDATABASE):
+        measurement=code
+        begin=dtparser.parse(str(date))+datetime.timedelta(hours=0)
+        end=dtparser.parse(str(date))+datetime.timedelta(hours=24)
+        query = f""" select * from "{database}"."autogen"."{measurement}" where time >= {int(begin.timestamp() * 1000 * 1000 * 1000)} and time < {int(end.timestamp() * 1000 * 1000* 1000)} """
+        result=self.influxdb.query(query)
+        data=pd.DataFrame(data)
+        try:
+            data=result[measurement]
+        except:
+            pass
+        return data
+        pass
+    #----------------------------------------------------------------------
+    '''
     def getResampleTickShotDataFromInfluxdbServer(self,code,date):
         measurement=code+'_snapshot'
         begin=dtparser.parse(str(date))
@@ -141,12 +182,12 @@ class TickDataProcess(object):
         data=result[measurement]
         data=pd.DataFrame(data)
         renameDict={'HighLimit':'highLimit', 'LowLimit':'lowLimit', 'OPNPRC':'dailyOpen', 'PRECLOSE':'dailyPreClose', 'TradeStatus':'tradeStatus', 'cp':'lastPrice', 'stkcd':'code', 'tdate':'date','time':'influxdbTime', 'ts':'volume', 'tt':'amount',
-       'ttime':'time', 'turnover':'amountIncrease', 'volume':'volumeIncrease', 'weightedAvgAskPRC':'weightedAvgAsk',
+       'ttime':'tick', 'turnover':'amountIncrease', 'volume':'volumeIncrease', 'weightedAvgAskPRC':'weightedAvgAsk',
        'weightedAvgBidPRC':'weightedAvgBid'}
         mydata=data.rename(columns=renameDict)
-        mydata=mydata[['code' ,'date','time' ,'lastPrice','S1','S2','S3','S4','S5','S6','S7','S8','S9','S10','B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','SV1','SV2','SV3','SV4','SV5','SV6','SV7','SV8','SV9','SV10','BV1','BV2','BV3','BV4','BV5','BV6','BV7','BV8','BV9','BV10','volume','amount','highLimit','lowLimit','dailyOpen','dailyPreClose','transactions_count','weightedAvgBid','weightedAvgAsk','total_bid_size','total_ask_size','tradeStatus']]
-        mydata=mydata[((mydata['time']>='092500000') & (mydata['time']<='113000000'))| ((mydata['time']>='130000000')&(mydata['time']<='150000000'))]
-        mydata['mytime']=pd.to_datetime(mydata['date']+mydata['time'],format='%Y%m%d%H%M%S%f')
+        mydata=mydata[['code' ,'date','tick' ,'lastPrice','S1','S2','S3','S4','S5','S6','S7','S8','S9','S10','B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','SV1','SV2','SV3','SV4','SV5','SV6','SV7','SV8','SV9','SV10','BV1','BV2','BV3','BV4','BV5','BV6','BV7','BV8','BV9','BV10','volume','amount','highLimit','lowLimit','dailyOpen','dailyPreClose','transactions_count','weightedAvgBid','weightedAvgAsk','total_bid_size','total_ask_size','tradeStatus']]
+        mydata=mydata[((mydata['tick']>='092500000') & (mydata['tick']<='113000000'))| ((mydata['tick']>='130000000')&(mydata['tick']<='150000000'))]
+        mydata['mytime']=pd.to_datetime(mydata['date']+mydata['tick'],format='%Y%m%d%H%M%S%f')
         mydata.set_index('mytime',inplace=True,drop=True)
         #计算mid价格
         select=(mydata['BV1']>0) & (mydata['SV1']>0)
@@ -170,6 +211,7 @@ class TickDataProcess(object):
         mydata=mydata[((mydata.index.time>=datetime.time(9,30)) & (mydata.index.time<=datetime.time(11,30))) | ((mydata.index.time>=datetime.time(13,00)) & (mydata.index.time<=datetime.time(15,00)))]
         return mydata
         pass
+    '''
     #----------------------------------------------------------------------
     #输入code=600000.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
     def getLotsDataByDate(self,StockCodes,startDate,endDate):
@@ -196,4 +238,17 @@ class TickDataProcess(object):
     #----------------------------------------------------------------------
     def parallelizationUpdateDataByDate(self,stockCodes,startDate,endDate):
         JobLibUtility.useJobLibToUpdateData(self.updateLotsDataByDate,stockCodes,MYGROUPS,startDate,endDate)
+        pass
+
+    #----------------------------------------------------------------------
+    #输入code=600000.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
+    def updateLotsDataToInfluxdbByDate(self,StockCodes,startDate,endDate):
+        mydata=pd.DataFrame()
+        for i in range(len(StockCodes)):
+            code=StockCodes[i]
+            self.recordResampleTickShotDataToInfluxdbFromSqlServer(code,str(startDate),str(endDate))
+
+    #----------------------------------------------------------------------
+    def parallelizationUpdateDataToInfluxdbByDate(self,stockCodes,startDate,endDate):
+        JobLibUtility.useJobLibToUpdateData(self.updateLotsDataToInfluxdbByDate,stockCodes,MYGROUPS,startDate,endDate)
         pass

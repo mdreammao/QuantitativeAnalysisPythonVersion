@@ -101,7 +101,7 @@ class IndexComponentDataProcess(object):
             mydata=store.select('data',where=['date>="%s" and date<="%s"'%(startDate,endDate)])
             store.close()
         else:
-            logger.waring(f'There is no component data of {code}')
+            logger.warning(f'There is no component data of {code}')
             mydata=pd.DataFrame()
             pass
         return mydata

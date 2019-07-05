@@ -7,6 +7,7 @@ from DataPrepare.dailyFactorsProcess import *
 from DataAccess.IndexCode import *
 from DataAccess.TickDataProcess import *
 from DataPrepare.tickFactorsProcess import tickFactorsProcess
+from DataPrepare.tickFactors.tickDataPrepared import tickDataPrepared
 from Config.myConfig import *
 from Config.myConfig import *
 import datetime
@@ -233,13 +234,13 @@ class UpdateBasicData(object):
     @classmethod 
     def updateMultipleStocksTickShots(self,codeList,startDate,endDate):
         tickStock=TickDataProcess()
-        tickStock.parallelizationUpdateDataByDate(codeList,startDate,endDate)
+        tickStock.parallelizationUpdateDataToInfluxdbByDate(codeList,startDate,endDate)
         pass
     #----------------------------------------------------------------------
     @classmethod 
     def updateMultipleStocksTickFactors(self,codeList,startDate,endDate):
-        tickStock=tickFactorsProcess()
-        tickStock.parallelizationUpdateDataByDate(codeList,startDate,endDate)
+        tickStock=tickDataPrepared()
+        tickStock.parallelizationSaveDataToInfluxdbByDate2(codeList,startDate,endDate)
         pass
     #----------------------------------------------------------------------
     @classmethod 

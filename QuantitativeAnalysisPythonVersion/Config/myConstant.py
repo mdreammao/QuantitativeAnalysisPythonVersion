@@ -2,7 +2,7 @@
 
 #Influxdb tick因子名称
 INFLUXDBTICKFACTORDATABASE='MaoTickFactors'
-
+INFLUXDBTICKTICKDATABASE='MaoTickData'
 #开始日期
 FIRSTDATE='20070101'
 

@@ -56,7 +56,8 @@ class gradeStrategy1(baseStrategy):
         dailyKLine=KLineDataProcess('daily')
         trade=[]
         for day in days:
-            tickData=tick.getDataByDateFromLocalFile(code,day)
+            #tickData=tick.getDataByDateFromLocalFile(code,day)
+            tickData=tick.getTickShotDataFromInfluxdbServer(code,day)
             if tickData.shape[0]==0:
                 continue
             data=tickFactors.getTickFactorsOnlyByDateFromLocalFile(code,day)
