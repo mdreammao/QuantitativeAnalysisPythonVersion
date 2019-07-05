@@ -166,7 +166,7 @@ class TickDataProcess(object):
         end=dtparser.parse(str(date))+datetime.timedelta(hours=24)
         query = f""" select * from "{database}"."autogen"."{measurement}" where time >= {int(begin.timestamp() * 1000 * 1000 * 1000)} and time < {int(end.timestamp() * 1000 * 1000* 1000)} """
         result=self.influxdb.query(query)
-        data=pd.DataFrame(data)
+        data=pd.DataFrame()
         try:
             data=result[measurement]
         except:

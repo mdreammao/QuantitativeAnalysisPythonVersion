@@ -1,4 +1,4 @@
-# encoding: UTF-8
+
 
 #Influxdb tick因子名称
 INFLUXDBTICKFACTORDATABASE='MaoTickFactors'

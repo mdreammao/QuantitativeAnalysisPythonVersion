@@ -250,7 +250,7 @@ class buySellForce(factorBase):
             result['EMABuyForce15']=super().EMA(result['buyForce'],15)
             result['EMASellForce15']=super().EMA(result['sellForce'],15)
             result['buySellForceChange']=self.__logBetweenTwoColumnsWithBound(result,'EMABuyForce15','EMASellForce15',10)
-            result['volumeIncreaseMean']=self.__longTermVolumeIncreaeMean(result,code,date,4741)
+            #result['volumeIncreaseMean']=self.__longTermVolumeIncreaeMean(result,code,date,4741)
             select=result['volumeIncreaseMean']==0
             result['buyForcePrice']=result['buyForce']/result['volumeIncreaseMean']
             result['sellForcePrice']=result['sellForce']/result['volumeIncreaseMean']
