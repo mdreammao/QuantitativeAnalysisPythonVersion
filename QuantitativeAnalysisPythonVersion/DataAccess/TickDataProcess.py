@@ -15,6 +15,7 @@ from Utility.InfluxdbUtility import InfluxdbUtility
 import pymssql
 import influxdb
 import dateutil.parser as dtparser
+from tqdm import tqdm 
 
 ########################################################################
 class TickDataProcess(object):
@@ -243,12 +244,14 @@ class TickDataProcess(object):
     #----------------------------------------------------------------------
     #输入code=600000.SH，startdate=yyyyMMdd，endDate=yyyyMMdd
     def updateLotsDataToInfluxdbByDate(self,StockCodes,startDate,endDate):
-        mydata=pd.DataFrame()
         for i in range(len(StockCodes)):
             code=StockCodes[i]
             self.recordResampleTickShotDataToInfluxdbFromSqlServer(code,str(startDate),str(endDate))
 
     #----------------------------------------------------------------------
     def parallelizationUpdateDataToInfluxdbByDate(self,stockCodes,startDate,endDate):
-        JobLibUtility.useJobLibToUpdateData(self.updateLotsDataToInfluxdbByDate,stockCodes,MYGROUPS,startDate,endDate)
+        tradedays=list(TradedayDataProcess().getTradedays(startDate,endDate))
+        for i in tqdm(range(len(tradedays))):
+            today=tradedays[i]
+            JobLibUtility.useJobLibToUpdateData(self.updateLotsDataToInfluxdbByDate,stockCodes,MYGROUPS,today,today)
         pass
