@@ -119,7 +119,7 @@ class buySellForce(factorBase):
         result=data[['date','volumeIncrease']].copy()
         lastData=super().getLastTradedayTickData(code,date)
         if lastData.shape[0]>0:
-            lastData=lastData[lastData['tick']<'145700000']
+            lastData=lastData[lastData['time']<'145700000']
             last=lastData[['date','volumeIncrease']].copy()
             total=pd.concat([last,result])
         else:
@@ -259,7 +259,7 @@ class buySellForce(factorBase):
 
             #------------------------------------------------------------------
             #剔除14点57分之后，集合竞价的数据
-            result=result[result['tick']<'145700000']
+            result=result[result['time']<'145700000']
             mycolumns=list(set(result.columns).difference(set(mydata.columns)))
             mycolumns.sort()
             result=result[mycolumns]

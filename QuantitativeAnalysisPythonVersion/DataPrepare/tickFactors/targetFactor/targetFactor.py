@@ -34,7 +34,7 @@ class targetFactor(factorBase):
         result=pd.DataFrame()
         if mydata.shape[0]!=0:
             #index对齐即可
-            result=mydata[['midPrice','tick']].copy()
+            result=mydata[['midPrice','time']].copy()
             result['midPrice'].fillna(method='ffill',inplace=True)
             #mid价格的增长率 1m 2m 5m
             result['midIncreaseNext1m']=mydata['midPrice'].shift(-20)/mydata['midPrice']-1
@@ -49,7 +49,7 @@ class targetFactor(factorBase):
             result['midIncreaseMinNext5m']=mydata['midPrice'].rolling(100).min().shift(-100)/mydata['midPrice']-1
             #------------------------------------------------------------------
             #剔除14点57分之后，集合竞价的数据
-            result=result[result['tick']<'145700000']
+            result=result[result['time']<'145700000']
             mycolumns=list(set(result.columns).difference(set(mydata.columns)))
             mycolumns.sort()
             result=result[mycolumns]

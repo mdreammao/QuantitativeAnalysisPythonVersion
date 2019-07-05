@@ -7,7 +7,7 @@ from Utility.HDF5Utility import *
 
 ########################################################################
 #定义多线程数据
-MYJOBS=-1
+MYJOBS=1
 MYGROUPS=400
 ####################################################################
 #日频因子的参数配置
@@ -65,7 +65,7 @@ InfluxdbServer={
     'database':''
     }
 
-InfluxdbServerInternet={
+InfluxdbServer={
     'host':'192.168.58.71',
     'port':8086,
     'username':'root', 
@@ -75,7 +75,7 @@ InfluxdbServerInternet={
 
 #本地文件存储地址
 LocalFileAddress=r'D:/BTP/LocalDataBase'
-LocalFileAddress=r'/home/public/mao/BTP/LocalDataBase'
+#LocalFileAddress=r'/home/public/mao/BTP/LocalDataBase'
 #ROOT_PATH = '/home/orientsec38/QuantitativeAnalysisPythonVersion/QuantitativeAnalysisPythonVersion/BTP'
 
 #LocalFileAddress=os.path.join(ROOT_PATH, 'LocalDataBase')

@@ -150,9 +150,9 @@ class TickDataProcess(object):
         sql="select [stkcd],rtrim([tdate]),left(rtrim(ttime),6)+'000' as [ttime],[cp],[S1],[S2],[S3],[S4],[S5],[S6],[S7],[S8],[S9],[S10],[B1],[B2],[B3],[B4],[B5],[B6],[B7],[B8],[B9],[B10],[SV1],[SV2],[SV3],[SV4],[SV5],[SV6],[SV7],[SV8],[SV9],[SV10],[BV1],[BV2],[BV3],[BV4],[BV5],[BV6],[BV7],[BV8],[BV9],[BV10],[ts],[tt],[HighLimit],[LowLimit],[OPNPRC],[PRECLOSE],[transactions_count],[weightedAvgBidPRC],[weightedAvgAskPRC],[total_bid_size],[total_ask_size],[LocalRecTime],[TradeStatus] FROM [{0}].[dbo].[{1}] where [tdate]={2} and ((left(rtrim(ttime),6)>=92500 and left(rtrim(ttime),6)<=113000) or (left(rtrim(ttime),6)>=130000 and left(rtrim(ttime),6)<=150000)) order by ttime".format(database,table,date)
         cursor.execute(sql)
         mydata=cursor.fetchall()
-        mydata = pd.DataFrame(mydata,columns=['code' ,'date','tick' ,'lastPrice','S1','S2','S3','S4','S5','S6','S7','S8','S9','S10','B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','SV1','SV2','SV3','SV4','SV5','SV6','SV7','SV8','SV9','SV10','BV1','BV2','BV3','BV4','BV5','BV6','BV7','BV8','BV9','BV10','volume' ,'amount','highLimit','lowLimit','dailyOpen','dailyPreClose','transactions_count','weightedAvgBid','weightedAvgAsk','total_bid_size','total_ask_size','localRecordTime','tradeStatus'])
+        mydata = pd.DataFrame(mydata,columns=['code' ,'date','time' ,'lastPrice','S1','S2','S3','S4','S5','S6','S7','S8','S9','S10','B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','SV1','SV2','SV3','SV4','SV5','SV6','SV7','SV8','SV9','SV10','BV1','BV2','BV3','BV4','BV5','BV6','BV7','BV8','BV9','BV10','volume' ,'amount','highLimit','lowLimit','dailyOpen','dailyPreClose','transactions_count','weightedAvgBid','weightedAvgAsk','total_bid_size','total_ask_size','localRecordTime','tradeStatus'])
         mydata[['lastPrice','S1','S2','S3','S4','S5','S6','S7','S8','S9','S10','B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','SV1','SV2','SV3','SV4','SV5','SV6','SV7','SV8','SV9','SV10','BV1','BV2','BV3','BV4','BV5','BV6','BV7','BV8','BV9','BV10','volume' ,'amount','highLimit','lowLimit','dailyOpen','dailyPreClose','transactions_count','weightedAvgBid','weightedAvgAsk','total_bid_size','total_ask_size','tradeStatus']] = mydata[['lastPrice','S1','S2','S3','S4','S5','S6','S7','S8','S9','S10','B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','SV1','SV2','SV3','SV4','SV5','SV6','SV7','SV8','SV9','SV10','BV1','BV2','BV3','BV4','BV5','BV6','BV7','BV8','BV9','BV10','volume' ,'amount','highLimit','lowLimit','dailyOpen','dailyPreClose','transactions_count','weightedAvgBid','weightedAvgAsk','total_bid_size','total_ask_size','tradeStatus']].astype('float')
-        mydata['mytime']=pd.to_datetime(mydata['date']+mydata['tick'],format='%Y%m%d%H%M%S%f')
+        mydata['mytime']=pd.to_datetime(mydata['date']+mydata['time'],format='%Y%m%d%H%M%S%f')
         mydata.set_index('mytime',inplace=True,drop=True)
         return mydata    
 
@@ -182,12 +182,12 @@ class TickDataProcess(object):
         data=result[measurement]
         data=pd.DataFrame(data)
         renameDict={'HighLimit':'highLimit', 'LowLimit':'lowLimit', 'OPNPRC':'dailyOpen', 'PRECLOSE':'dailyPreClose', 'TradeStatus':'tradeStatus', 'cp':'lastPrice', 'stkcd':'code', 'tdate':'date','time':'influxdbTime', 'ts':'volume', 'tt':'amount',
-       'ttime':'tick', 'turnover':'amountIncrease', 'volume':'volumeIncrease', 'weightedAvgAskPRC':'weightedAvgAsk',
+       'ttime':'time', 'turnover':'amountIncrease', 'volume':'volumeIncrease', 'weightedAvgAskPRC':'weightedAvgAsk',
        'weightedAvgBidPRC':'weightedAvgBid'}
         mydata=data.rename(columns=renameDict)
-        mydata=mydata[['code' ,'date','tick' ,'lastPrice','S1','S2','S3','S4','S5','S6','S7','S8','S9','S10','B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','SV1','SV2','SV3','SV4','SV5','SV6','SV7','SV8','SV9','SV10','BV1','BV2','BV3','BV4','BV5','BV6','BV7','BV8','BV9','BV10','volume','amount','highLimit','lowLimit','dailyOpen','dailyPreClose','transactions_count','weightedAvgBid','weightedAvgAsk','total_bid_size','total_ask_size','tradeStatus']]
-        mydata=mydata[((mydata['tick']>='092500000') & (mydata['tick']<='113000000'))| ((mydata['tick']>='130000000')&(mydata['tick']<='150000000'))]
-        mydata['mytime']=pd.to_datetime(mydata['date']+mydata['tick'],format='%Y%m%d%H%M%S%f')
+        mydata=mydata[['code' ,'date','time' ,'lastPrice','S1','S2','S3','S4','S5','S6','S7','S8','S9','S10','B1','B2','B3','B4','B5','B6','B7','B8','B9','B10','SV1','SV2','SV3','SV4','SV5','SV6','SV7','SV8','SV9','SV10','BV1','BV2','BV3','BV4','BV5','BV6','BV7','BV8','BV9','BV10','volume','amount','highLimit','lowLimit','dailyOpen','dailyPreClose','transactions_count','weightedAvgBid','weightedAvgAsk','total_bid_size','total_ask_size','tradeStatus']]
+        mydata=mydata[((mydata['time']>='092500000') & (mydata['time']<='113000000'))| ((mydata['time']>='130000000')&(mydata['time']<='150000000'))]
+        mydata['mytime']=pd.to_datetime(mydata['date']+mydata['time'],format='%Y%m%d%H%M%S%f')
         mydata.set_index('mytime',inplace=True,drop=True)
         #计算mid价格
         select=(mydata['BV1']>0) & (mydata['SV1']>0)

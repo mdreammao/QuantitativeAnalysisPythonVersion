@@ -61,10 +61,8 @@ def main():
 
     warnings.filterwarnings('ignore')
     logger.info(f'compute start!!!')
-    startDate=20180401
-    endDate=20190610
-    testStart=20190605
-    testEnd=20190610
+    startDate=20160101
+    endDate=20160110
 
 
 

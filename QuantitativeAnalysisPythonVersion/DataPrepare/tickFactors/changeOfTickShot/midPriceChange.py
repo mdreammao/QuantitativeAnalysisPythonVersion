@@ -52,7 +52,7 @@ class midPriceChange(factorBase):
         pass
     #----------------------------------------------------------------------
     def __midSpeed(self,data,span,period):
-        result=data[['tick','midPrice']].copy()
+        result=data[['time','midPrice']].copy()
         result['EMAMidPrice']=super().EMA(data['midPrice'],span)
         result['speed']=(result['EMAMidPrice']/result['EMAMidPrice'].shift(period)-1)/(period/20)
         select=result['speed'].isna()
@@ -71,13 +71,13 @@ class midPriceChange(factorBase):
         pass
     #-----------------------------------------------------------------------
     def __CrossPoint(self,data,fast,low):
-        result=data[['tick','midPrice']].copy()
+        result=data[['time','midPrice']].copy()
         result['midEMAFast']=super().EMA(result['midPrice'],fast)
         result['midEMALow']=super().EMA(result['midPrice'],low)
         result['cross']=0
-        select=(result['midEMAFast']>result['midEMALow']) & (result['midEMAFast'].shift(1)<=result['midEMALow'].shift(1)) & (result['tick']>='09301500000')
+        select=(result['midEMAFast']>result['midEMALow']) & (result['midEMAFast'].shift(1)<=result['midEMALow'].shift(1)) & (result['time']>='09301500000')
         result.loc[select,'cross']=1
-        select=(result['midEMAFast']<result['midEMALow']) & (result['midEMAFast'].shift(1)>=result['midEMALow'].shift(1))& (result['tick']>='09301500000')
+        select=(result['midEMAFast']<result['midEMALow']) & (result['midEMAFast'].shift(1)>=result['midEMALow'].shift(1))& (result['time']>='09301500000')
         result.loc[select,'cross']=-1
         cross=result['cross'].values
         mid=result['midPrice'].values
@@ -141,7 +141,7 @@ class midPriceChange(factorBase):
     def computerFactor(self,code,date,mydata):
         result=pd.DataFrame()
         if mydata.shape[0]!=0:
-            result=mydata[['midPrice','amount','volume','tick','amountIncrease']].copy()
+            result=mydata[['midPrice','amount','volume','time','amountIncrease']].copy()
             result['midPrice'].fillna(method='ffill',inplace=True)
             #----------------------------------------------------------------------
             #计算mid价格的涨跌
@@ -199,7 +199,7 @@ class midPriceChange(factorBase):
             result.loc[select,'midStd60']=0
             #------------------------------------------------------------------
             #剔除14点57分之后，集合竞价的数据
-            result=result[result['tick']<'145700000']
+            result=result[result['time']<'145700000']
             mycolumns=list(set(result.columns).difference(set(mydata.columns)))
             mycolumns.sort()
             result=result[mycolumns]
