@@ -72,11 +72,11 @@ class myAnalysisForFactorsByDate(object):
         myfactor=tickFactorsProcess()
         for day in tradedays:
             data=myfactor.parallelizationGetDataByDate(codeList,day)
-            data=data[(data['time']>='093000000') & (data['time']<'145700000')]
-            tickColumns=[ 'code', 'date', 'time', 'lastPrice', 'S1', 'S2','S3', 'S4', 'S5', 'S6', 'S7','S8', 'S9', 'S10', 'B1', 'B2', 'B3', 'B4','B5', 'B6', 'B7', 'B8', 'B9', 'B10', 'SV1', 'SV2', 'SV3', 'SV4', 'SV5','SV6', 'SV7', 'SV8', 'SV9', 'SV10', 'BV1', 'BV2', 'BV3', 'BV4', 'BV5','BV6', 'BV7', 'BV8', 'BV9', 'BV10', 'volume', 'amount','volumeIncrease', 'amountIncrease', 'midPrice']
+            data=data[(data['tick']>='093000000') & (data['tick']<'145700000')]
+            tickColumns=[ 'code', 'date', 'tick', 'lastPrice', 'S1', 'S2','S3', 'S4', 'S5', 'S6', 'S7','S8', 'S9', 'S10', 'B1', 'B2', 'B3', 'B4','B5', 'B6', 'B7', 'B8', 'B9', 'B10', 'SV1', 'SV2', 'SV3', 'SV4', 'SV5','SV6', 'SV7', 'SV8', 'SV9', 'SV10', 'BV1', 'BV2', 'BV3', 'BV4', 'BV5','BV6', 'BV7', 'BV8', 'BV9', 'BV10', 'volume', 'amount','volumeIncrease', 'amountIncrease', 'midPrice']
             #dailyColumns=['increaseToday','closeStd20','ts_closeStd20','preClose','is300','is500']
             mycolumns=list(set(data.columns).difference(set(tickColumns)))
-            mycolumns=mycolumns+['code', 'date', 'time']
+            mycolumns=mycolumns+['code', 'date', 'tick']
             data=data[mycolumns]
             #print(data.shape)
             errorData=data[data[mycolumns].isna().sum(axis=1)>0]

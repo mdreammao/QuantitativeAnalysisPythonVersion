@@ -154,7 +154,7 @@ class gradeStrategy1(baseStrategy):
            B1=tick[myindex['B1']]
            SV1=tick[myindex['SV1']]
            BV1=tick[myindex['BV1']]
-           time=tick[myindex['time']]
+           time=tick[myindex['tick']]
            date=tick[myindex['date']]
            if (unusedPosition>0) &  (time<'145000000'):#仍然可以开仓
                if (maxPredict>0.01) & (minPredict>-0.005) & (SV1>=100/transactionRatio):
@@ -164,7 +164,7 @@ class gradeStrategy1(baseStrategy):
                    transactionPrice=S1
                    transactionTime=time
                    transactionDate=date
-                   dict={'date':transactionDate,'time':transactionTime,'direction':'buy','volume':transactionVolume,'price':transactionPrice}
+                   dict={'date':transactionDate,'tick':transactionTime,'direction':'buy','volume':transactionVolume,'price':transactionPrice}
                    trade.append(dict)
                    pass
                elif (maxPredict<0.004) & (minPredict<-0.008) & (BV1>=100/transactionRatio):
@@ -174,7 +174,7 @@ class gradeStrategy1(baseStrategy):
                    transactionPrice=B1
                    transactionTime=time
                    transactionDate=date
-                   dict={'date':transactionDate,'time':transactionTime,'direction':'sell','volume':transactionVolume,'price':transactionPrice}
+                   dict={'date':transactionDate,'tick':transactionTime,'direction':'sell','volume':transactionVolume,'price':transactionPrice}
                    trade.append(dict)
                    pass
            if todayPosition!=0:
@@ -186,7 +186,7 @@ class gradeStrategy1(baseStrategy):
                        transactionPrice=averagePrice
                        transactionTime=time
                        transactionDate=date
-                       dict={'date':transactionDate,'time':transactionTime,'direction':'sell','volume':transactionVolume,'price':transactionPrice}
+                       dict={'date':transactionDate,'tick':transactionTime,'direction':'sell','volume':transactionVolume,'price':transactionPrice}
                        trade.append(dict)
                        pass
                    pass
@@ -198,7 +198,7 @@ class gradeStrategy1(baseStrategy):
                        transactionPrice=averagePrice
                        transactionTime=time
                        transactionDate=date
-                       dict={'date':transactionDate,'time':transactionTime,'direction':'buy','volume':transactionVolume,'price':transactionPrice}
+                       dict={'date':transactionDate,'tick':transactionTime,'direction':'buy','volume':transactionVolume,'price':transactionPrice}
                        trade.append(dict)
                        pass
                    pass

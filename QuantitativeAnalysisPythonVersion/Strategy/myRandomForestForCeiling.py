@@ -49,7 +49,7 @@ class myRandomForestForCeiling(object):
     def myRandomForest(self,target):
         train=self.__getMyData()
         
-        featureNames=['time','increase5m', 'increase1m', 
+        featureNames=['tick','increase5m', 'increase1m', 
        'ceilingYesterday', 'ceilingYesterday2', 'ceilingIn5Days',
        'increaseInDay']
         x_columns=[x for x in train.columns if x in featureNames]

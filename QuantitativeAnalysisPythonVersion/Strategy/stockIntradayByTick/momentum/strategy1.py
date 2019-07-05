@@ -29,7 +29,7 @@ class strategyBreak(object):
     def singleCode(self,code,startDate,endDate,parameters):
         days=list(TradedayDataProcess().getTradedays(startDate,endDate))
         tick=tickFactorsProcess()
-        select=['code','date','time','B1','S1','midIncreasePrevious3m','closeStd20','ts_closeStd20','ts_buySellForceChange','ts_buySellVolumeRatio5','ts_buySellVolumeRatio2','preClose','increaseToday','weight300','weight500','differenceHighLow']
+        select=['code','date','tick','B1','S1','midIncreasePrevious3m','closeStd20','ts_closeStd20','ts_buySellForceChange','ts_buySellVolumeRatio5','ts_buySellVolumeRatio2','preClose','increaseToday','weight300','weight500','differenceHighLow']
         trade=[]
         for day in days:
             data=tick.getTickDataAndFactorsByDateFromLocalFile(code,day)
@@ -56,7 +56,7 @@ class strategyBreak(object):
         dict={}
         for i in range(len(mydata)):
             mytick=mydata[i]
-            mytime=mytick[myindex['time']]
+            mytime=mytick[myindex['tick']]
             increaseToday=mytick[myindex['increaseToday']]
             weight300=mytick[myindex['weight300']]
             weight500=mytick[myindex['weight500']]

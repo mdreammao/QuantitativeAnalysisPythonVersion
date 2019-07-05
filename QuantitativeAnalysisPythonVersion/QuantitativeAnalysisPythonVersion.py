@@ -41,7 +41,7 @@ def main():
     """主程序入口"""
     '''
     #industry=IndustryClassification.getIndustryByCode('600251.SH',startDate,endDate)
-    #m.xs(m[(((m['open']<m['open'][0]) & (m['time']<='0800'))|(m['time']=='1500')) & (m['date']==m['date'][0])].index[0])
+    #m.xs(m[(((m['open']<m['open'][0]) & (m['tick']<='0800'))|(m['tick']=='1500')) & (m['date']==m['date'][0])].index[0])
     #mselect=m[(m['open'].shift(1)<m['yesterdayClose']*(1+parameter*m['closeStd20'])) & (m['open']>m['yesterdayClose']*(1+parameter*m['closeStd20']))]
     #mselect=mselect.dropna(axis=0,how='any')
     #myindex=IndexComponentDataProcess()
@@ -53,7 +53,7 @@ def main():
     '''
     #性能分析代码
     #python -m cProfile -o del.out XXX.py
-    #python -c "import pstats; p=pstats.Stats('del.out'); p.sort_stats('time').print_stats(20)"
+    #python -c "import pstats; p=pstats.Stats('del.out'); p.sort_stats('tick').print_stats(20)"
 
     '''
     
@@ -76,7 +76,7 @@ def main():
     #----------------------------------------------------------------------
     stockCodes=['000001.SZ']
     UpdateBasicData.updateMultipleStocksTickShots(stockCodes,startDate,endDate)
-    UpdateBasicData.updateMultipleStocksTickFactors(stockCodes,startDate,endDate)
+    #UpdateBasicData.updateMultipleStocksTickFactors(stockCodes,startDate,endDate)
     #tick=tickDataPrepared()
     #tick.saveAllFactorsToInfluxdbByCodeAndDay('000001.SZ',20190105)
     pass

@@ -96,7 +96,7 @@ class stockReverseByStd(object):
             m.loc[m['canSell']==1,'canSellPriceAdj']=m.loc[m['canSell']==1,'adjFactor']
             m['canSellPrice']=m['canSellPrice'].fillna(method='bfill')
             m['canSellPriceAdj']=m['canSellPriceAdj'].fillna(method='bfill')
-            m['timeStamp']=m['date']+m['time']
+            m['timeStamp']=m['date']+m['tick']
             mselect=m.set_index(['timeStamp','code'])
             store.append(code,mselect,append=False,format="table")
             pass
@@ -232,16 +232,16 @@ class stockReverseByStd(object):
             mydata=store.select(code)
             mydata=mydata[(mydata['date']>=startDate) & (mydata['date']<=endDate)]
             mydata.reset_index(drop=False,inplace=True)
-            mycolumns=['date', 'time','increaseInDay','closeStd20','open','adjFactor','canBuy', 'canSell', 'canBuyPrice', 'canSellPrice', 'amount','increase5m','increase1m','yesterdayClose',     'industry','is50','is300','is500','freeShares', 'freeMarketValue','ts_rank_closeStd20','rankMarketValue','canBuyPriceAdj','canSellPriceAdj']
+            mycolumns=['date', 'tick','increaseInDay','closeStd20','open','adjFactor','canBuy', 'canSell', 'canBuyPrice', 'canSellPrice', 'amount','increase5m','increase1m','yesterdayClose',     'industry','is50','is300','is500','freeShares', 'freeMarketValue','ts_rank_closeStd20','rankMarketValue','canBuyPriceAdj','canSellPriceAdj']
             m=mydata[mycolumns]
             m['industry']=m['industry'].fillna(method='ffill')
             m['industry']=m['industry'].fillna(method='bfill')
             m.dropna(inplace=True,subset=['increase5m','increase1m','closeStd20','ts_rank_closeStd20'])
-            m[['date','time','industry']]=m[['date','time','industry']].astype(np.int64)
+            m[['date','tick','industry']]=m[['date','tick','industry']].astype(np.int64)
             m=m.as_matrix()
             result=mytransaction(m,days,2.5)
-            result=pd.DataFrame(data=result,columns=['date', 'time','increaseInDay','closeStd20','open','adjFactor','canBuy', 'canSell', 'canBuyPrice', 'canSellPrice', 'amount','increase5m','increase1m','yesterdayClose',     'industry','is50','is300','is500','freeShares', 'freeMarketValue','ts_rank_closeStd20','rankMarketValue','position','closeDate','closeTime','closePrice','feeRate','return','canBuyPriceAdj','canSellPriceAdj'])
-            result[['date', 'time','canBuy', 'canSell',     'industry','is50','is300','is500','position','closeDate','closeTime']]=result[['date', 'time','canBuy', 'canSell','industry','is50','is300','is500','position','closeDate','closeTime']].astype(int)
+            result=pd.DataFrame(data=result,columns=['date', 'tick','increaseInDay','closeStd20','open','adjFactor','canBuy', 'canSell', 'canBuyPrice', 'canSellPrice', 'amount','increase5m','increase1m','yesterdayClose',     'industry','is50','is300','is500','freeShares', 'freeMarketValue','ts_rank_closeStd20','rankMarketValue','position','closeDate','closeTime','closePrice','feeRate','return','canBuyPriceAdj','canSellPriceAdj'])
+            result[['date', 'tick','canBuy', 'canSell',     'industry','is50','is300','is500','position','closeDate','closeTime']]=result[['date', 'tick','canBuy', 'canSell','industry','is50','is300','is500','position','closeDate','closeTime']].astype(int)
             result['code']=code
             #resultAll=resultAll.append(result)
             #storeResult.append(code,result,append=False,format="table")

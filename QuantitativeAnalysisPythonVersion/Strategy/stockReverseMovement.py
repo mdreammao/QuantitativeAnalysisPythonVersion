@@ -64,7 +64,7 @@ class stockReverseMovement(object):
             m['maxLossInNext5m']=round((m['low'].shift(-5).rolling(5).min()-m['open'])/m['open']-1,2)
             m['ceilingInNext10m']=m['ceiling'].shift(-10).rolling(10).max()
             m['maxLossInNext10m']=round((m['low'].shift(-10).rolling(10).min()-m['open'])/m['open']-1,2)
-            m[m['time']>'1450']['ceilingInNext5m','maxLossInNext5m','ceilingInNext10m','maxLossInNext10m']=None
+            m[m['minute']>'1450']['ceilingInNext5m','maxLossInNext5m','ceilingInNext10m','maxLossInNext10m']=None
             mselect=m[(m['increaseInDay']>0.07) & (m['increaseInDay']<0.08)]
             mselect=mselect.dropna(axis=0,how='any')
             self.__allMinute=self.__allMinute.append(mselect)
@@ -86,7 +86,7 @@ class stockReverseMovement(object):
         self.tradeDays=TradedayDataProcess.getTradedays(startDate,endDate)
         self.__dataPrepared()
         store = pd.HDFStore(self.__localFileStr,'a')
-        store.append('ceiling',self.__allMinute,append=False,format="table",data_columns=['code', 'date', 'time', 'open', 'high', 'low', 'close', 'volume',
+        store.append('ceiling',self.__allMinute,append=False,format="table",data_columns=['code', 'date', 'minute', 'open', 'high', 'low', 'close', 'volume',
        'amount', 'increase5m', 'increase1m', 'yesterdayClose',
        'ceilingYesterday', 'ceilingYesterday2', 'ceilingIn5Days',
        'increaseInDay', 'ceiling', 'ceilingInNext5m', 'ceilingInNext10m','maxLossInNext5m','maxLossInNext10m'])

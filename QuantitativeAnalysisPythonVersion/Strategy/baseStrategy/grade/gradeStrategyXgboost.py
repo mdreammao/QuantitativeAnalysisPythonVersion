@@ -158,7 +158,7 @@ class gradeStrategyXgboost(baseStrategy):
            B1=tick[myindex['B1']]
            SV1=tick[myindex['SV1']]
            BV1=tick[myindex['BV1']]
-           time=tick[myindex['time']]
+           time=tick[myindex['tick']]
            date=tick[myindex['date']]
            increaseToday=tick[myindex['increaseToday']]
            #止盈止损
@@ -182,7 +182,7 @@ class gradeStrategyXgboost(baseStrategy):
                    transactionPrice=S1
                    transactionTime=time
                    transactionDate=date
-                   dict={'date':transactionDate,'time':transactionTime,'direction':'buy','volume':transactionVolume,'price':transactionPrice}
+                   dict={'date':transactionDate,'tick':transactionTime,'direction':'buy','volume':transactionVolume,'price':transactionPrice}
                    trade.append(dict)
                    if openPrice==0:
                        openPrice=transactionPrice
@@ -194,7 +194,7 @@ class gradeStrategyXgboost(baseStrategy):
                    transactionPrice=B1
                    transactionTime=time
                    transactionDate=date
-                   dict={'date':transactionDate,'time':transactionTime,'direction':'sell','volume':transactionVolume,'price':transactionPrice}
+                   dict={'date':transactionDate,'tick':transactionTime,'direction':'sell','volume':transactionVolume,'price':transactionPrice}
                    trade.append(dict)
                    if openPrice==0:
                        openPrice=transactionPrice
@@ -208,7 +208,7 @@ class gradeStrategyXgboost(baseStrategy):
                        transactionPrice=averagePrice
                        transactionTime=time
                        transactionDate=date
-                       dict={'date':transactionDate,'time':transactionTime,'direction':'sell','volume':transactionVolume,'price':transactionPrice}
+                       dict={'date':transactionDate,'tick':transactionTime,'direction':'sell','volume':transactionVolume,'price':transactionPrice}
                        trade.append(dict)
                        if todayPosition==0:
                            openPrice==0
@@ -223,7 +223,7 @@ class gradeStrategyXgboost(baseStrategy):
                        transactionPrice=averagePrice
                        transactionTime=time
                        transactionDate=date
-                       dict={'date':transactionDate,'time':transactionTime,'direction':'buy','volume':transactionVolume,'price':transactionPrice}
+                       dict={'date':transactionDate,'tick':transactionTime,'direction':'buy','volume':transactionVolume,'price':transactionPrice}
                        trade.append(dict)
                        if todayPosition==0:
                            openPrice==0

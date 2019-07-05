@@ -57,6 +57,7 @@ OracleServer={
     }
 
 #infludexdb连接字符串
+'''
 InfluxdbServer={
     'host':'172.17.58.71',
     'port':8086,
@@ -64,8 +65,8 @@ InfluxdbServer={
     'password':'root',
     'database':''
     }
-
-InfluxdbServerInternet={
+'''
+InfluxdbServer={
     'host':'192.168.58.71',
     'port':8086,
     'username':'root', 
@@ -75,7 +76,7 @@ InfluxdbServerInternet={
 
 #本地文件存储地址
 LocalFileAddress=r'D:/BTP/LocalDataBase'
-LocalFileAddress=r'/home/public/mao/BTP/LocalDataBase'
+#LocalFileAddress=r'/home/public/mao/BTP/LocalDataBase'
 #ROOT_PATH = '/home/orientsec38/QuantitativeAnalysisPythonVersion/QuantitativeAnalysisPythonVersion/BTP'
 
 #LocalFileAddress=os.path.join(ROOT_PATH, 'LocalDataBase')

@@ -87,8 +87,8 @@ class tickDataPrepared(object):
         mydata['increaseToday']=mydata['midPrice']/mydata['preClose']-1
         ceiling=mydata[(mydata['B1']==0) | (mydata['S1']==0)]
         if ceiling.shape[0]>0:
-            ceilingTime=ceiling['time'].iloc[0]
-            mydata=mydata[mydata['time']<ceilingTime]
+            ceilingTime=ceiling['tick'].iloc[0]
+            mydata=mydata[mydata['tick']<ceilingTime]
             pass
         
         return mydata
@@ -146,16 +146,16 @@ class tickDataPrepared(object):
                 else:
                     mydata=pd.merge(mydata,factorData,how='left',left_index=True,right_index=True)
         #合并tick行情数据
-        mydata=pd.merge(mydata,data[['code','date','time','midPrice','realData','dailyPreClose','dailyOpen','B1','S1','BV1','SV1']],how='left',left_index=True,right_index=True)
+        mydata=pd.merge(mydata,data[['code','date','tick','midPrice','realData','dailyPreClose','dailyOpen','B1','S1','BV1','SV1']],how='left',left_index=True,right_index=True)
         if mydata.shape[0]==0:
             return 
         mydata['increaseToday']=mydata['midPrice']/mydata['dailyPreClose']-1
-        mydata=mydata[mydata['time']<'145700000']
+        mydata=mydata[mydata['tick']<'145700000']
         #删去涨跌停之后的数据
         ceiling=mydata[(mydata['B1']==0) | (mydata['S1']==0)]
         if ceiling.shape[0]>0:
-            ceilingTime=ceiling['time'].iloc[0]
-            mydata=mydata[mydata['time']<ceilingTime]
+            ceilingTime=ceiling['tick'].iloc[0]
+            mydata=mydata[mydata['tick']<ceilingTime]
             pass
         if mydata.shape[0]==0:
             return
@@ -193,12 +193,12 @@ class tickDataPrepared(object):
         dailyKLineData=dailyKLineRepo.getDataByDate(code,date,date)
         mydata['preClose']=dailyKLineData['preClose'].iloc[0]
         mydata['increaseToday']=mydata['midPrice']/mydata['preClose']-1
-        mydata=mydata[mydata['time']<'145700000']
+        mydata=mydata[mydata['tick']<'145700000']
         #删去涨跌停之后的数据
         ceiling=mydata[(mydata['B1']==0) | (mydata['S1']==0)]
         if ceiling.shape[0]>0:
-            ceilingTime=ceiling['time'].iloc[0]
-            mydata=mydata[mydata['time']<ceilingTime]
+            ceilingTime=ceiling['tick'].iloc[0]
+            mydata=mydata[mydata['tick']<ceilingTime]
             pass
         excludedColumns=['preClose','buyVolume2','buyVolume5','buyVolume10','sellVolume2','sellVolume5','sellVolume10']
         mycolumns=list(set(mydata.columns).difference(set(list(tickData.columns)+excludedColumns)))
@@ -241,10 +241,10 @@ class tickDataPrepared(object):
         tradedays=TradedayDataProcess.getTradedays(startDate,endDate)
         for day in tradedays:
             data=self.parallelizationGetDataByDate(codeList,day)
-            data=data[(data['time']>='093000000') & (data['time']<'145700000')]
-            tickColumns=[ 'code', 'date', 'time', 'lastPrice', 'S1', 'S2','S3', 'S4', 'S5', 'S6', 'S7','S8', 'S9', 'S10', 'B1', 'B2', 'B3', 'B4','B5', 'B6', 'B7', 'B8', 'B9', 'B10', 'SV1', 'SV2', 'SV3', 'SV4', 'SV5','SV6', 'SV7', 'SV8', 'SV9', 'SV10', 'BV1', 'BV2', 'BV3', 'BV4', 'BV5','BV6', 'BV7', 'BV8', 'BV9', 'BV10', 'volume', 'amount','volumeIncrease', 'amountIncrease', 'midPrice']
+            data=data[(data['tick']>='093000000') & (data['tick']<'145700000')]
+            tickColumns=[ 'code', 'date', 'tick', 'lastPrice', 'S1', 'S2','S3', 'S4', 'S5', 'S6', 'S7','S8', 'S9', 'S10', 'B1', 'B2', 'B3', 'B4','B5', 'B6', 'B7', 'B8', 'B9', 'B10', 'SV1', 'SV2', 'SV3', 'SV4', 'SV5','SV6', 'SV7', 'SV8', 'SV9', 'SV10', 'BV1', 'BV2', 'BV3', 'BV4', 'BV5','BV6', 'BV7', 'BV8', 'BV9', 'BV10', 'volume', 'amount','volumeIncrease', 'amountIncrease', 'midPrice']
             mycolumns=list(set(data.columns).difference(set(tickColumns)))
-            mycolumns=mycolumns+['code', 'date', 'time']
+            mycolumns=mycolumns+['code', 'date', 'tick']
             excludedColumns=['midIncreaseNext1m','midIncreaseNext2m','midIncreaseNext5m','midIncreaseMaxNext1m','midIncreaseMinNext1m','midIncreaseMaxNext2m','midIncreaseMinNext2m','midIncreaseMaxNext5m','midIncreaseMinNext5m','weight50','weight300','weight500','freeMarketValue']
             featuresColumns=list(set(mycolumns).difference(set(excludedColumns)))
             data=data[mycolumns]

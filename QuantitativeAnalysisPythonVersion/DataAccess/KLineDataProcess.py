@@ -233,15 +233,15 @@ class KLineDataProcess(object):
         connect=pymssql.connect( self.address,self.user,self.password,database,charset='utf8')
         cursor = connect.cursor()
         if startDate==EMPTY_STRING:
-             sql = "SELECT [stkcd] as [code], [tdate] as [date],[ttime] as [time],[Open] as [open] ,[High] as [high],[Low] as [low],[Close] as [close] ,[Volume] as [volume],[Amount] as [amount]  FROM [{0}].[dbo].[Min1_{1}] order by [tdate],[ttime]".format(database,code.replace('.','_'))
+             sql = "SELECT [stkcd] as [code], [tdate] as [date],[ttime] as [minute],[Open] as [open] ,[High] as [high],[Low] as [low],[Close] as [close] ,[Volume] as [volume],[Amount] as [amount]  FROM [{0}].[dbo].[Min1_{1}] order by [tdate],[ttime]".format(database,code.replace('.','_'))
         elif endDate==EMPTY_STRING:
-            sql = "SELECT [stkcd] as [code], [tdate] as [date],[ttime] as [time],[Open] as [open] ,[High] as [high],[Low] as [low],[Close] as [close] ,[Volume] as [volume],[Amount] as [amount]  FROM [{0}].[dbo].[Min1_{1}] where [tdate]>={2} order by [tdate],[ttime]".format(database,code.replace('.','_'),startDate)
+            sql = "SELECT [stkcd] as [code], [tdate] as [date],[ttime] as [minute],[Open] as [open] ,[High] as [high],[Low] as [low],[Close] as [close] ,[Volume] as [volume],[Amount] as [amount]  FROM [{0}].[dbo].[Min1_{1}] where [tdate]>={2} order by [tdate],[ttime]".format(database,code.replace('.','_'),startDate)
         else:
-            sql = "SELECT [stkcd] as [code], [tdate] as [date],[ttime] as [time],[Open] as [open] ,[High] as [high],[Low] as [low],[Close] as [close] ,[Volume] as [volume],[Amount] as [amount]  FROM [{0}].[dbo].[Min1_{1}] where [tdate]>={2} and [tdate]<={3} order by [tdate],[ttime]".format(database,code.replace('.','_'),startDate,endDate)
+            sql = "SELECT [stkcd] as [code], [tdate] as [date],[ttime] as [minute],[Open] as [open] ,[High] as [high],[Low] as [low],[Close] as [close] ,[Volume] as [volume],[Amount] as [amount]  FROM [{0}].[dbo].[Min1_{1}] where [tdate]>={2} and [tdate]<={3} order by [tdate],[ttime]".format(database,code.replace('.','_'),startDate,endDate)
             
         cursor.execute(sql)
         mydata=cursor.fetchall()
-        mydata = pd.DataFrame(mydata,columns=['code' ,'date','time' ,'open' ,'high','low','close' ,'volume' ,'amount'])
+        mydata = pd.DataFrame(mydata,columns=['code' ,'date','minute' ,'open' ,'high','low','close' ,'volume' ,'amount'])
         mydata[['open','high','low','close','volume','amount']] = mydata[['open','high','low','close','volume','amount']].astype('float')
         return mydata    
         

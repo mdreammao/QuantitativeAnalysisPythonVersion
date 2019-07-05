@@ -86,7 +86,7 @@ class stockMomentumByStd(object):
             m.loc[m['canSell']==1,'canSellPriceAdj']=m.loc[m['canSell']==1,'adjFactor']
             m['canSellPrice']=m['canSellPrice'].fillna(method='bfill')
             m['canSellPriceAdj']=m['canSellPriceAdj'].fillna(method='bfill')
-            m['timeStamp']=m['date']+m['time']
+            m['timeStamp']=m['date']+m['tick']
             #日内分钟信息
             #成交量在前20分钟的分位数
             m['ts_rank_volume']=m['volume'].shift(1).rolling(20,min_periods=15).apply((lambda x:pd.Series(x).rank().iloc[-1]/len(x)),raw=True)
@@ -243,16 +243,16 @@ class stockMomentumByStd(object):
             mydata=store.select(code)
             mydata=mydata[(mydata['date']>=startDate) & (mydata['date']<=endDate)]
             mydata.reset_index(drop=False,inplace=True)
-            mycolumns=['date', 'time','increaseInDay','closeStd20','open','adjFactor','canBuy', 'canSell', 'canBuyPrice', 'canSellPrice', 'amount','increase5m','increase1m','yesterdayClose',     'industry','is50','is300','is500','freeShares', 'freeMarketValue','ts_rank_closeStd20','rankMarketValue','canBuyPriceAdj','canSellPriceAdj','ts_rank_volume','minuteStd20','ts_rank_minuteStd20']
+            mycolumns=['date', 'tick','increaseInDay','closeStd20','open','adjFactor','canBuy', 'canSell', 'canBuyPrice', 'canSellPrice', 'amount','increase5m','increase1m','yesterdayClose',     'industry','is50','is300','is500','freeShares', 'freeMarketValue','ts_rank_closeStd20','rankMarketValue','canBuyPriceAdj','canSellPriceAdj','ts_rank_volume','minuteStd20','ts_rank_minuteStd20']
             m=mydata[mycolumns]
             m['industry']=m['industry'].fillna(method='ffill')
             m['industry']=m['industry'].fillna(method='bfill')
             m.dropna(inplace=True,subset=['increase5m','increase1m','closeStd20','ts_rank_closeStd20'])
-            m[['date','time','industry']]=m[['date','time','industry']].astype(np.int64)
+            m[['date','tick','industry']]=m[['date','tick','industry']].astype(np.int64)
             m=m.as_matrix()
             result=mytransaction(m,10*days,1)
-            result=pd.DataFrame(data=result,columns=['date', 'time','increaseInDay','closeStd20','open','adjFactor','canBuy', 'canSell', 'canBuyPrice', 'canSellPrice', 'amount','increase5m','increase1m','yesterdayClose',     'industry','is50','is300','is500','freeShares', 'freeMarketValue','ts_rank_closeStd20','rankMarketValue','position','closeDate','closeTime','closePrice','feeRate','return','canBuyPriceAdj','canSellPriceAdj','ts_rank_volume','minuteStd20','ts_rank_minuteStd20'])
-            result[['date', 'time','canBuy', 'canSell',     'industry','is50','is300','is500','position','closeDate','closeTime']]=result[['date', 'time','canBuy', 'canSell','industry','is50','is300','is500','position','closeDate','closeTime']].astype(int)
+            result=pd.DataFrame(data=result,columns=['date', 'tick','increaseInDay','closeStd20','open','adjFactor','canBuy', 'canSell', 'canBuyPrice', 'canSellPrice', 'amount','increase5m','increase1m','yesterdayClose',     'industry','is50','is300','is500','freeShares', 'freeMarketValue','ts_rank_closeStd20','rankMarketValue','position','closeDate','closeTime','closePrice','feeRate','return','canBuyPriceAdj','canSellPriceAdj','ts_rank_volume','minuteStd20','ts_rank_minuteStd20'])
+            result[['date', 'tick','canBuy', 'canSell',     'industry','is50','is300','is500','position','closeDate','closeTime']]=result[['date', 'tick','canBuy', 'canSell','industry','is50','is300','is500','position','closeDate','closeTime']].astype(int)
             result['code']=code
             #resultAll=resultAll.append(result)
             #storeResult.append(code,result,append=False,format="table")

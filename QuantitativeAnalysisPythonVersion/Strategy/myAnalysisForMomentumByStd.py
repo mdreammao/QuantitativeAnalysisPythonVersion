@@ -85,7 +85,7 @@ class myAnalysisForMomentumByStd(object):
             if len(todayData)==0:
                 pass
             else:
-                myfirst=todayData.sort_values('time').head(numbers)
+                myfirst=todayData.sort_values('tick').head(numbers)
                 n=myfirst.shape[0]
                 cash=cash+cashUnit*n*(myfirst['return'].mean()-0.004)
                 pass
@@ -134,7 +134,7 @@ class myAnalysisForMomentumByStd(object):
             store.put("all",mydata,append=False,format='table')
             store.close()
 
-        mydata=mydata[['code','date', 'time','closeDate', 'closeTime', 'feeRate', 'return','increaseInDay', 'closeStd20','amount',
+        mydata=mydata[['code','date', 'tick','closeDate', 'closeTime', 'feeRate', 'return','increaseInDay', 'closeStd20','amount',
        'increase5m', 'increase1m', 'industry', 'is50',
        'is300', 'is500', 'ts_rank_closeStd20',
        'rankMarketValue', 'position',  'open','closePrice','canBuy','canSell','canBuyPrice','canSellPrice','ts_rank_volume','minuteStd20','ts_rank_minuteStd20'

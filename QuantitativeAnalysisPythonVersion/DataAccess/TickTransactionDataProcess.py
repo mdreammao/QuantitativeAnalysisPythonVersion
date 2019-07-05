@@ -91,10 +91,10 @@ class TickTransactionDataProcess(object):
         sql="select [stkcd],rtrim([tradeDate]),rtrim([tradeTime]),[tradeIndex],[tradePrice],[tradeVolume] FROM [{0}].[dbo].[{1}] where [tradeDate]={2} and ((left(rtrim(tradeTime),6)>=91500 and left(rtrim(tradeTime),6)<=113000) or (left(rtrim(tradeTime),6)>=130000 and left(rtrim(tradeTime),6)<=150000)) order by tradeTime".format(database,table,date)
         cursor.execute(sql)
         mydata=cursor.fetchall()
-        mydata = pd.DataFrame(mydata,columns=['code' ,'date','time' ,'tradeIndex','tradePrice','tradeVolume'])
+        mydata = pd.DataFrame(mydata,columns=['code' ,'date','tick' ,'tradeIndex','tradePrice','tradeVolume'])
         mydata[['tradePrice']] = mydata[['tradePrice']].astype('float')
         mydata[['tradeIndex','tradeVolume']] = mydata[['tradeIndex','tradeVolume']].astype('int')
-        mydata['mytime']=pd.to_datetime(mydata['date']+mydata['time'],format='%Y%m%d%H%M%S%f')
+        mydata['mytime']=pd.to_datetime(mydata['date']+mydata['tick'],format='%Y%m%d%H%M%S%f')
         mydata.set_index('mytime',inplace=True,drop=True)
         return mydata    
         pass
